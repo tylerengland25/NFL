@@ -105,6 +105,75 @@ def scrape_season(year):
     return season_stats
 
 
+def convert_poss(time):
+    """
+    Assumes time is minutes and seconds separated by :
+    :param time: String "MM:SS"
+    :return: Integer of seconds of possession
+    """
+    min_sec = time.split(":")
+    mins = int(min_sec[0])
+    secs = int(min_sec[1])
+    return (mins * 60) + secs
+
+
+def aggregate_stats():
+    """
+    :return:
+    """
+    df = pd.read_csv("backend/data/weekly_stats.csv")
+
+    # Convert possession time to seconds
+    df['A_Poss'] = df['A_Poss'].apply(lambda x: convert_poss(x))
+    df['H_Poss'] = df['H_Poss'].apply(lambda x: convert_poss(x))
+
+    df = df.fillna(0)
+
+    # Columns to keep totals on
+    cols = set(df.columns).difference({"Unnamed: 0", "Home", "Away", "Week", "Year"})
+
+    # Total dataframe
+    total_df = pd.DataFrame()
+
+    for season in list(df["Year"].unique()):
+        # season
+        test_df = df[((df["Year"] == season) & (df["Week"] < 17)) |
+                     ((df["Year"] == season + 1) & (df["Week"] >= 17))]
+
+        # Initialize total on season
+        totals = {}
+        for col in cols:
+            if col[0] == "H":
+                col_name = col[2:]
+                totals[col_name] = 0
+            elif col[0] == "A":
+                col_name = "Opp_" + (col[2:])
+                totals[col_name] = 0
+        for team in list(df["Home"].unique()):
+            # team
+            test_df = test_df[(test_df["Home"] == team) | (test_df["Away"] == team)]
+            for index, game in test_df.iterrows():
+                totals["Home"] = game["Home"]
+                totals["Away"] = game["Away"]
+                totals["Week"] = game["Week"]
+                totals["Year"] = game["Year"]
+                total_df = total_df.append(totals, ignore_index=True)
+                if game["Home"] == team:
+                    for stat in cols:
+                        if stat[0] == "H":
+                            totals[stat[2:]] += game[stat]
+                        elif stat[0] == "A":
+                            totals["Opp_" + stat[2:]] += game[stat]
+                elif game["Away"] == team:
+                    for stat in cols:
+                        if stat[0] == "A":
+                            totals[stat[2:]] += game[stat]
+                        elif stat[0] == "H":
+                            totals["Opp_" + stat[2:]] += game[stat]
+
+    total_df.to_csv("backend/data/aggregated_stats.csv")
+
+
 def main():
     ten_years = pd.DataFrame()
     for season in range(2010, 2021):
@@ -113,6 +182,8 @@ def main():
 
     ten_years.to_csv("backend/data/weekly_stats.csv")
 
+    # aggregates stats per season per team
+    aggregate_stats()
 
 
 if __name__ == '__main__':
