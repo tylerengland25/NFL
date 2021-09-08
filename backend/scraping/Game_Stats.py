@@ -26,7 +26,7 @@ def scrape_game(home, visitor, number, week):
                                          "class": "hidden-xs"})
     tables = team_stats.find_all("tbody")
 
-    stats = {"Year": number[:4], "Week": week, "Home": home, "Away": visitor,
+    stats = {"Week": week, "Home": home, "Away": visitor,
              "H_1st": tables[0].find_all("td")[2].text, "A_1st": tables[0].find_all("td")[1].text,
              "H_R_1st": tables[0].find_all("td")[5].text, "A_R_1st": tables[0].find_all("td")[4].text,
              "H_P_1st": tables[0].find_all("td")[8].text, "A_P_1st": tables[0].find_all("td")[7].text,
@@ -91,6 +91,7 @@ def scrape_season(year):
 
     weeks = soup.find_all("tbody")
     for week in range(len(weeks)):
+        print(week)
         games = weeks[week].find_all("tr")
         for game in games:
             link = game.find_all("td")[6].a["href"]
@@ -100,6 +101,7 @@ def scrape_season(year):
             game_stats = scrape_game(home, away, number, week + 1)
             game_stats["H_Score"] = game.find_all("td")[4].text
             game_stats["A_Score"] = game.find_all("td")[2].text
+            game_stats["Year"] = year
             season_stats = season_stats.append(game_stats, ignore_index=True)
 
     return season_stats
@@ -129,7 +131,7 @@ def aggregate_stats():
 
     df = df.fillna(0)
 
-    # Columns to keep totals on
+    # Columns to keep totals on (numerical attributes)
     cols = set(df.columns).difference({"Unnamed: 0", "Home", "Away", "Week", "Year"})
 
     # Total dataframe
@@ -137,46 +139,137 @@ def aggregate_stats():
 
     for season in list(df["Year"].unique()):
         # season
-        test_df = df[((df["Year"] == season) & (df["Week"] < 17)) |
-                     ((df["Year"] == season + 1) & (df["Week"] >= 17))]
+        season_df = df[df["Year"] == season]
+        print("{}: {}".format(season, season_df.shape))
 
-        # Initialize total on season
-        totals = {}
-        for col in cols:
-            if col[0] == "H":
-                col_name = col[2:]
-                totals[col_name] = 0
-            elif col[0] == "A":
-                col_name = "Opp_" + (col[2:])
-                totals[col_name] = 0
-        for team in list(df["Home"].unique()):
+        for team in list(season_df["Home"].unique()):
             # team
-            test_df = test_df[(test_df["Home"] == team) | (test_df["Away"] == team)]
-            for index, game in test_df.iterrows():
+            team_df = season_df[(season_df["Home"] == team) | (season_df["Away"] == team)]
+
+            # Initialize total on season
+            totals = {}
+            for col in cols:
+                totals[col] = 0
+                totals["Opp_" + col] = 0
+            totals["H_Games"] = 0
+            totals["A_Games"] = 0
+
+            for index, game in team_df.iterrows():
+                totals["Team"] = team
                 totals["Home"] = game["Home"]
                 totals["Away"] = game["Away"]
                 totals["Week"] = game["Week"]
                 totals["Year"] = game["Year"]
                 total_df = total_df.append(totals, ignore_index=True)
                 if game["Home"] == team:
+                    totals["H_Games"] += 1
                     for stat in cols:
                         if stat[0] == "H":
-                            totals[stat[2:]] += game[stat]
+                            totals[stat] += game[stat]
                         elif stat[0] == "A":
-                            totals["Opp_" + stat[2:]] += game[stat]
+                            totals["Opp_" + stat] += game[stat]
                 elif game["Away"] == team:
+                    totals["A_Games"] += 1
                     for stat in cols:
                         if stat[0] == "A":
-                            totals[stat[2:]] += game[stat]
+                            totals[stat] += game[stat]
                         elif stat[0] == "H":
-                            totals["Opp_" + stat[2:]] += game[stat]
+                            totals["Opp_" + stat] += game[stat]
 
     total_df.to_csv("backend/data/aggregated_stats.csv")
+
+
+def input_data():
+    # Load and create dataframes
+    agg_df = pd.read_csv("backend/data/aggregated_stats.csv")
+    week_df = pd.read_csv("backend/data/weekly_stats.csv")
+    df = pd.DataFrame()
+
+    # Team info
+    df["Team"] = agg_df["Team"]
+    df["Home"] = agg_df["Home"]
+    df["Away"] = agg_df["Away"]
+    df["Year"] = agg_df["Year"]
+    df["Week"] = agg_df["Week"]
+    # Points scored per game (Home/Away)
+    df["H_pts_per_game_scored"] = agg_df["H_Score"].divide(agg_df["H_Games"])
+    df["A_pts_per_game_scored"] = agg_df["A_Score"].divide(agg_df["A_Games"])
+    # Points allowed per game (Home/Away)
+    df["H_pts_per_game_allowed"] = agg_df["Opp_A_Score"].divide(agg_df["H_Games"])
+    df["A_pts_per_game_allowed"] = agg_df["Opp_H_Score"].divide(agg_df["A_Games"])
+    # Yards gained per game (Home/Away)
+    df["H_yds_per_game_gained"] = agg_df["H_Total_Y"].divide(agg_df["H_Games"])
+    df["A_yds_per_game_gained"] = agg_df["A_Total_Y"].divide(agg_df["A_Games"])
+    # Yards allowed per game (Home/Away)
+    df["H_yds_per_game_allowed"] = agg_df["Opp_A_Total_Y"].divide(agg_df["H_Games"])
+    df["A_yds_per_game_allowed"] = agg_df["Opp_H_Total_Y"].divide(agg_df["A_Games"])
+    # Yards per point scored (Home/Away)
+    df["H_yds_per_point_scored"] = agg_df["H_Total_Y"].divide(agg_df["H_Score"])
+    df["A_yds_per_point_scored"] = agg_df["A_Total_Y"].divide(agg_df["A_Score"])
+    # Yards per point allowed (Home/Away)
+    df["H_yds_per_point_allowed"] = agg_df["Opp_A_Total_Y"].divide(agg_df["Opp_A_Score"])
+    df["A_yds_per_point_allowed"] = agg_df["Opp_H_Total_Y"].divide(agg_df["Opp_H_Score"])
+    # Yards per play by offense (Home/Away)
+    df["H_yds_per_ply_gained"] = agg_df["H_Total_Y"].divide(agg_df["H_Total_Ply"])
+    df["A_yds_per_ply_gained"] = agg_df["A_Total_Y"].divide(agg_df["A_Total_Ply"])
+    # Yards per play allowed by defense (Home/Away)
+    df["H_yds_per_ply_allowed"] = agg_df["Opp_A_Total_Y"].divide(agg_df["Opp_A_Total_Ply"])
+    df["A_yds_per_ply_allowed"] = agg_df["Opp_H_Total_Y"].divide(agg_df["Opp_H_Total_Ply"])
+    # Sacks allowed per play (Home/Away)
+    df["H_sacks_per_ply_allowed"] = agg_df["Opp_A_Sacks"].divide(agg_df["H_Total_Ply"])
+    df["A_sacks_per_ply_allowed"] = agg_df["Opp_H_Sacks"].divide(agg_df["A_Total_Ply"])
+    # Sacks per play by defense (Home/Away)
+    df["H_sacks_per_ply"] = agg_df["H_Sacks"].divide(agg_df["Opp_A_Total_Ply"])
+    df["A_sacks_per_ply"] = agg_df["A_Sacks"].divide(agg_df["Opp_H_Total_Ply"])
+    # Interceptions per play by defense (Home/Away)
+    df["H_int_per_ply"] = agg_df["H_Int"].divide(agg_df["Opp_A_Total_Ply"])
+    df["A_int_per_Ply"] = agg_df["A_Int"].divide(agg_df["Opp_H_Total_Ply"])
+    # Interceptions thrown per play (Home/Away)
+    df["H_int_per_ply_thrown"] = agg_df["Opp_A_Int"].divide(agg_df["H_Total_Ply"])
+    df["A_int_per_ply_thrown"] = agg_df["Opp_H_Int"].divide(agg_df["A_Total_Ply"])
+    # Ratio of pass to run plays (Home/Away)
+    df["H_pass_run_ratio"] = agg_df["H_Att"].divide(agg_df["H_Rush_Ply"])
+    df["A_pass_run_ratio"] = agg_df["A_Att"].divide(agg_df["A_Rush_Ply"])
+    # Yards per pass by offense (Home/Away)
+    df["H_yds_per_pass_gained"] = agg_df["H_Pass_Yds"].divide(agg_df["H_Att"])
+    df["A_yds_per_pass_gained"] = agg_df["A_Pass_Yds"].divide(agg_df["A_Att"])
+    # Yards per pass allowed by defense (Home/Away)
+    df["H_yds_per_pass_allowed"] = agg_df["Opp_A_Pass_Yds"].divide(agg_df["Opp_A_Att"])
+    df["A_yds_per_pass_allowed"] = agg_df["Opp_H_Pass_Yds"].divide(agg_df["Opp_H_Att"])
+    # Yards per run by offense (Home/Away)
+    df["H_yds_per_run_gained"] = agg_df["H_Rush_Yds"].divide(agg_df["H_Rush_Ply"])
+    df["A_yds_per_run_gained"] = agg_df["A_Rush_Yds"].divide(agg_df["A_Rush_Ply"])
+    # Yards per run allowed by defense (Home/Away)
+    df["H_yds_per_run_allowed"] = agg_df["Opp_A_Rush_Yds"].divide(agg_df["Opp_A_Rush_Ply"])
+    df["A_yds_per_run_allowed"] = agg_df["Opp_H_Rush_Yds"].divide(agg_df["Opp_H_Rush_Ply"])
+    # Score of game
+    home_scores = []
+    away_scores = []
+    for index, row in df.iterrows():
+        f = week_df[week_df["Home"] == row["Home"]]
+        f = f[f["Away"] == row["Away"]]
+        f = f[f["Week"] == row["Week"]]
+        f = f[f["Year"] == row["Year"]]
+        home_score = f["H_Score"].iloc[0]
+        away_score = f["A_Score"].iloc[0]
+        home_scores.append(home_score)
+        away_scores.append(away_score)
+    df["H_Score"] = home_scores
+    df["A_Score"] = away_scores
+
+    # Fill nan
+    df = df.fillna(0)
+
+    # Get rid of duplicate games
+    df = df.drop_duplicates(["Home", "Away", "Week", "Year"])
+
+    df.to_csv("backend/data/input_data.csv")
 
 
 def main():
     ten_years = pd.DataFrame()
     for season in range(2010, 2021):
+        print(season)
         season_stats = scrape_season(str(season))
         ten_years = pd.concat([ten_years, season_stats], ignore_index=True)
 
@@ -185,6 +278,9 @@ def main():
     # aggregates stats per season per team
     aggregate_stats()
 
+    # create inputs
+    input_data()
+
 
 if __name__ == '__main__':
-    main()
+    input_data()

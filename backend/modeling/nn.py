@@ -3,6 +3,11 @@ from keras.models import Sequential
 from keras.layers import Dense
 
 
+def load_data():
+    df = pd.read_csv("backend/data/input_data.csv")
+    return df
+
+
 def nn():
     """
     Initializes and compiles a neural network
@@ -19,7 +24,7 @@ def nn():
 
 
 def main():
-    print("hello")
+    load_data()
 
 
 if __name__ == '__main__':
