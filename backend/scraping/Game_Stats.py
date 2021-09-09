@@ -121,6 +121,7 @@ def convert_poss(time):
 
 def aggregate_stats():
     """
+    Aggregates stats for each team per season
     :return:
     """
     df = pd.read_csv("backend/data/weekly_stats.csv")
@@ -180,6 +181,10 @@ def aggregate_stats():
 
 
 def input_data():
+    """
+    Calculates stats that needed for model
+    :return:
+    """
     # Load and create dataframes
     agg_df = pd.read_csv("backend/data/aggregated_stats.csv")
     week_df = pd.read_csv("backend/data/weekly_stats.csv")
@@ -260,10 +265,47 @@ def input_data():
     # Fill nan
     df = df.fillna(0)
 
-    # Get rid of duplicate games
-    df = df.drop_duplicates(["Home", "Away", "Week", "Year"])
-
     df.to_csv("backend/data/input_data.csv")
+
+
+def input_games():
+    """
+    Structures data into format needed for each game, showing home team's stats and away team's stats
+    :return:
+    """
+    weekly_games = pd.read_csv("backend/data/weekly_stats.csv")
+    input_df = pd.read_csv("backend/data/input_data.csv")
+
+    df = pd.DataFrame()
+
+    for index, game in weekly_games.iterrows():
+        input_game = {}
+        home_team = game["Home"]
+        away_team = game["Away"]
+        week = game["Week"]
+        year = game["Year"]
+        home = input_df[(input_df["Team"] == home_team) &
+                        (input_df["Home"] == home_team) &
+                        (input_df["Away"] == away_team) &
+                        (input_df["Week"] == week) &
+                        (input_df["Year"] == year)]
+        away = input_df[(input_df["Team"] == away_team) &
+                        (input_df["Home"] == home_team) &
+                        (input_df["Away"] == away_team) &
+                        (input_df["Week"] == week) &
+                        (input_df["Year"] == year)]
+
+        for col in input_df.columns:
+            if col[0] == "H":
+                input_game[col] = home[col].iloc[0]
+            elif col[0] == "A":
+                input_game[col] = away[col].iloc[0]
+
+        input_game["Year"] = home["Year"].iloc[0]
+        input_game["Week"] = home["Week"].iloc[0]
+        df = df.append(input_game, ignore_index=True)
+
+    df.to_csv("backend/data/inputs.csv")
 
 
 def main():
@@ -283,4 +325,4 @@ def main():
 
 
 if __name__ == '__main__':
-    input_data()
+    input_games()
