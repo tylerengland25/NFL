@@ -24,11 +24,12 @@ def load_data():
     X = df[X_cols].values
     bad_indices = np.where(np.isinf(X))
     X[bad_indices] = 10
+    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
 
     # Y values
     y = df[y_cols].values
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=17)
+    X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
     return X_train, X_test, y_train, y_test
 
@@ -58,20 +59,18 @@ def main():
 
     # Evaluate model
     loss, metrics = baseline_model.evaluate(X_test, y_test)
-    print('Loss (MSE): %.2f\nMetrics (MSE): %.2f' % (loss, metrics))
+    print('Baseline Loss (MSE): %.2f\nBaseline Metrics (MSE): %.2f' % (loss, metrics))
 
     # Predict on test set, [(Home_score, Away_score), ...]
-    prediction_table = pd.DataFrame()
+    baseline_predict_table = pd.DataFrame()
     predictions = baseline_model.predict(X_test)
     for prediction, actual in zip(predictions, y_test.tolist()):
-        row = {'Home_Score_Predict': prediction[0],
-               'Home_score': actual[0],
-               'Away_Score_Predict': prediction[1],
-               'Away_Score': actual[1]}
+        baseline_row = {'Home_Score_Predict': prediction[0],
+                        'Home_score': actual[0],
+                        'Away_Score_Predict': prediction[1],
+                        'Away_Score': actual[1]}
 
-        prediction_table = prediction_table.append(row, ignore_index=True)
-
-    print(prediction_table)
+        baseline_predict_table = baseline_predict_table.append(baseline_row, ignore_index=True)
 
 
 if __name__ == '__main__':
