@@ -3,7 +3,14 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, precision_recall_fscore_support
 
 
 def load_data_classifier():
@@ -12,11 +19,21 @@ def load_data_classifier():
     :return:
     """
     df = pd.read_csv("backend/data/inputs.csv")
-    df["Win_Lose"] = (df["H_Score"] - df["A_Score"]) > 0
-    df["Win_Lose"] = df["Win_Lose"].astype(int)
-    y_cols = {"Win_Loss"}
-    X_cols = set(df.columns).difference({"H_Score", "A_Score", "Home",
-                                         "Away", "Week", "Year", "Unnamed: 0", "index"})
+    df["Win_Loss"] = (df["H_Score"] - df["A_Score"]) > 0
+    df["Win_Loss"] = df["Win_Loss"].astype(int)
+    y_cols = ["Win_Loss"]
+    X_cols = {'H_pts_per_game_scored', 'H_pts_per_game_allowed', 'A_pts_per_game_allowed', 'A_pts_per_game_scored',
+              'H_yds_per_game_gained', 'H_yds_per_game_allowed', 'A_yds_per_game_gained', 'A_yds_per_game_allowed',
+              'H_yds_per_ply_gained', 'H_yds_per_ply_allowed', 'A_yds_per_ply_gained', 'A_yds_per_ply_allowed'}
+    # 'H_yds_per_run_gained', 'A_yds_per_point_allowed', 'H_yds_per_ply_gained',
+    # 'A_yds_per_ply_allowed', 'A_yds_per_game_gained', 'A_pts_per_game_allowed', 'A_sacks_per_ply',
+    # 'H_int_per_ply_thrown', 'A_pass_run_ratio', 'H_yds_per_point_scored', 'A_int_per_ply_thrown',
+    # 'H_int_per_ply', 'H_yds_per_run_allowed', 'A_yds_per_run_allowed', 'A_yds_per_game_allowed',
+    # 'H_sacks_per_ply_allowed', 'A_yds_per_point_scored', 'H_yds_per_game_gained', 'A_yds_per_pass_allowed',
+    # 'H_yds_per_pass_gained', 'H_yds_per_ply_allowed', 'A_yds_per_pass_gained', 'H_pass_run_ratio',
+    # 'H_yds_per_point_allowed', 'A_yds_per_run_gained', 'H_sacks_per_ply', 'A_pts_per_game_scored',
+    # 'H_pts_per_game_scored', 'H_yds_per_pass_allowed', 'H_yds_per_game_allowed', 'A_yds_per_ply_gained',
+    # 'H_pts_per_game_allowed', 'A_int_per_Ply', 'A_sacks_per_ply_allowed'
 
     # Standardized X values
     X = df[X_cols].values
@@ -103,7 +120,7 @@ def deeper_nn_1():
     return model
 
 
-def main():
+def main_1():
     # Load datasets
     X_train, X_test, y_train, y_test = load_data_regression()
 
@@ -150,5 +167,148 @@ def main():
         wider_predict_table = wider_predict_table.append(wider_row, ignore_index=True)
 
 
+def classifier_baseline_nn():
+    """
+    Creates a fully connected neural network with the input layer having as many nodes as the input, and an
+    output layer
+    :return:
+    """
+    # Create model
+    model = Sequential()
+    model.add(Dense(16, input_dim=12, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(1, activation="sigmoid"))
+    # Compile model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def classifier_nn_1():
+    """
+        Creates a fully connected neural network with the three hidden layers
+        :return:
+        """
+    # Create model
+    model = Sequential()
+    model.add(Dense(16, input_dim=12, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(1, activation="sigmoid"))
+    # Compile model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def classifier_nn_2():
+    """
+    Creates a fully connected neural network with the three hidden layers
+    :return:
+    """
+    # Create model
+    model = Sequential()
+    model.add(Dense(16, input_dim=12, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(1, activation="sigmoid"))
+    # Compile model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def classifier_nn_3():
+    """
+    Creates a fully connected neural network with the three hidden layers
+    :return:
+    """
+    # Create model
+    model = Sequential()
+    model.add(Dense(16, input_dim=12, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(1, activation="sigmoid"))
+    # Compile model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def main_classifier():
+    # Load data
+    X_train, X_test, y_train, y_test = load_data_classifier()
+
+    # baseline nn
+    baseline_model = classifier_baseline_nn()
+    baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+    baseline_predictions = baseline_model.predict(X_test)
+    baseline_predictions = [1 if x > 0.5 else 0 for x in baseline_predictions]
+    print("Baseline NN report:")
+    print(classification_report(y_test, baseline_predictions))
+
+    # deeper nn_1
+    nn_1 = classifier_nn_1()
+    nn_1.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+    nn_1_predictions = nn_1.predict(X_test)
+    nn_1_predictions = [1 if x > 0.5 else 0 for x in nn_1_predictions]
+    print("Deeper NN_1 report:")
+    print(classification_report(y_test, nn_1_predictions))
+
+    # deeper nn_2
+    nn_2 = classifier_nn_2()
+    nn_2.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+    nn_2_predictions = nn_2.predict(X_test)
+    nn_2_predictions = [1 if x > 0.5 else 0 for x in nn_2_predictions]
+    print("Deeper NN_2 report:")
+    print(classification_report(y_test, nn_2_predictions))
+
+    # deeper nn_3
+    nn_3 = classifier_nn_3()
+    nn_3.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+    nn_3_predictions = nn_3.predict(X_test)
+    nn_3_predictions = [1 if x > 0.5 else 0 for x in nn_3_predictions]
+    print("Deeper NN_3 report:")
+    print(classification_report(y_test, nn_3_predictions))
+
+    # Naive Bayes
+    gnb = GaussianNB()
+    gnb.fit(X_train, y_train)
+    gnb_predicitions = gnb.predict(X_test)
+    print("Gaussian Navie Bayes:")
+    print(classification_report(y_test, gnb_predicitions))
+
+    # Logistic Regression
+    logreg = LogisticRegression()
+    logreg.fit(X_train, y_train)
+    logreg_predicitons = logreg.predict(X_test)
+    print("Logistic Regression report:")
+    print(classification_report(y_test, logreg_predicitons))
+
+    # Support Vector Machine
+    svm = SVC()
+    svm.fit(X_train, y_train)
+    svm_predictions = svm.predict(X_test)
+    print("Support Vector Machine report:")
+    print(classification_report(y_test, svm_predictions))
+
+    # Decision Tree
+    tree = DecisionTreeClassifier()
+    tree.fit(X_train, y_train)
+    tree_predictions = tree.predict(X_test)
+    print("Decision Tree report:")
+    print(classification_report(y_test, tree_predictions))
+
+    # Random Forest
+    forest = RandomForestClassifier()
+    forest.fit(X_train, y_train)
+    forest_predicions = forest.predict(X_test)
+    print("Random Forest report:")
+    print(classification_report(y_test, forest_predicions))
+
+    # Sklearn NN
+    nn = MLPClassifier(hidden_layer_sizes=(16, 16), batch_size=40, random_state=1)
+    nn.fit(X_train, y_train)
+    nn_predictions = nn.predict(X_test)
+    print("Sklearn NN report:")
+    print(classification_report(y_test, nn_predictions))
+
+
+
 if __name__ == '__main__':
-    main()
+    main_classifier()
