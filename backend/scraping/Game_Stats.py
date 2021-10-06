@@ -133,7 +133,9 @@ def aggregate_stats():
     df = df.fillna(0)
 
     # Columns to keep totals on (numerical attributes)
-    cols = set(df.columns).difference({"Unnamed: 0", "Home", "Away", "Week", "Year"})
+    cols = {'Fum', 'Pen_Yds', '4th_Cmp', 'Punt_Yds', '4th_Att', '3rd_Cmp', 'R_1st', 'P_1st', 'Rush_Ply', 'Punts',
+            'Sack_Yds', 'Int_Yds', 'Kick_Ret_Yds', 'Poss', 'Int', 'Fg_Att', '1st', 'Sacks', 'Cmp', 'Score',
+            'Punt_Ret_Yds', 'Att', 'Fg_Cmp', '3rd_Att', 'Pass_Yds', 'Rush_Yds', 'Total_Y', 'Total_Ply'}
 
     # Total dataframe
     total_df = pd.DataFrame()
@@ -152,30 +154,28 @@ def aggregate_stats():
             for col in cols:
                 totals[col] = 0
                 totals["Opp_" + col] = 0
-            totals["H_Games"] = 0
-            totals["A_Games"] = 0
+            totals["Games"] = 0
 
             for index, game in team_df.iterrows():
                 totals["Team"] = team
-                totals["Home"] = game["Home"]
-                totals["Away"] = game["Away"]
                 totals["Week"] = game["Week"]
                 totals["Year"] = game["Year"]
-                total_df = total_df.append(totals, ignore_index=True)
+                totals["Home"] = game["Home"]
+                totals["Away"] = game["Away"]
                 if game["Home"] == team:
-                    totals["H_Games"] += 1
+                    totals["Opponent"] = game["Away"]
+                else:
+                    totals["Opponent"] = game["Home"]
+                total_df = total_df.append(totals, ignore_index=True)
+                totals["Games"] += 1
+                if game["Home"] == team:
                     for stat in cols:
-                        if stat[0] == "H":
-                            totals[stat] += game[stat]
-                        elif stat[0] == "A":
-                            totals["Opp_" + stat] += game[stat]
+                        totals[stat] += game["H_" + stat]
+                        totals["Opp_" + stat] += game["A_" + stat]
                 elif game["Away"] == team:
-                    totals["A_Games"] += 1
                     for stat in cols:
-                        if stat[0] == "A":
-                            totals[stat] += game[stat]
-                        elif stat[0] == "H":
-                            totals["Opp_" + stat] += game[stat]
+                        totals[stat] += game["A_" + stat]
+                        totals["Opp_" + stat] += game["H_" + stat]
 
     total_df.to_csv("backend/data/aggregated_stats.csv")
 
@@ -325,4 +325,4 @@ def main():
 
 
 if __name__ == '__main__':
-    input_games()
+    aggregate_stats()
