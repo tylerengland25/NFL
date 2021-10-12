@@ -1,4 +1,5 @@
 import pandas as pd
+import pickle
 import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
@@ -24,9 +25,9 @@ def load_data_classifier():
     df['A_Poss'] = df['A_Poss'].apply(lambda x: convert_poss(x))
     df['H_Poss'] = df['H_Poss'].apply(lambda x: convert_poss(x))
 
-    y_cols = ["Win_Loss"]
-    X_cols = ['A_Att', 'A_Cmp', 'A_Fum', 'A_Int', 'A_Pass_Yds', 'A_Rush_Yds', 'A_Total_Ply', 'A_Total_Y',
-              'H_Att', 'H_Cmp', 'H_Fum', 'H_Int', 'H_Pass_Yds', 'H_Rush_Yds', 'H_Total_Ply', 'H_Total_Y']
+    y_cols = ["Win_Loss", "Home", "Away", "Week", "Year"]
+    X_cols = ['H_Att', 'H_Cmp', 'H_Fum', 'H_Int', 'H_Pass_Yds', 'H_Rush_Yds', 'H_Total_Ply', 'H_Total_Y',
+              'A_Att', 'A_Cmp', 'A_Fum', 'A_Int', 'A_Pass_Yds', 'A_Rush_Yds', 'A_Total_Ply', 'A_Total_Y']
     # ['A_1st', 'A_3rd_Att', 'A_3rd_Cmp', 'A_4th_Att',
     #  'A_4th_Cmp', 'A_Att', 'A_Cmp', 'A_Fg_Att', 'A_Fg_Cmp', 'A_Fum', 'A_Int',
     #  'A_Int_Yds', 'A_Kick_Ret_Yds', 'A_P_1st', 'A_Pass_Yds', 'A_Pen_Yds',
@@ -42,18 +43,107 @@ def load_data_classifier():
     # Standardized X values
     X = df[X_cols]
     X.astype(float)
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
 
     # Y values
     y = df[y_cols]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    # Load regression models
+    attempts_model = pickle.load(open('backend/modeling/attempts_model.pkl', 'rb'))
+    attempts_scaler = pickle.load(open('backend/modeling/attempts_scaler.pkl', 'rb'))
+    cmp_model = pickle.load(open('backend/modeling/completions_model.pkl', 'rb'))
+    cmp_scaler = pickle.load(open('backend/modeling/completions_scaler.pkl', 'rb'))
+    fum_model = pickle.load(open('backend/modeling/fumbles_model.pkl', 'rb'))
+    fum_scaler = pickle.load(open('backend/modeling/fumbles_scaler.pkl', 'rb'))
+    int_model = pickle.load(open('backend/modeling/interceptions_model.pkl', 'rb'))
+    int_scaler = pickle.load(open('backend/modeling/interceptions_scaler.pkl', 'rb'))
+    passing_model = pickle.load(open('backend/modeling/passing_model.pkl', 'rb'))
+    passing_scaler = pickle.load(open('backend/modeling/passing_scaler.pkl', 'rb'))
+    rushing_model = pickle.load(open('backend/modeling/rushing_model.pkl', 'rb'))
+    rushing_scaler = pickle.load(open('backend/modeling/rushing_scaler.pkl', 'rb'))
+    total_ply_model = pickle.load(open('backend/modeling/total_plays_model.pkl', 'rb'))
+    total_ply_scaler = pickle.load(open('backend/modeling/total_plays_scaler.pkl', 'rb'))
+    total_yds_model = pickle.load(open('backend/modeling/total_yards_model.pkl', 'rb'))
+    total_yds_scaler = pickle.load(open('backend/modeling/total_yards_scaler.pkl', 'rb'))
+
+    # Predict regression stats for testing data
+    aggregated_df = pd.read_csv("backend/data/aggregated_stats.csv")
+
+    home_teams_df = aggregated_df[aggregated_df["Team"] == aggregated_df["Home"]]
+    home_teams_df = home_teams_df.set_index(["Home", "Away", "Week", "Year"])
+    away_teams_df = aggregated_df[aggregated_df["Team"] == aggregated_df["Away"]]
+    away_teams_df = away_teams_df.set_index(["Home", "Away", "Week", "Year"])
+
+    y_test = y_test.set_index(["Home", "Away", "Week", "Year"])
+    y_test = y_test.join(home_teams_df)
+    y_test.columns = ["H_" + col for col in y_test.columns]
+    y_test = y_test.join(away_teams_df)
+    y_test.columns = ["A_" + col if "H_" not in col else col for col in y_test.columns]
+
+    X_test = pd.DataFrame()
+    for team in ["H_", "A_"]:
+        att_cols = ["Att", "Total_Ply", "Poss", "Pass_Yds", "Rush_Yds", "Rush_Ply", "Cmp", "Opp_Att",
+                    "Opp_Total_Ply", "Opp_Poss", "Opp_Pass_Yds", "Opp_Rush_Yds", "Opp_Rush_Ply", "Opp_Cmp"]
+        att_predictions = attempts_model.predict(
+            attempts_scaler.transform(y_test[[team + col for col in att_cols]].values)).tolist()
+        X_test[team + "Att"] = list(map(lambda x: x[0], att_predictions))
+
+        cmp_cols = ["Att", "Total_Ply", "Poss", "Pass_Yds", "Rush_Yds", "Rush_Ply", "Cmp", "Opp_Att", "Opp_Total_Ply",
+                    "Opp_Poss", "Opp_Pass_Yds", "Opp_Rush_Yds", "Opp_Rush_Ply", "Opp_Cmp"]
+        cmp_predictions = cmp_model.predict(
+            cmp_scaler.transform(y_test[[team + col for col in cmp_cols]].values)).tolist()
+        X_test[team + "Cmp"] = list(map(lambda x: x[0], cmp_predictions))
+
+        fum_cols = ["Total_Ply", "Poss", "Rush_Ply", "Att", "Opp_Sacks", "Fum", "Opp_Total_Ply", "Opp_Poss",
+                    "Opp_Rush_Ply", "Opp_Att", "Sacks", "Opp_Fum"]
+        fum_predictions = fum_model.predict(
+            fum_scaler.transform(y_test[[team + col for col in fum_cols]].values)).tolist()
+        X_test[team + "Fum"] = list(map(lambda x: x[0], fum_predictions))
+
+        int_cols = ["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Opp_Att", "Opp_Total_Ply",
+                    "Opp_Poss", "Opp_Pass_Yds", "Opp_Cmp", "Opp_Int", "Sacks"]
+        int_predictions = int_model.predict(
+            int_scaler.transform(y_test[[team + col for col in int_cols]].values)).tolist()
+        X_test[team + "Int"] = list(map(lambda x: x[0], int_predictions))
+
+        passing_cols = ["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds",
+                        "P_1st", "R_1st", "Opp_Att", "Opp_Total_Ply", "Opp_Poss", "Opp_Pass_Yds", "Opp_Cmp", "Opp_Int",
+                        "Sacks", "Opp_Rush_Ply", "Opp_Rush_Yds", "Opp_P_1st", "Opp_R_1st"]
+        passing_predictions = passing_model.predict(
+            passing_scaler.transform(y_test[[team + col for col in passing_cols]].values)).tolist()
+        X_test[team + "Pass_Yds"] = list(map(lambda x: x[0], passing_predictions))
+
+        rushing_cols = ["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds",
+                        "P_1st", "R_1st", "Opp_Att", "Opp_Total_Ply", "Opp_Poss", "Opp_Pass_Yds", "Opp_Cmp", "Opp_Int",
+                        "Sacks", "Opp_Rush_Ply", "Opp_Rush_Yds", "Opp_P_1st", "Opp_R_1st"]
+        rushing_predictions = rushing_model.predict(
+            rushing_scaler.transform(y_test[[team + col for col in rushing_cols]].values)).tolist()
+        X_test[team + "Rush_Yds"] = list(map(lambda x: x[0], rushing_predictions))
+
+        total_ply_cols = ["Total_Ply", "Poss", "Opp_Total_Ply", "Opp_Poss"]
+        total_ply_predictions = total_ply_model.predict(
+            total_ply_scaler.transform(y_test[[team + col for col in total_ply_cols]].values)).tolist()
+        X_test[team + "Total_Ply"] = list(map(lambda x: x[0], total_ply_predictions))
+
+        total_yds_cols = ["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds",
+                          "P_1st", "R_1st", "Opp_Att", "Opp_Total_Ply", "Opp_Poss", "Opp_Pass_Yds", "Opp_Cmp",
+                          "Opp_Int", "Opp_Sacks", "Opp_Rush_Ply", "Opp_Rush_Yds", "Opp_P_1st", "Opp_R_1st"]
+        total_yds_predictions = total_yds_model.predict(
+            total_yds_scaler.transform(y_test[[team + col for col in total_yds_cols]].values)).tolist()
+        X_test[team + "Total_Yds"] = list(map(lambda x: x[0], total_yds_predictions))
+
+    # Standardize testing data points
+    X_test = scaler.transform(X_test.values)
+
+    return X_train, X_test, y_train["Win_Loss"], y_test["H_Win_Loss"]
 
 
 def load_data_regression_attempts():
     X_df = pd.read_csv('backend/data/aggregated_stats.csv')
+    X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
     X = X_df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Rush_Yds", "Rush_Ply", "Cmp",
@@ -89,16 +179,18 @@ def load_data_regression_attempts():
             "Opp_Def_Att", "Opp_Def_Total_Ply", "Opp_Def_Poss", "Opp_Def_Pass_Yds",
             "Opp_Def_Rush_Yds", "Opp_Def_Rush_Ply", "Opp_Def_Cmp"]]
 
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
     y = df[["y_Att"]]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, scaler
 
 
 def load_data_regression_completions():
     X_df = pd.read_csv('backend/data/aggregated_stats.csv')
+    X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
     X = X_df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Rush_Yds", "Rush_Ply", "Cmp",
@@ -134,16 +226,18 @@ def load_data_regression_completions():
             "Opp_Def_Att", "Opp_Def_Total_Ply", "Opp_Def_Poss", "Opp_Def_Pass_Yds",
             "Opp_Def_Rush_Yds", "Opp_Def_Rush_Ply", "Opp_Def_Cmp"]]
 
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
     y = df[["y_Cmp"]]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, scaler
 
 
 def load_data_regression_fumbles():
     X_df = pd.read_csv('backend/data/aggregated_stats.csv')
+    X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
     X = X_df[["Total_Ply", "Poss", "Rush_Ply", "Att", "Opp_Sacks", "Fum",
@@ -177,16 +271,18 @@ def load_data_regression_fumbles():
     X = df[["Total_Ply", "Poss", "Rush_Ply", "Att", "Opp_Sacks", "Fum", "Opp_Def_Total_Ply", "Opp_Def_Poss",
             "Opp_Def_Rush_Ply", "Opp_Def_Att", "Opp_Def_Sacks", "Opp_Def_Fum"]]
 
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
     y = df[["y_Fum"]]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, scaler
 
 
 def load_data_regression_interceptions():
     X_df = pd.read_csv('backend/data/aggregated_stats.csv')
+    X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
     X = X_df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks",
@@ -221,16 +317,18 @@ def load_data_regression_interceptions():
     X = df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Opp_Def_Att", "Opp_Def_Total_Ply",
             "Opp_Def_Poss", "Opp_Def_Pass_Yds", "Opp_Def_Cmp", "Opp_Def_Int", "Opp_Def_Sacks"]]
 
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
     y = df[["y_Int"]]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, scaler
 
 
 def load_data_regression_passing_yds():
     X_df = pd.read_csv('backend/data/aggregated_stats.csv')
+    X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
     X = X_df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds", "P_1st",
@@ -273,16 +371,18 @@ def load_data_regression_passing_yds():
             "Opp_Def_Int", "Opp_Def_Sacks", "Opp_Def_Rush_Ply", "Opp_Def_Rush_Yds", "Opp_Def_P_1st",
             "Opp_Def_R_1st"]]
 
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
     y = df[["y_Pass_Yds"]]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, scaler
 
 
 def load_data_regression_rushing_yds():
     X_df = pd.read_csv('backend/data/aggregated_stats.csv')
+    X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
     X = X_df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds", "P_1st",
@@ -325,16 +425,18 @@ def load_data_regression_rushing_yds():
             "Opp_Def_Int", "Opp_Def_Sacks", "Opp_Def_Rush_Ply", "Opp_Def_Rush_Yds", "Opp_Def_P_1st",
             "Opp_Def_R_1st"]]
 
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
     y = df[["y_Rush_Yds"]]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, scaler
 
 
 def load_data_regression_total_ply():
     X_df = pd.read_csv('backend/data/aggregated_stats.csv')
+    X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
     X = X_df[["Total_Ply", "Poss",
@@ -361,18 +463,20 @@ def load_data_regression_total_ply():
             new_row["y_Total_Ply"] = row["A_Total_Ply"]
         df = df.append(new_row, ignore_index=True)
 
-    X = df[["Total_Ply", "Poss", "Opp_Def_Total_Ply", "Opp_Def_Poss", ]]
+    X = df[["Total_Ply", "Poss", "Opp_Def_Total_Ply", "Opp_Def_Poss"]]
 
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
     y = df[["y_Total_Ply"]]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, scaler
 
 
 def load_data_regression_total_yds():
     X_df = pd.read_csv('backend/data/aggregated_stats.csv')
+    X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
     X = X_df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds", "P_1st",
@@ -415,12 +519,13 @@ def load_data_regression_total_yds():
             "Opp_Def_Int", "Opp_Def_Sacks", "Opp_Def_Rush_Ply", "Opp_Def_Rush_Yds", "Opp_Def_P_1st",
             "Opp_Def_R_1st"]]
 
-    X_standardized = pd.DataFrame(StandardScaler().fit_transform(X))
+    scaler = StandardScaler()
+    X_standardized = pd.DataFrame(scaler.fit_transform(X))
     y = df[["y_Total_Y"]]
 
     X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, scaler
 
 
 def classifier_baseline_nn():
@@ -490,11 +595,13 @@ def main_classifier():
     # Load data
     X_train, X_test, y_train, y_test = load_data_classifier()
 
+    prediction_test_standardized = pd.DataFrame()
     # baseline nn
     baseline_model = classifier_baseline_nn()
     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
     baseline_predictions = baseline_model.predict(X_test)
     baseline_predictions = [1 if x > 0.5 else 0 for x in baseline_predictions]
+
     print("Baseline NN report:")
     print(classification_report(y_test, baseline_predictions))
 
@@ -559,7 +666,7 @@ def main_classifier():
 
 
 def attempts_regression_model():
-    X_train, X_test, y_train, y_test = load_data_regression_attempts()
+    X_train, X_test, y_train, y_test, scaler = load_data_regression_attempts()
 
     # Linear regression model
     print("Attempts Linear Regression model:")
@@ -569,10 +676,12 @@ def attempts_regression_model():
     print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
     print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
     print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    pickle.dump(model, open("backend/modeling/attempts_model.pkl", "wb"))
+    pickle.dump(scaler, open("backend/modeling/attempts_scaler.pkl", "wb"))
 
 
 def completions_regression_model():
-    X_train, X_test, y_train, y_test = load_data_regression_completions()
+    X_train, X_test, y_train, y_test, scaler = load_data_regression_completions()
 
     # Linear regression model
     print("Completions Linear Regression model:")
@@ -582,10 +691,12 @@ def completions_regression_model():
     print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
     print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
     print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    pickle.dump(model, open("backend/modeling/completions_model.pkl", "wb"))
+    pickle.dump(scaler, open("backend/modeling/completions_scaler.pkl", "wb"))
 
 
 def fumbles_regression_model():
-    X_train, X_test, y_train, y_test = load_data_regression_fumbles()
+    X_train, X_test, y_train, y_test, scaler = load_data_regression_fumbles()
 
     # Linear regression model
     print("Fumbles Linear Regression model:")
@@ -595,10 +706,12 @@ def fumbles_regression_model():
     print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
     print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
     print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    pickle.dump(model, open("backend/modeling/fumbles_model.pkl", "wb"))
+    pickle.dump(scaler, open("backend/modeling/fumbles_scaler.pkl", "wb"))
 
 
 def interceptions_regression_model():
-    X_train, X_test, y_train, y_test = load_data_regression_interceptions()
+    X_train, X_test, y_train, y_test, scaler = load_data_regression_interceptions()
 
     # Linear regression model
     print("Interceptions Linear Regression model:")
@@ -608,10 +721,12 @@ def interceptions_regression_model():
     print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
     print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
     print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    pickle.dump(model, open("backend/modeling/interceptions_model.pkl", "wb"))
+    pickle.dump(scaler, open("backend/modeling/interceptions_scaler.pkl", "wb"))
 
 
 def passing_yds_regression_model():
-    X_train, X_test, y_train, y_test = load_data_regression_passing_yds()
+    X_train, X_test, y_train, y_test, scaler = load_data_regression_passing_yds()
 
     # Linear regression model
     print("Passing Yards Linear Regression model:")
@@ -621,10 +736,12 @@ def passing_yds_regression_model():
     print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
     print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
     print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    pickle.dump(model, open("backend/modeling/passing_model.pkl", "wb"))
+    pickle.dump(scaler, open("backend/modeling/passing_scaler.pkl", "wb"))
 
 
 def rushing_yds_regression_model():
-    X_train, X_test, y_train, y_test = load_data_regression_rushing_yds()
+    X_train, X_test, y_train, y_test, scaler = load_data_regression_rushing_yds()
 
     # Linear regression model
     print("Rushing Yards Linear Regression model:")
@@ -634,10 +751,12 @@ def rushing_yds_regression_model():
     print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
     print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
     print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    pickle.dump(model, open("backend/modeling/rushing_model.pkl", "wb"))
+    pickle.dump(scaler, open("backend/modeling/rushing_scaler.pkl", "wb"))
 
 
 def total_ply_regression_model():
-    X_train, X_test, y_train, y_test = load_data_regression_total_ply()
+    X_train, X_test, y_train, y_test, scaler = load_data_regression_total_ply()
 
     # Linear regression model
     print("Total Plays Linear Regression model:")
@@ -647,10 +766,12 @@ def total_ply_regression_model():
     print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
     print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
     print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    pickle.dump(model, open("backend/modeling/total_plays_model.pkl", "wb"))
+    pickle.dump(scaler, open("backend/modeling/total_plays_scaler.pkl", "wb"))
 
 
 def total_yds_regression_model():
-    X_train, X_test, y_train, y_test = load_data_regression_total_yds()
+    X_train, X_test, y_train, y_test, scaler = load_data_regression_total_yds()
 
     # Linear regression model
     print("Total Yards Linear Regression model:")
@@ -660,7 +781,17 @@ def total_yds_regression_model():
     print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
     print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
     print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    pickle.dump(model, open("backend/modeling/total_yards_model.pkl", "wb"))
+    pickle.dump(scaler, open("backend/modeling/total_yards_scaler.pkl", "wb"))
 
 
 if __name__ == '__main__':
-    total_yds_regression_model()
+    # main_classifier()
+    attempts_regression_model()
+    # completions_regression_model()
+    # fumbles_regression_model()
+    # interceptions_regression_model()
+    # passing_yds_regression_model()
+    # rushing_yds_regression_model()
+    # total_yds_regression_model()
+    # total_ply_regression_model()

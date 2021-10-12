@@ -121,7 +121,7 @@ def convert_poss(time):
 
 def aggregate_stats():
     """
-    Aggregates stats for each team per season
+    Aggregates last 5 games of stats for each game
     :return:
     """
     df = pd.read_csv("backend/data/weekly_stats.csv")
@@ -140,42 +140,47 @@ def aggregate_stats():
     # Total dataframe
     total_df = pd.DataFrame()
 
-    for season in list(df["Year"].unique()):
-        # season
-        season_df = df[df["Year"] == season]
-        print("{}: {}".format(season, season_df.shape))
+    for index, game in df.iterrows():
+        week = game["Week"]
+        year = game["Year"]
+        print("Week {}, Year {}".format(week, year))
+        teams = [game["Home"], game["Away"]]
+        for team in teams:
+            totals = {"Team": team, "Week": game["Week"], "Year": game["Year"],
+                      "Home": game["Home"], "Away": game["Away"]}
+            if game["Home"] == team:
+                totals["Opponent"] = game["Away"]
+            else:
+                totals["Opponent"] = game["Home"]
 
-        for team in list(season_df["Home"].unique()):
-            # team
-            team_df = season_df[(season_df["Home"] == team) | (season_df["Away"] == team)]
+            for stat in cols:
+                totals[stat] = 0
+                totals["Opp_" + stat] = 0
 
-            # Initialize total on season
-            totals = {}
-            for col in cols:
-                totals[col] = 0
-                totals["Opp_" + col] = 0
-            totals["Games"] = 0
-
-            for index, game in team_df.iterrows():
-                totals["Team"] = team
-                totals["Week"] = game["Week"]
-                totals["Year"] = game["Year"]
-                totals["Home"] = game["Home"]
-                totals["Away"] = game["Away"]
-                if game["Home"] == team:
-                    totals["Opponent"] = game["Away"]
+            weekly_df = pd.DataFrame()
+            for i in range(1, 6):
+                if week - 5 <= 0 and year != 2010:
+                    max_week = df[((df["Home"] == team) | (df["Away"] == team)) & (df["Year"] == year)]["Week"].max()
+                    week_df = df[((df["Home"] == team) | (df["Away"] == team)) &
+                                 (df["Week"] == max_week - (week - i)) & (df["Year"] == year)]
+                    weekly_df = weekly_df.append(week_df)
+                elif week - 5 <= 0 and year == 2010:
+                    pass
                 else:
-                    totals["Opponent"] = game["Home"]
-                total_df = total_df.append(totals, ignore_index=True)
-                totals["Games"] += 1
-                if game["Home"] == team:
-                    for stat in cols:
-                        totals[stat] += game["H_" + stat]
-                        totals["Opp_" + stat] += game["A_" + stat]
-                elif game["Away"] == team:
-                    for stat in cols:
-                        totals[stat] += game["A_" + stat]
-                        totals["Opp_" + stat] += game["H_" + stat]
+                    week_df = df[((df["Home"] == team) | (df["Away"] == team)) &
+                                 (df["Week"] == week - i) & (df["Year"] == year)]
+                    weekly_df = weekly_df.append(week_df)
+
+            if game["Home"] == team and not weekly_df.empty:
+                for stat in cols:
+                    totals[stat] += weekly_df["H_" + stat].sum()
+                    totals["Opp_" + stat] += weekly_df["A_" + stat].sum() / weekly_df.shape[1]
+            elif game["Away"] == team and not weekly_df.empty:
+                for stat in cols:
+                    totals[stat] += weekly_df["A_" + stat].sum()
+                    totals["Opp_" + stat] += weekly_df["H_" + stat].sum() / weekly_df.shape[1]
+
+            total_df = total_df.append(totals, ignore_index=True)
 
     total_df.to_csv("backend/data/aggregated_stats.csv")
 
