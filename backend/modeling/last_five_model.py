@@ -42,15 +42,16 @@ def load_data_classifier():
         elif col[-4:] in ["_1_x", "_1_y"] \
                 and "named" not in col and "opponent" not in col and "season_length" not in col:
             x_cols.append(col)
-            df[col] = df[col] * 2.5
+            df[col] = df[col] * 3
         elif col[-4:] in ["_2_x", "_2_y"] \
                 and "named" not in col and "opponent" not in col and "season_length" not in col:
             x_cols.append(col)
-            df[col] = df[col] * 2.5
+            df[col] = df[col] * 3
         elif col[-4:] in ["_3_x", "_3_y"] \
                 and "named" not in col and "opponent" not in col and "season_length" not in col:
             x_cols.append(col)
             df[col] = df[col] * 2
+
         elif col[-4:] in ["_4_x", "_4_y"] \
                 and "named" not in col and "opponent" not in col and "season_length" not in col:
             x_cols.append(col)
@@ -58,7 +59,7 @@ def load_data_classifier():
         elif col[-4:] in ["_5_x", "_5_y"] \
                 and "named" not in col and "opponent" not in col and "season_length" not in col:
             x_cols.append(col)
-            df[col] = df[col] * 1
+            df[col] = df[col] * 2
 
     # Standardized X values
     X = df[x_cols]
