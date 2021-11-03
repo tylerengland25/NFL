@@ -1,6 +1,5 @@
 import pandas as pd
 import pickle
-import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
@@ -10,7 +9,7 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, mean_absolute_error, mean_squared_error, median_absolute_error
+from sklearn.metrics import classification_report
 from backend.scraping.Game_Stats import convert_poss
 
 
@@ -116,9 +115,8 @@ def load_data_classifier():
             passing_scaler.transform(y_test[[team + col for col in passing_cols]].values)).tolist()
         X_test[team + "Pass_Yds"] = list(map(lambda x: x[0], passing_predictions))
 
-        rushing_cols = ["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds",
-                        "P_1st", "R_1st", "Opp_Att", "Opp_Total_Ply", "Opp_Poss", "Opp_Pass_Yds", "Opp_Cmp", "Opp_Int",
-                        "Sacks", "Opp_Rush_Ply", "Opp_Rush_Yds", "Opp_P_1st", "Opp_R_1st"]
+        rushing_cols = ["Rush_Ply", "Rush_Yds", "R_1st", "Pen_Yds",
+                        "Opp_Rush_Ply", "Opp_Rush_Yds", "Opp_R_1st", "Opp_Pen_Yds"]
         rushing_predictions = rushing_model.predict(
             rushing_scaler.transform(y_test[[team + col for col in rushing_cols]].values)).tolist()
         X_test[team + "Rush_Yds"] = list(map(lambda x: x[0], rushing_predictions))
@@ -385,15 +383,11 @@ def load_data_regression_rushing_yds():
     X_df = X_df[X_df["Total_Ply"] != 0]
     y_df = pd.read_csv('backend/data/weekly_stats.csv')
 
-    X = X_df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds", "P_1st",
-              "R_1st",
+    X = X_df[["Rush_Ply", "Rush_Yds", "R_1st", "Pen_Yds",
               "Opponent", "Home", "Away", "Week", "Year"]]
-    X_opp = X_df[["Opp_Att", "Opp_Total_Ply", "Opp_Poss", "Opp_Pass_Yds", "Opp_Cmp", "Opp_Int", "Sacks", "Opp_Rush_Ply",
-                  "Opp_Rush_Yds", "Opp_P_1st", "Opp_R_1st",
+    X_opp = X_df[["Opp_Rush_Ply", "Opp_Rush_Yds", "Opp_R_1st", "Opp_Pen_Yds",
                   "Team", "Home", "Away", "Week", "Year"]]
-    X_opp.columns = ["Opp_Def_Att", "Opp_Def_Total_Ply", "Opp_Def_Poss", "Opp_Def_Pass_Yds", "Opp_Def_Cmp",
-                     "Opp_Def_Int", "Opp_Def_Sacks", "Opp_Def_Rush_Ply", "Opp_Def_Rush_Yds", "Opp_Def_P_1st",
-                     "Opp_Def_R_1st",
+    X_opp.columns = ["Opp_Def_Rush_Ply", "Opp_Def_Rush_Yds", "Opp_Def_R_1st", "Opp_Def_Pen_Yds",
                      "Team", "Home", "Away", "Week", "Year"]
 
     X = pd.merge(X, X_opp,
@@ -405,25 +399,18 @@ def load_data_regression_rushing_yds():
     df_merged = pd.merge(y, X, left_on=["Home", "Away", "Week", "Year"], right_on=["Home", "Away", "Week", "Year"])
     df = pd.DataFrame()
     for index, row in df_merged.iterrows():
-        new_row = {"Att": row["Att"], "Total_Ply": row["Total_Ply"], "Poss": row["Poss"], "Pass_Yds": row["Pass_Yds"],
-                   "Cmp": row["Cmp"], "Int": row["Int"], "Opp_Sacks": row["Opp_Sacks"], "Rush_Ply": row["Rush_Ply"],
-                   "Rush_Yds": row["Rush_Yds"], "P_1st": row["P_1st"], "R_1st": row["R_1st"],
-                   "Opp_Def_Att": row["Opp_Def_Att"], "Opp_Def_Total_Ply": row["Opp_Def_Total_Ply"],
-                   "Opp_Def_Poss": row["Opp_Def_Poss"], "Opp_Def_Pass_Yds": row["Opp_Def_Pass_Yds"],
-                   "Opp_Def_Cmp": row["Opp_Def_Cmp"], "Opp_Def_Int": row["Opp_Def_Int"],
-                   "Opp_Def_Sacks": row["Opp_Def_Sacks"], "Opp_Def_Rush_Ply": row["Opp_Def_Rush_Ply"],
-                   "Opp_Def_Rush_Yds": row["Opp_Def_Rush_Yds"], "Opp_Def_P_1st": row["Opp_Def_P_1st"],
-                   "Opp_Def_R_1st": row["Opp_Def_R_1st"]}
+        new_row = {"Rush_Ply": row["Rush_Ply"], "Rush_Yds": row["Rush_Yds"], "Pen_Yds": row["Pen_Yds"],
+                   "R_1st": row["R_1st"], "Opp_Def_Rush_Ply": row["Opp_Def_Rush_Ply"],
+                   "Opp_Def_Rush_Yds": row["Opp_Def_Rush_Yds"], "Opp_Def_R_1st": row["Opp_Def_R_1st"],
+                   "Opp_Def_Pen_Yds": row["Opp_Def_Pen_Yds"]}
         if row["Opponent"] == row["Away"]:
             new_row["y_Rush_Yds"] = row["H_Rush_Yds"]
         else:
             new_row["y_Rush_Yds"] = row["A_Rush_Yds"]
         df = df.append(new_row, ignore_index=True)
 
-    X = df[["Att", "Total_Ply", "Poss", "Pass_Yds", "Cmp", "Int", "Opp_Sacks", "Rush_Ply", "Rush_Yds", "P_1st",
-            "R_1st", "Opp_Def_Att", "Opp_Def_Total_Ply", "Opp_Def_Poss", "Opp_Def_Pass_Yds", "Opp_Def_Cmp",
-            "Opp_Def_Int", "Opp_Def_Sacks", "Opp_Def_Rush_Ply", "Opp_Def_Rush_Yds", "Opp_Def_P_1st",
-            "Opp_Def_R_1st"]]
+    X = df[["Rush_Ply", "Rush_Yds", "R_1st", "Pen_Yds", "Opp_Def_Pen_Yds",
+            "Opp_Def_Rush_Ply", "Opp_Def_Rush_Yds", "Opp_Def_R_1st"]]
 
     scaler = StandardScaler()
     X_standardized = pd.DataFrame(scaler.fit_transform(X))
@@ -552,6 +539,10 @@ def classifier_nn_1():
     model = Sequential()
     model.add(Dense(16, input_dim=16, kernel_initializer='normal', activation="relu"))
     model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, activation="sigmoid"))
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -565,9 +556,12 @@ def classifier_nn_2():
     """
     # Create model
     model = Sequential()
-    model.add(Dense(16, input_dim=16, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(32, input_dim=16, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(32, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(32, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(32, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(32, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(32, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, activation="sigmoid"))
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -581,10 +575,12 @@ def classifier_nn_3():
     """
     # Create model
     model = Sequential()
-    model.add(Dense(16, input_dim=16, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(64, input_dim=16, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, activation="sigmoid"))
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -594,6 +590,8 @@ def classifier_nn_3():
 def main_classifier():
     # Load data
     X_train, X_test, y_train, y_test = load_data_classifier()
+
+    this_weeks_odds = pd.DataFrame({})
 
     prediction_test_standardized = pd.DataFrame()
     # baseline nn
@@ -673,9 +671,12 @@ def attempts_regression_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
-    print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
-    print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
-    print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    predictions = list(map(lambda x: x[0], predictions.tolist()))
+    df = pd.DataFrame({"predicted": predictions, "actual": y_test["y_Att"].tolist()})
+    df["error"] = df["predicted"] - df["actual"]
+    df["percent_error"] = (df["error"].divide(df["actual"])).abs()
+    print("\tAverage percent error: {}".format(100 * df["percent_error"].mean()))
+    print("\tMedian percent error: {}".format(100 * df["percent_error"].median()))
     pickle.dump(model, open("backend/modeling/attempts_model.pkl", "wb"))
     pickle.dump(scaler, open("backend/modeling/attempts_scaler.pkl", "wb"))
 
@@ -688,9 +689,12 @@ def completions_regression_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
-    print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
-    print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
-    print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    predictions = list(map(lambda x: x[0], predictions.tolist()))
+    df = pd.DataFrame({"predicted": predictions, "actual": y_test["y_Cmp"].tolist()})
+    df["error"] = df["predicted"] - df["actual"]
+    df["percent_error"] = (df["error"].divide(df["actual"])).abs()
+    print("\tAverage percent error: {}".format(100 * df["percent_error"].mean()))
+    print("\tMedian percent error: {}".format(100 * df["percent_error"].median()))
     pickle.dump(model, open("backend/modeling/completions_model.pkl", "wb"))
     pickle.dump(scaler, open("backend/modeling/completions_scaler.pkl", "wb"))
 
@@ -703,9 +707,12 @@ def fumbles_regression_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
-    print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
-    print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
-    print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    predictions = list(map(lambda x: x[0], predictions.tolist()))
+    df = pd.DataFrame({"predicted": predictions, "actual": y_test["y_Fum"].tolist()})
+    df["error"] = df["predicted"] - df["actual"]
+    df["percent_error"] = (df["error"].divide(df["actual"])).abs()
+    print("\tAverage percent error: {}".format(100 * df["percent_error"].mean()))
+    print("\tMedian percent error: {}".format(100 * df["percent_error"].median()))
     pickle.dump(model, open("backend/modeling/fumbles_model.pkl", "wb"))
     pickle.dump(scaler, open("backend/modeling/fumbles_scaler.pkl", "wb"))
 
@@ -718,9 +725,12 @@ def interceptions_regression_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
-    print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
-    print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
-    print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    predictions = list(map(lambda x: x[0], predictions.tolist()))
+    df = pd.DataFrame({"predicted": predictions, "actual": y_test["y_Int"].tolist()})
+    df["error"] = df["predicted"] - df["actual"]
+    df["percent_error"] = (df["error"].divide(df["actual"])).abs()
+    print("\tAverage percent error: {}".format(100 * df["percent_error"].mean()))
+    print("\tMedian percent error: {}".format(100 * df["percent_error"].median()))
     pickle.dump(model, open("backend/modeling/interceptions_model.pkl", "wb"))
     pickle.dump(scaler, open("backend/modeling/interceptions_scaler.pkl", "wb"))
 
@@ -733,9 +743,12 @@ def passing_yds_regression_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
-    print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
-    print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
-    print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    predictions = list(map(lambda x: x[0], predictions.tolist()))
+    df = pd.DataFrame({"predicted": predictions, "actual": y_test["y_Pass_Yds"].tolist()})
+    df["error"] = df["predicted"] - df["actual"]
+    df["percent_error"] = (df["error"].divide(df["actual"])).abs()
+    print("\tAverage percent error: {}".format(100 * df["percent_error"].mean()))
+    print("\tMedian percent error: {}".format(100 * df["percent_error"].median()))
     pickle.dump(model, open("backend/modeling/passing_model.pkl", "wb"))
     pickle.dump(scaler, open("backend/modeling/passing_scaler.pkl", "wb"))
 
@@ -748,9 +761,12 @@ def rushing_yds_regression_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
-    print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
-    print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
-    print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    predictions = list(map(lambda x: x[0], predictions.tolist()))
+    df = pd.DataFrame({"predicted": predictions, "actual": y_test["y_Rush_Yds"].tolist()})
+    df["error"] = df["predicted"] - df["actual"]
+    df["percent_error"] = (df["error"].divide(df["actual"])).abs()
+    print("\tAverage percent error: {}".format(100 * df["percent_error"].mean()))
+    print("\tMedian percent error: {}".format(100 * df["percent_error"].median()))
     pickle.dump(model, open("backend/modeling/rushing_model.pkl", "wb"))
     pickle.dump(scaler, open("backend/modeling/rushing_scaler.pkl", "wb"))
 
@@ -763,9 +779,12 @@ def total_ply_regression_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
-    print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
-    print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
-    print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    predictions = list(map(lambda x: x[0], predictions.tolist()))
+    df = pd.DataFrame({"predicted": predictions, "actual": y_test["y_Total_Ply"].tolist()})
+    df["error"] = df["predicted"] - df["actual"]
+    df["percent_error"] = (df["error"].divide(df["actual"])).abs()
+    print("\tAverage percent error: {}".format(100 * df["percent_error"].mean()))
+    print("\tMedian percent error: {}".format(100 * df["percent_error"].median()))
     pickle.dump(model, open("backend/modeling/total_plays_model.pkl", "wb"))
     pickle.dump(scaler, open("backend/modeling/total_plays_scaler.pkl", "wb"))
 
@@ -778,9 +797,12 @@ def total_yds_regression_model():
     model = LinearRegression()
     model.fit(X_train, y_train)
     predictions = model.predict(X_test)
-    print("Mean Absolute Error: {}".format(mean_absolute_error(y_test, predictions)))
-    print("Mean Squared Error: {}".format(mean_squared_error(y_test, predictions)))
-    print("Median Absolute Error: {}".format(median_absolute_error(y_test, predictions)))
+    predictions = list(map(lambda x: x[0], predictions.tolist()))
+    df = pd.DataFrame({"predicted": predictions, "actual": y_test["y_Total_Y"].tolist()})
+    df["error"] = df["predicted"] - df["actual"]
+    df["percent_error"] = (df["error"].divide(df["actual"])).abs()
+    print("\tAverage percent error: {}".format(100 * df["percent_error"].mean()))
+    print("\tMedian percent error: {}".format(100 * df["percent_error"].median()))
     pickle.dump(model, open("backend/modeling/total_yards_model.pkl", "wb"))
     pickle.dump(scaler, open("backend/modeling/total_yards_scaler.pkl", "wb"))
 
@@ -788,10 +810,10 @@ def total_yds_regression_model():
 if __name__ == '__main__':
     # main_classifier()
     attempts_regression_model()
-    # completions_regression_model()
-    # fumbles_regression_model()
-    # interceptions_regression_model()
-    # passing_yds_regression_model()
-    # rushing_yds_regression_model()
-    # total_yds_regression_model()
-    # total_ply_regression_model()
+    completions_regression_model()
+    fumbles_regression_model()
+    interceptions_regression_model()
+    passing_yds_regression_model()
+    rushing_yds_regression_model()
+    total_yds_regression_model()
+    total_ply_regression_model()

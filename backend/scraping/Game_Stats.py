@@ -119,6 +119,62 @@ def convert_poss(time):
     return (mins * 60) + secs
 
 
+def last_5_games():
+    """
+    Selects last 5 games of stats for each game
+    :return:
+    """
+    # Load data
+    home_df = pd.read_csv("backend/data/weekly_stats.csv")
+    away_df = pd.read_csv("backend/data/weekly_stats.csv")
+
+    home_df.rename(
+        columns=lambda col: col.lower()[2:]
+        if "H_" in col or len(col.split('_')) == 1
+        else col.lower()[2:] + "_def",
+        inplace=True
+    )
+    home_df.rename(columns={"ek": "week", "ar": "year", "me": "team", "ay": "opponent"}, inplace=True)
+    home_df["home_away"] = 1
+
+    away_df.rename(
+        columns=lambda col: col.lower()[2:]
+        if "A_" in col or len(col.split('_')) == 1
+        else col.lower()[2:] + "_def",
+        inplace=True
+    )
+    away_df.rename(columns={"ek": "week", "ar": "year", "ay": "team", "me": "opponent"}, inplace=True)
+    away_df["home_away"] = 0
+
+    # merge home and away team data into one dataframe
+    teams_df = pd.concat([home_df, away_df], ignore_index=True, sort=True)
+    season_length = teams_df.groupby(["team", "year"])["week"].max().reset_index()
+    season_length.rename(columns={"week": "season_length"}, inplace=True)
+    teams_df = pd.merge(teams_df, season_length,
+                        how="left",
+                        on=["team", "year"])
+    # teams_df = teams_df[(teams_df["week"] > 5) | (teams_df["year"] != 2010)]
+
+    # dataframe for last 5 games
+    last_five = teams_df.copy()
+    for i in range(1, 6):
+        week_i = teams_df.copy()
+        week_i["week"] = week_i["week"] + i
+        week_i.loc[week_i["week"] > week_i["season_length"], "year"] = \
+            week_i.loc[week_i["week"] > week_i["season_length"], "year"] + 1
+        week_i.loc[week_i["week"] > week_i["season_length"], "week"] = \
+            week_i.loc[week_i["week"] > week_i["season_length"], "week"] \
+            - week_i.loc[week_i["week"] > week_i["season_length"], "season_length"]
+
+        last_five = pd.merge(last_five, week_i,
+                             how="left",
+                             on=["team", "week", "year"],
+                             suffixes=["", "_" + str(i)])
+
+    last_five.fillna(0, inplace=True)
+    last_five.to_csv("backend/data/last_five.csv")
+
+
 def aggregate_stats():
     """
     Aggregates last 5 games of stats for each game
@@ -159,10 +215,10 @@ def aggregate_stats():
 
             weekly_df = pd.DataFrame()
             for i in range(1, 6):
-                if week - 5 <= 0 and year != 2010:
+                if week - i <= 0 and year != 2010:
                     max_week = df[((df["Home"] == team) | (df["Away"] == team)) & (df["Year"] == year)]["Week"].max()
                     week_df = df[((df["Home"] == team) | (df["Away"] == team)) &
-                                 (df["Week"] == max_week - (week - i)) & (df["Year"] == year)]
+                                 (df["Week"] == max_week + (week - i)) & (df["Year"] == year)]
                     weekly_df = weekly_df.append(week_df)
                 elif week - 5 <= 0 and year == 2010:
                     pass
@@ -173,12 +229,12 @@ def aggregate_stats():
 
             if game["Home"] == team and not weekly_df.empty:
                 for stat in cols:
-                    totals[stat] += weekly_df["H_" + stat].sum()
-                    totals["Opp_" + stat] += weekly_df["A_" + stat].sum() / weekly_df.shape[1]
+                    totals[stat] += weekly_df["H_" + stat].sum() / weekly_df.shape[0]
+                    totals["Opp_" + stat] += weekly_df["A_" + stat].sum() / weekly_df.shape[0]
             elif game["Away"] == team and not weekly_df.empty:
                 for stat in cols:
-                    totals[stat] += weekly_df["A_" + stat].sum()
-                    totals["Opp_" + stat] += weekly_df["H_" + stat].sum() / weekly_df.shape[1]
+                    totals[stat] += weekly_df["A_" + stat].sum() / weekly_df.shape[0]
+                    totals["Opp_" + stat] += weekly_df["H_" + stat].sum() / weekly_df.shape[0]
 
             total_df = total_df.append(totals, ignore_index=True)
 
@@ -330,4 +386,6 @@ def main():
 
 
 if __name__ == '__main__':
-    aggregate_stats()
+    df = last_5_games()
+    print(df)
+    print()
