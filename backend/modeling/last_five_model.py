@@ -13,6 +13,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
 from backend.scraping.Game_Stats import convert_poss
 
+from sklearn.model_selection import KFold
+
 
 def load_data_classifier():
     """
@@ -39,6 +41,7 @@ def load_data_classifier():
     for col in df.columns:
         if "poss" in col:
             df[col] = df[col].apply(lambda x: convert_poss(x) if ":" in x else x)
+            x_cols.append(col)
         elif col[-4:] in ["_1_x", "_1_y"] \
                 and "named" not in col and "opponent" not in col and "season_length" not in col:
             x_cols.append(col)
@@ -62,7 +65,21 @@ def load_data_classifier():
             df[col] = df[col] * 2
 
     # Standardized X values
-    X = df[x_cols]
+    print()
+    # x_cols = ["3rd_att", "3rd_cmp", "3rd_att_def", "3rd_cmp_def", "4th_att", "4th_cmp", "4th_att_def", "4th_cmp_def",
+    #           "cmp", "cmp_def", "poss", "total_y", "total_y_def"]
+    x_cols = ["cmp_pct", "cmp_pct_def", "3rd_pct", "3rd_pct_def", "4th_pct", "4th_pct_def", "fg_pct", "yds_per_rush",
+              "yds_per_rush_def", "yds_per_att", "yds_per_att_def", "yds_per_ply", "yds_per_ply_def", "poss",
+              "pass_yds", "pass_yds_def", "pen_yds", "pen_yds_def", "punts", "punts_def", "rush_yds", "rush_yds_def",
+              "sacks", "sacks_def", "score", "score_def", "cmp", "cmp_def", "total_y", "total_y_def", "pts_per_ply",
+              "pts_per_ply_def", "punts_per_ply", "punts_per_ply_def", "pts_per_yd", "pts_per_yd_def"]
+
+    final_cols = []
+    for col in x_cols:
+        for i in range(1, 6):
+            final_cols.append(col + "_" + str(i) + "_x")
+            final_cols.append(col + "_" + str(i) + "_y")
+    X = df[final_cols]
     X.astype(float)
     scaler = StandardScaler()
     X_standardized = pd.DataFrame(scaler.fit_transform(X))
@@ -72,9 +89,9 @@ def load_data_classifier():
     df["win_lose"] = df["win_lose"] > 0
     y = df["win_lose"].astype(int)
 
-    X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
+    # X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
-    return X_train, X_test, y_train, y_test
+    return X_standardized, y
 
 
 def classifier_baseline_nn():
@@ -85,7 +102,8 @@ def classifier_baseline_nn():
     """
     # Create model
     model = Sequential()
-    model.add(Dense(512, input_dim=550, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(360, input_dim=360, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, activation="sigmoid"))
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -99,12 +117,8 @@ def classifier_nn_1():
         """
     # Create model
     model = Sequential()
-    model.add(Dense(256, input_dim=550, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(32, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(360, input_dim=360, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(360, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, activation="sigmoid"))
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -118,12 +132,8 @@ def classifier_nn_2():
     """
     # Create model
     model = Sequential()
-    model.add(Dense(128, input_dim=550, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(32, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(32, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(360, input_dim=360, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(256, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, activation="sigmoid"))
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -137,13 +147,8 @@ def classifier_nn_3():
     """
     # Create model
     model = Sequential()
-    model.add(Dense(128, input_dim=550, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(360, input_dim=360, kernel_initializer='normal', activation="relu"))
+    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, activation="sigmoid"))
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -152,16 +157,20 @@ def classifier_nn_3():
 
 def main_classifier():
     # Load data
-    X_train, X_test, y_train, y_test = load_data_classifier()
+    X, y = load_data_classifier()
+    kf = KFold(n_splits=5, shuffle=True, random_state=17)
 
     # baseline nn
-    baseline_model = classifier_baseline_nn()
-    baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-    baseline_predictions = baseline_model.predict(X_test)
-    baseline_predictions = [1 if x > 0.5 else 0 for x in baseline_predictions]
+    for train_index, test_index in kf.split(X)
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        baseline_model = classifier_baseline_nn()
+        baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+        baseline_predictions = baseline_model.predict(X_test)
+        baseline_predictions = [1 if x > 0.5 else 0 for x in baseline_predictions]
 
-    print("Baseline NN report:")
-    print(classification_report(y_test, baseline_predictions))
+        print("Baseline NN report:")
+        print(classification_report(y_test, baseline_predictions))
 
     # deeper nn_1
     nn_1 = classifier_nn_1()
@@ -187,6 +196,15 @@ def main_classifier():
     print("Deeper NN_3 report:")
     print(classification_report(y_test, nn_3_predictions))
 
+    # # Support Vector Machine
+    # svm = SVC(probability=True)
+    # svm.fit(X_train, y_train.values.ravel())
+    # svm_prob = svm.predict_proba(X_test)
+    # svm_prob = np.ndarray.tolist(svm_prob)
+    # svm_predictions = [1 if x[1] > .53 else 0 for x in svm_prob]
+    # print("Support Vector Machine report:")
+    # print(classification_report(y_test, svm_predictions))
+
     # # Naive Bayes
     # gnb = GaussianNB()
     # gnb.fit(X_train, y_train.values.ravel())
@@ -200,15 +218,6 @@ def main_classifier():
     # logreg_predicitons = logreg.predict(X_test)
     # print("Logistic Regression report:")
     # print(classification_report(y_test, logreg_predicitons))
-
-    # Support Vector Machine
-    svm = SVC(probability=True)
-    svm.fit(X_train, y_train.values.ravel())
-    svm_prob = svm.predict_proba(X_test)
-    svm_prob = np.ndarray.tolist(svm_prob)
-    svm_predictions = [1 if x[1] > .53 else 0 for x in svm_prob]
-    print("Support Vector Machine report:")
-    print(classification_report(y_test, svm_predictions))
 
     # # Decision Tree
     # tree = DecisionTreeClassifier()

@@ -153,7 +153,29 @@ def last_5_games():
     teams_df = pd.merge(teams_df, season_length,
                         how="left",
                         on=["team", "year"])
-    # teams_df = teams_df[(teams_df["week"] > 5) | (teams_df["year"] != 2010)]
+
+    # Feature engineering
+    teams_df["cmp_pct"] = teams_df["cmp"] / teams_df["att"]
+    teams_df["cmp_pct_def"] = teams_df["cmp_def"] / teams_df["att_def"]
+    teams_df["3rd_pct"] = teams_df["3rd_cmp"] / teams_df["3rd_att"]
+    teams_df["3rd_pct_def"] = teams_df["3rd_cmp_def"] / teams_df["3rd_att_def"]
+    teams_df["4th_pct"] = teams_df["4th_cmp"] / teams_df["4th_att"]
+    teams_df["4th_pct_def"] = teams_df["4th_cmp_def"] / teams_df["4th_att_def"]
+    teams_df["fg_pct"] = teams_df["fg_cmp"] / teams_df["fg_att"]
+    teams_df["yds_per_rush"] = teams_df["rush_yds"] / teams_df["rush_ply"]
+    teams_df["yds_per_rush_def"] = teams_df["rush_yds_def"] / teams_df["rush_ply_def"]
+    teams_df["yds_per_att"] = teams_df["pass_yds"] / teams_df["att"]
+    teams_df["yds_per_att_def"] = teams_df["pass_yds_def"] / teams_df["att_def"]
+    teams_df["yds_per_ply"] = teams_df["total_y"] / teams_df["total_ply"]
+    teams_df["yds_per_ply_def"] = teams_df["total_y_def"] / teams_df["total_ply_def"]
+    teams_df["pts_per_ply"] = teams_df["score"] / teams_df["total_ply"]
+    teams_df["pts_per_ply_def"] = teams_df["score_def"] / teams_df["total_ply_def"]
+    teams_df["punts_per_ply"] = teams_df["punts"] / teams_df["total_ply"]
+    teams_df["punts_per_ply_def"] = teams_df["punts_def"] / teams_df["total_ply"]
+    teams_df["pts_per_yd"] = teams_df["score"] / teams_df["total_y"]
+    teams_df["pts_per_yd_def"] = teams_df["score_def"] / teams_df["total_y_def"]
+    teams_df = teams_df.fillna(0)
+
 
     # dataframe for last 5 games
     last_five = teams_df.copy()
