@@ -16,6 +16,22 @@ from backend.scraping.Game_Stats import convert_poss
 from sklearn.model_selection import KFold
 
 
+def convert_odds(odds):
+    if odds < 0:
+        odds = odds * -1
+        return odds/(100 + odds)
+    else:
+        return 100/(100 + odds)
+
+
+def calc_profit(stake, odds):
+    if odds < 0:
+        odds = odds * -1
+        return stake/(odds/100)
+    else:
+        return stake * (odds/100)
+
+
 def load_data_classifier():
     """
     Loads data and splits into X and Y training and testing sets
@@ -24,6 +40,7 @@ def load_data_classifier():
     x_df = pd.read_csv("backend/data/last_five.csv")
     x_df.fillna(0, inplace=True)
     y_df = pd.read_csv("backend/data/weekly_stats.csv")
+    odds = pd.read_csv("backend/data/odds/odds.csv")
 
     df = pd.merge(y_df, x_df,
                   how="left",
@@ -65,7 +82,6 @@ def load_data_classifier():
             df[col] = df[col] * 2
 
     # Standardized X values
-    print()
     # x_cols = ["3rd_att", "3rd_cmp", "3rd_att_def", "3rd_cmp_def", "4th_att", "4th_cmp", "4th_att_def", "4th_cmp_def",
     #           "cmp", "cmp_def", "poss", "total_y", "total_y_def"]
     x_cols = ["cmp_pct", "cmp_pct_def", "3rd_pct", "3rd_pct_def", "4th_pct", "4th_pct_def", "fg_pct", "yds_per_rush",
@@ -85,13 +101,16 @@ def load_data_classifier():
     X_standardized = pd.DataFrame(scaler.fit_transform(X))
 
     # Y values
+    df = pd.merge(df, odds,
+                  how="left",
+                  left_on=["Home", "Away", "Week", "Year"],
+                  right_on=["Home", "Away", "Week", "Year"])
     df["win_lose"] = df["H_Score"] - df["A_Score"]
     df["win_lose"] = df["win_lose"] > 0
-    y = df["win_lose"].astype(int)
+    df["win_lose"] = df["win_lose"].astype(int)
+    y = df[["win_lose", "ML_h", "ML_a"]]
 
-    # X_train, X_test, y_train, y_test = train_test_split(X_standardized, y, test_size=.2, random_state=17)
-
-    return X_standardized, y
+    return train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
 
 def classifier_baseline_nn():
@@ -157,81 +176,113 @@ def classifier_nn_3():
 
 def main_classifier():
     # Load data
-    X, y = load_data_classifier()
-    kf = KFold(n_splits=5, shuffle=True, random_state=17)
+    X_train, X_test, y_train, y_test = load_data_classifier()
+    y_train = y_train["win_lose"]
+    actual_odds = y_test[["ML_h", "ML_a"]].reset_index().drop(["index"], axis=1)
+    actual_odds["Home_odds_actual"] = actual_odds["ML_h"].apply(lambda x: convert_odds(x))
+    actual_odds["Away_odds_actual"] = actual_odds["ML_a"].apply(lambda x: convert_odds(x))
+    y_test = y_test["win_lose"]
 
-    # baseline nn
-    for train_index, test_index in kf.split(X)
-        X_train, X_test = X[train_index], X[test_index]
-        y_train, y_test = y[train_index], y[test_index]
-        baseline_model = classifier_baseline_nn()
-        baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-        baseline_predictions = baseline_model.predict(X_test)
-        baseline_predictions = [1 if x > 0.5 else 0 for x in baseline_predictions]
-
-        print("Baseline NN report:")
-        print(classification_report(y_test, baseline_predictions))
-
-    # deeper nn_1
-    nn_1 = classifier_nn_1()
-    nn_1.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-    nn_1_predictions = nn_1.predict(X_test)
-    nn_1_predictions = [1 if x > 0.5 else 0 for x in nn_1_predictions]
-    print("Deeper NN_1 report:")
-    print(classification_report(y_test, nn_1_predictions))
-
-    # deeper nn_2
-    nn_2 = classifier_nn_2()
-    nn_2.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-    nn_2_predictions = nn_2.predict(X_test)
-    nn_2_predictions = [1 if x > 0.5 else 0 for x in nn_2_predictions]
-    print("Deeper NN_2 report:")
-    print(classification_report(y_test, nn_2_predictions))
-
-    # deeper nn_3
-    nn_3 = classifier_nn_3()
-    nn_3.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-    nn_3_predictions = nn_3.predict(X_test)
-    nn_3_predictions = [1 if x > 0.5 else 0 for x in nn_3_predictions]
-    print("Deeper NN_3 report:")
-    print(classification_report(y_test, nn_3_predictions))
-
-    # # Support Vector Machine
-    # svm = SVC(probability=True)
-    # svm.fit(X_train, y_train.values.ravel())
-    # svm_prob = svm.predict_proba(X_test)
-    # svm_prob = np.ndarray.tolist(svm_prob)
-    # svm_predictions = [1 if x[1] > .53 else 0 for x in svm_prob]
-    # print("Support Vector Machine report:")
-    # print(classification_report(y_test, svm_predictions))
-
-    # # Naive Bayes
-    # gnb = GaussianNB()
-    # gnb.fit(X_train, y_train.values.ravel())
-    # gnb_predicitions = gnb.predict(X_test)
-    # print("Gaussian Navie Bayes:")
-    # print(classification_report(y_test, gnb_predicitions))
+    # # baseline nn
+    # accuracy = []
+    # loss = []
+    # for train_index, test_index in kf.split(X):
+    #     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    #     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+    #     baseline_model = classifier_baseline_nn()
+    #     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+    #     scores = baseline_model.evaluate(X_test, y_test)
+    #     loss.append(scores[0])
+    #     accuracy.append(scores[1])
+    # print("Baseline NN report:")
+    # print("\tAvg loss: {}".format(sum(loss)/len(loss)))
+    # print("\tAvg accuracy: {}".format(round(sum(accuracy) / len(accuracy), 2) * 100))
     #
-    # # Logistic Regression
-    # logreg = LogisticRegression()
-    # logreg.fit(X_train, y_train.values.ravel())
-    # logreg_predicitons = logreg.predict(X_test)
-    # print("Logistic Regression report:")
-    # print(classification_report(y_test, logreg_predicitons))
-
-    # # Decision Tree
-    # tree = DecisionTreeClassifier()
-    # tree.fit(X_train, y_train.values.ravel())
-    # tree_predictions = tree.predict(X_test)
-    # print("Decision Tree report:")
-    # print(classification_report(y_test, tree_predictions))
+    # # deeper nn_1
+    # accuracy = []
+    # loss = []
+    # for train_index, test_index in kf.split(X):
+    #     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    #     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+    #     baseline_model = classifier_nn_1()
+    #     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+    #     scores = baseline_model.evaluate(X_test, y_test)
+    #     loss.append(scores[0])
+    #     accuracy.append(scores[1])
+    # print("NN 1 report:")
+    # print("\tAvg loss: {}".format(sum(loss) / len(loss)))
+    # print("\tAvg accuracy: {}".format(round(sum(accuracy) / len(accuracy), 2) * 100))
     #
-    # # Random Forest
-    # forest = RandomForestClassifier()
-    # forest.fit(X_train, y_train.values.ravel())
-    # forest_predicions = forest.predict(X_test)
-    # print("Random Forest report:")
-    # print(classification_report(y_test, forest_predicions))
+    # # deeper nn_2
+    # accuracy = []
+    # loss = []
+    # for train_index, test_index in kf.split(X):
+    #     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    #     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+    #     baseline_model = classifier_nn_2()
+    #     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+    #     scores = baseline_model.evaluate(X_test, y_test)
+    #     loss.append(scores[0])
+    #     accuracy.append(scores[1])
+    # print("NN 2 report:")
+    # print("\tAvg loss: {}".format(sum(loss) / len(loss)))
+    # print("\tAvg accuracy: {}".format(round(sum(accuracy) / len(accuracy), 2) * 100))
+    #
+    # # deeper nn_3
+    # accuracy = []
+    # loss = []
+    # for train_index, test_index in kf.split(X):
+    #     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    #     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+    #     baseline_model = classifier_nn_3()
+    #     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
+    #     scores = baseline_model.evaluate(X_test, y_test)
+    #     loss.append(scores[0])
+    #     accuracy.append(scores[1])
+    # print("NN 3 report:")
+    # print("\tAvg loss: {}".format(sum(loss) / len(loss)))
+    # print("\tAvg accuracy: {}".format(round(sum(accuracy) / len(accuracy), 2) * 100))
+
+    # Support Vector Machine
+    svm = SVC(probability=True)
+    svm.fit(X_train, y_train.values.ravel())
+    svm_predictions = svm.predict(X_test)
+    print("Support Vector Machine report:")
+    print(classification_report(y_test, svm_predictions))
+    svm_prob = svm.predict_proba(X_test)
+    svm_odds = pd.DataFrame(svm_prob, columns=["Away_odds_predict", "Home_odds_predict"])
+    svm_odds = svm_odds.join(actual_odds)
+    svm_odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
+    # Straight
+    svm_odds["my_bet_straight"] = svm_odds["Home_odds_predict"] >= svm_odds["Away_odds_predict"]
+    svm_odds["my_bet_straight"] = svm_odds["my_bet_straight"].astype(int)
+    svm_odds["result_straight"] = svm_odds["my_bet_straight"] == svm_odds["outcome"]
+    svm_odds["result_straight"] = svm_odds["result_straight"].astype(int)
+    # Divergence
+    svm_odds["home_odds_diff"] = svm_odds["Home_odds_predict"] - svm_odds["Home_odds_actual"]
+    svm_odds["away_odds_diff"] = svm_odds["Away_odds_predict"] - svm_odds["Away_odds_actual"]
+    svm_odds["my_bet_divergence"] = svm_odds["home_odds_diff"] >= svm_odds["away_odds_diff"]
+    svm_odds["my_bet_divergence"] = svm_odds["my_bet_divergence"].astype(int)
+    svm_odds["result_divergence"] = svm_odds["my_bet_divergence"] == svm_odds["outcome"]
+    svm_odds["result_divergence"] = svm_odds["result_divergence"].astype(int)
+    # Print result
+    print("Support Vector Machine betting report:")
+    print("\tDivergence betting:")
+    print("\t\tBets that hit: {}".format(svm_odds["result_divergence"].sum()))
+    print("\t\tNumber of bets: {}".format(svm_odds["result_divergence"].count()))
+    print("\t\tAccuracy: {}%".format(
+        round(
+            svm_odds["result_divergence"].sum() / svm_odds["result_divergence"].count() * 100
+        )
+    ))
+    print("\tStraight betting:")
+    print("\t\tBets that hit: {}".format(svm_odds["result_straight"].sum()))
+    print("\t\tNumber of bets: {}".format(svm_odds["result_straight"].count()))
+    print("\t\tAccuracy: {}%".format(
+        round(
+            svm_odds["result_straight"].sum() / svm_odds["result_straight"].count() * 100
+        )
+    ))
 
 
 if __name__ == '__main__':
