@@ -101,7 +101,7 @@ def load_data_classifier():
     X_standardized = pd.DataFrame(scaler.fit_transform(X))
 
     # Y values
-    df = pd.merge(df, odds,
+    df = pd.merge(df, odds.iloc[:, 1:],
                   how="left",
                   left_on=["Home", "Away", "Week", "Year"],
                   right_on=["Home", "Away", "Week", "Year"])
@@ -253,36 +253,26 @@ def main_classifier():
     svm_odds = pd.DataFrame(svm_prob, columns=["Away_odds_predict", "Home_odds_predict"])
     svm_odds = svm_odds.join(actual_odds)
     svm_odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
-    # Straight
-    svm_odds["my_bet_straight"] = svm_odds["Home_odds_predict"] >= svm_odds["Away_odds_predict"]
-    svm_odds["my_bet_straight"] = svm_odds["my_bet_straight"].astype(int)
-    svm_odds["result_straight"] = svm_odds["my_bet_straight"] == svm_odds["outcome"]
-    svm_odds["result_straight"] = svm_odds["result_straight"].astype(int)
-    # Divergence
-    svm_odds["home_odds_diff"] = svm_odds["Home_odds_predict"] - svm_odds["Home_odds_actual"]
-    svm_odds["away_odds_diff"] = svm_odds["Away_odds_predict"] - svm_odds["Away_odds_actual"]
-    svm_odds["my_bet_divergence"] = svm_odds["home_odds_diff"] >= svm_odds["away_odds_diff"]
-    svm_odds["my_bet_divergence"] = svm_odds["my_bet_divergence"].astype(int)
-    svm_odds["result_divergence"] = svm_odds["my_bet_divergence"] == svm_odds["outcome"]
-    svm_odds["result_divergence"] = svm_odds["result_divergence"].astype(int)
-    # Print result
-    print("Support Vector Machine betting report:")
-    print("\tDivergence betting:")
-    print("\t\tBets that hit: {}".format(svm_odds["result_divergence"].sum()))
-    print("\t\tNumber of bets: {}".format(svm_odds["result_divergence"].count()))
-    print("\t\tAccuracy: {}%".format(
-        round(
-            svm_odds["result_divergence"].sum() / svm_odds["result_divergence"].count() * 100
-        )
-    ))
-    print("\tStraight betting:")
-    print("\t\tBets that hit: {}".format(svm_odds["result_straight"].sum()))
-    print("\t\tNumber of bets: {}".format(svm_odds["result_straight"].count()))
-    print("\t\tAccuracy: {}%".format(
-        round(
-            svm_odds["result_straight"].sum() / svm_odds["result_straight"].count() * 100
-        )
-    ))
+    svm_odds["predicted_winner"] = np.where(svm_odds["Home_odds_predict"] >= svm_odds["Away_odds_predict"],
+                                            svm_odds["Home_odds_predict"],
+                                            svm_odds["Away_odds_predict"])
+    svm_odds["odds_actual"] = np.where(svm_odds["Home_odds_predict"] >= svm_odds["Away_odds_predict"],
+                                       svm_odds["Home_odds_actual"],
+                                       svm_odds["Away_odds_actual"])
+    svm_odds["ML"] = np.where(svm_odds["Home_odds_predict"] >= svm_odds["Away_odds_predict"],
+                              svm_odds["ML_h"],
+                              svm_odds["ML_a"])
+    svm_odds["potential_payout"] = svm_odds["ML"].apply(lambda x: calc_profit(100, x))
+    svm_odds["divergence"] = svm_odds["predicted_winner"] - svm_odds["odds_actual"]
+    svm_odds["place_bet"] = (svm_odds["predicted_winner"] >= 0.7) | (svm_odds["divergence"] >= 0.2)
+    svm_odds = svm_odds[svm_odds["place_bet"]]
+    svm_odds["payout"] = np.where(svm_odds["outcome"] == 1, svm_odds["potential_payout"], -100)
+    profit = svm_odds["payout"].sum()
+    print("SVM result:")
+    print("\tBets placed: {}".format(svm_odds.shape[0]))
+    print("\tBets hit: {}".format(svm_odds["outcome"].sum()))
+    print("\tAccuracy: {}%".format(round(svm_odds["outcome"].sum() / svm_odds.shape[0] * 100, 2)))
+    print("\tProfit: ${}".format(profit))
 
 
 if __name__ == '__main__':
