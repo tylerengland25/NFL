@@ -77,7 +77,7 @@ def scrape_game(home, visitor, number, week):
     return stats
 
 
-def scrape_season(year):
+def scrape_season(year, num_weeks):
     url = "https://www.footballdb.com/games/index.html?lg=NFL&yr=" + year
     hdr = {
         'User-Agent': """Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 
@@ -90,8 +90,10 @@ def scrape_season(year):
     season_stats = pd.DataFrame()
 
     weeks = soup.find_all("tbody")
-    for week in range(len(weeks)):
+    for week in range(num_weeks):
         print(week)
+        if week == 10:
+            print("debug")
         games = weeks[week].find_all("tr")
         for game in games:
             link = game.find_all("td")[6].a["href"]
@@ -119,14 +121,14 @@ def convert_poss(time):
     return (mins * 60) + secs
 
 
-def last_5_games():
+def last_5_games(filename1, filename2):
     """
     Selects last 5 games of stats for each game
     :return:
     """
     # Load data
-    home_df = pd.read_csv("backend/data/weekly_stats.csv")
-    away_df = pd.read_csv("backend/data/weekly_stats.csv")
+    home_df = pd.read_csv(filename1)
+    away_df = pd.read_csv(filename1)
 
     home_df.rename(
         columns=lambda col: col.lower()[2:]
@@ -193,19 +195,25 @@ def last_5_games():
                              suffixes=["", "_" + str(i)])
 
     last_five.fillna(0, inplace=True)
-    last_five.to_csv("backend/data/last_five.csv")
+    last_five.to_csv(filename2)
 
 
 def main():
     ten_years = pd.DataFrame()
     for season in range(2010, 2021):
         print(season)
-        season_stats = scrape_season(str(season))
+        season_stats = scrape_season(str(season), 21)
         ten_years = pd.concat([ten_years, season_stats], ignore_index=True)
 
     ten_years.to_csv("backend/data/weekly_stats.csv")
-    last_5_games()
+    last_5_games("backend/data/weekly_stats.csv", "backend/data/last_five.csv")
+
+
+def current_season(current):
+    season = scrape_season(current, 10)
+    season.to_csv("backend/data/current_season_stats.csv")
+    last_5_games("backend/data/current_season_stats.csv", "backend/data/current_last_five_games.csv")
 
 
 if __name__ == '__main__':
-    main()
+    current_season("2021")
