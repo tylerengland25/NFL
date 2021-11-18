@@ -148,6 +148,7 @@ def main_classifier():
     print(classification_report(y_test, svm_predictions))
     svm_prob = svm.predict_proba(X_test)
     odds_calculations(svm_prob, actual_odds, y_test)
+    pickle.dump(svm, open('backend/modeling/models/svm.pkl', 'wb'))
 
 
 if __name__ == '__main__':

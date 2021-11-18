@@ -211,7 +211,9 @@ def main():
 
 def current_season(current):
     season = scrape_season(current, 10)
-    season.to_csv("backend/data/current_season_stats.csv")
+    past_seasons = pd.read_csv("backend/data/weekly_stats.csv")
+    df = pd.concat([past_seasons, season], ignore_index=True)
+    df.to_csv("backend/data/current_season_stats.csv")
     last_5_games("backend/data/current_season_stats.csv", "backend/data/current_last_five_games.csv")
 
 

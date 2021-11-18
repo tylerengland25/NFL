@@ -10,6 +10,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\backend\data\current_last_five_games.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\backend\data\current_season_stats.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\backend\data\inputs.csv">
           <value>
             <Attribute>
