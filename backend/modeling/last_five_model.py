@@ -110,8 +110,7 @@ def odds_calculations(probabilities, actual_odds, y_test):
     odds = pd.DataFrame(probabilities, columns=["Away_odds_predict", "Home_odds_predict"])
     odds = odds.join(actual_odds)
     odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
-    # odds["Home_odds_predict"] > odds["Away_odds_predict"]
-    odds["odds_predicted"] = np.where(odds["Home_odds_predict"] > random.uniform(0, 1),
+    odds["odds_predicted"] = np.where(odds["Home_odds_predict"] > odds["Away_odds_predict"],
                                       odds["Home_odds_predict"],
                                       odds["Away_odds_predict"])
     odds["odds_actual"] = np.where(odds["Home_odds_predict"] > odds["Away_odds_predict"],
