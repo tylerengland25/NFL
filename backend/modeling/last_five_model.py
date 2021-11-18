@@ -2,34 +2,26 @@ import pandas as pd
 import pickle
 import numpy as np
 from sklearn.model_selection import train_test_split
-from keras.models import Sequential
-from keras.layers import Dense
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
 from backend.scraping.Game_Stats import convert_poss
-
-from sklearn.model_selection import KFold
 
 
 def convert_odds(odds):
     if odds < 0:
         odds = odds * -1
-        return odds/(100 + odds)
+        return odds / (100 + odds)
     else:
-        return 100/(100 + odds)
+        return 100 / (100 + odds)
 
 
 def calc_profit(stake, odds):
     if odds < 0:
         odds = odds * -1
-        return stake/(odds/100)
+        return stake / (odds / 100)
     else:
-        return stake * (odds/100)
+        return stake * (odds / 100)
 
 
 def load_data_classifier():
@@ -113,65 +105,30 @@ def load_data_classifier():
     return train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
 
-def classifier_baseline_nn():
-    """
-    Creates a fully connected neural network with the input layer having as many nodes as the input, and an
-    output layer
-    :return:
-    """
-    # Create model
-    model = Sequential()
-    model.add(Dense(360, input_dim=360, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(128, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(1, activation="sigmoid"))
-    # Compile model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    return model
-
-
-def classifier_nn_1():
-    """
-        Creates a fully connected neural network with the three hidden layers
-        :return:
-        """
-    # Create model
-    model = Sequential()
-    model.add(Dense(360, input_dim=360, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(360, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(1, activation="sigmoid"))
-    # Compile model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    return model
-
-
-def classifier_nn_2():
-    """
-    Creates a fully connected neural network with the three hidden layers
-    :return:
-    """
-    # Create model
-    model = Sequential()
-    model.add(Dense(360, input_dim=360, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(256, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(1, activation="sigmoid"))
-    # Compile model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    return model
-
-
-def classifier_nn_3():
-    """
-    Creates a fully connected neural network with the three hidden layers
-    :return:
-    """
-    # Create model
-    model = Sequential()
-    model.add(Dense(360, input_dim=360, kernel_initializer='normal', activation="relu"))
-    model.add(Dense(64, kernel_initializer='normal', activation='relu'))
-    model.add(Dense(1, activation="sigmoid"))
-    # Compile model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    return model
+def odds_calculations(probabilities, actual_odds, y_test):
+    odds = pd.DataFrame(probabilities, columns=["Away_odds_predict", "Home_odds_predict"])
+    odds = odds.join(actual_odds)
+    odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
+    odds["predicted_winner"] = np.where(odds["Home_odds_predict"] >= odds["Away_odds_predict"],
+                                        odds["Home_odds_predict"],
+                                        odds["Away_odds_predict"])
+    odds["odds_actual"] = np.where(odds["Home_odds_predict"] >= odds["Away_odds_predict"],
+                                   odds["Home_odds_actual"],
+                                   odds["Away_odds_actual"])
+    odds["ML"] = np.where(odds["Home_odds_predict"] >= odds["Away_odds_predict"],
+                          odds["ML_h"],
+                          odds["ML_a"])
+    odds["potential_payout"] = odds["ML"].apply(lambda x: calc_profit(100, x))
+    odds["divergence"] = odds["predicted_winner"] - odds["odds_actual"]
+    odds["place_bet"] = (odds["predicted_winner"] >= 0.7) | (odds["divergence"] >= 0.1)
+    odds = odds[odds["place_bet"]]
+    odds["payout"] = np.where(odds["outcome"] == 1, odds["potential_payout"], -100)
+    profit = odds["payout"].sum()
+    print("SVM result:")
+    print("\tBets placed: {}".format(odds.shape[0]))
+    print("\tBets hit: {}".format(odds["outcome"].sum()))
+    print("\tAccuracy: {}%".format(round(odds["outcome"].sum() / odds.shape[0] * 100)))
+    print("\tProfit: ${}".format(profit))
 
 
 def main_classifier():
@@ -183,66 +140,6 @@ def main_classifier():
     actual_odds["Away_odds_actual"] = actual_odds["ML_a"].apply(lambda x: convert_odds(x))
     y_test = y_test["win_lose"]
 
-    # # baseline nn
-    # accuracy = []
-    # loss = []
-    # for train_index, test_index in kf.split(X):
-    #     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-    #     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-    #     baseline_model = classifier_baseline_nn()
-    #     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-    #     scores = baseline_model.evaluate(X_test, y_test)
-    #     loss.append(scores[0])
-    #     accuracy.append(scores[1])
-    # print("Baseline NN report:")
-    # print("\tAvg loss: {}".format(sum(loss)/len(loss)))
-    # print("\tAvg accuracy: {}".format(round(sum(accuracy) / len(accuracy), 2) * 100))
-    #
-    # # deeper nn_1
-    # accuracy = []
-    # loss = []
-    # for train_index, test_index in kf.split(X):
-    #     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-    #     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-    #     baseline_model = classifier_nn_1()
-    #     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-    #     scores = baseline_model.evaluate(X_test, y_test)
-    #     loss.append(scores[0])
-    #     accuracy.append(scores[1])
-    # print("NN 1 report:")
-    # print("\tAvg loss: {}".format(sum(loss) / len(loss)))
-    # print("\tAvg accuracy: {}".format(round(sum(accuracy) / len(accuracy), 2) * 100))
-    #
-    # # deeper nn_2
-    # accuracy = []
-    # loss = []
-    # for train_index, test_index in kf.split(X):
-    #     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-    #     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-    #     baseline_model = classifier_nn_2()
-    #     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-    #     scores = baseline_model.evaluate(X_test, y_test)
-    #     loss.append(scores[0])
-    #     accuracy.append(scores[1])
-    # print("NN 2 report:")
-    # print("\tAvg loss: {}".format(sum(loss) / len(loss)))
-    # print("\tAvg accuracy: {}".format(round(sum(accuracy) / len(accuracy), 2) * 100))
-    #
-    # # deeper nn_3
-    # accuracy = []
-    # loss = []
-    # for train_index, test_index in kf.split(X):
-    #     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-    #     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-    #     baseline_model = classifier_nn_3()
-    #     baseline_model.fit(X_train, y_train, epochs=50, batch_size=40, verbose=0)
-    #     scores = baseline_model.evaluate(X_test, y_test)
-    #     loss.append(scores[0])
-    #     accuracy.append(scores[1])
-    # print("NN 3 report:")
-    # print("\tAvg loss: {}".format(sum(loss) / len(loss)))
-    # print("\tAvg accuracy: {}".format(round(sum(accuracy) / len(accuracy), 2) * 100))
-
     # Support Vector Machine
     svm = SVC(probability=True)
     svm.fit(X_train, y_train.values.ravel())
@@ -250,29 +147,7 @@ def main_classifier():
     print("Support Vector Machine report:")
     print(classification_report(y_test, svm_predictions))
     svm_prob = svm.predict_proba(X_test)
-    svm_odds = pd.DataFrame(svm_prob, columns=["Away_odds_predict", "Home_odds_predict"])
-    svm_odds = svm_odds.join(actual_odds)
-    svm_odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
-    svm_odds["predicted_winner"] = np.where(svm_odds["Home_odds_predict"] >= svm_odds["Away_odds_predict"],
-                                            svm_odds["Home_odds_predict"],
-                                            svm_odds["Away_odds_predict"])
-    svm_odds["odds_actual"] = np.where(svm_odds["Home_odds_predict"] >= svm_odds["Away_odds_predict"],
-                                       svm_odds["Home_odds_actual"],
-                                       svm_odds["Away_odds_actual"])
-    svm_odds["ML"] = np.where(svm_odds["Home_odds_predict"] >= svm_odds["Away_odds_predict"],
-                              svm_odds["ML_h"],
-                              svm_odds["ML_a"])
-    svm_odds["potential_payout"] = svm_odds["ML"].apply(lambda x: calc_profit(100, x))
-    svm_odds["divergence"] = svm_odds["predicted_winner"] - svm_odds["odds_actual"]
-    svm_odds["place_bet"] = (svm_odds["predicted_winner"] >= 0.7) | (svm_odds["divergence"] >= 0.2)
-    svm_odds = svm_odds[svm_odds["place_bet"]]
-    svm_odds["payout"] = np.where(svm_odds["outcome"] == 1, svm_odds["potential_payout"], -100)
-    profit = svm_odds["payout"].sum()
-    print("SVM result:")
-    print("\tBets placed: {}".format(svm_odds.shape[0]))
-    print("\tBets hit: {}".format(svm_odds["outcome"].sum()))
-    print("\tAccuracy: {}%".format(round(svm_odds["outcome"].sum() / svm_odds.shape[0] * 100, 2)))
-    print("\tProfit: ${}".format(profit))
+    odds_calculations(svm_prob, actual_odds, y_test)
 
 
 if __name__ == '__main__':
