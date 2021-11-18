@@ -8,6 +8,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
 from backend.scraping.Game_Stats import convert_poss
 
+import matplotlib.pyplot as plt
+
 
 def convert_odds(odds):
     if odds < 0:
@@ -107,35 +109,47 @@ def load_data_classifier():
 
 
 def odds_calculations(probabilities, actual_odds, y_test):
-    odds = pd.DataFrame(probabilities, columns=["Away_odds_predict", "Home_odds_predict"])
+    odds = pd.DataFrame(probabilities, columns=["away_win_prob", "home_win_prob"])
     odds = odds.join(actual_odds)
     odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
-    odds["odds_predicted"] = np.where(odds["Home_odds_predict"] > odds["Away_odds_predict"],
-                                      odds["Home_odds_predict"],
-                                      odds["Away_odds_predict"])
-    odds["odds_actual"] = np.where(odds["Home_odds_predict"] > odds["Away_odds_predict"],
-                                   odds["Home_odds_actual"],
-                                   odds["Away_odds_actual"])
-    odds["predicted_outcome"] = np.where(odds["Home_odds_predict"] > odds["Away_odds_predict"], 1, 0)
-    odds["ML"] = np.where(odds["Home_odds_predict"] >= odds["Away_odds_predict"],
-                          odds["ML_h"],
-                          odds["ML_a"])
-    odds["potential_payout"] = odds["ML"].apply(lambda x: calc_profit(100, x))
-    odds["divergence"] = odds["odds_predicted"] - odds["odds_actual"]
-    # odds["place_bet"] = (((odds["divergence"] >= -.15) & odds["divergence"] <= .15) | (odds["divergence"] < .2)) | \
-    #                     ((odds["ML"] < 0) & (odds["divergence"] < -0.15) & (odds["divergence"] > 0.04)) | \
-    #                     ((odds["ML"] > 0) & (odds["divergence"] < .08) & (odds["divergence"] > .2))
-    odds["place_bet"] = True
-    odds["payout"] = np.where(odds["outcome"] == odds["predicted_outcome"], odds["potential_payout"], -100)
-    profit = odds[odds["place_bet"]]["payout"].sum()
-    num_placed = odds[odds["place_bet"]]["payout"].count()
-    num_hit = odds[(odds["place_bet"]) & (odds["predicted_outcome"] == odds["outcome"])]["payout"].count()
-    print("SVM result:")
-    print("\tBets placed: {}".format(num_placed))
-    print("\tBets hit: {}".format(num_hit))
-    print("\tAccuracy: {}%".format(round(num_hit / num_placed * 100)))
-    print("\tProfit: ${}".format(profit))
-    odds = odds[(odds["payout"] < 0) & (odds["place_bet"])]
+    odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
+    odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
+    odds["outcome_predict"] = np.where((odds["home_win_prob"] >= .6) |
+                                       (~((odds["away_win_prob"] >= .6) & odds["away_divergence"] <= 0)) |
+                                       ((odds["home_win_prob"] >= .45) &
+                                        (odds["home_win_prob"] < .6) &
+                                        (odds["home_divergence"] < odds["away_divergence"])) |
+                                       (~(odds["away_win_prob"] >= .45) &
+                                        (odds["away_win_prob"] < .6) &
+                                        (odds["home_divergence"] > odds["away_divergence"])) |
+                                       ((odds["home_win_prob"] < .45) &
+                                        (odds["home_divergence"] < odds["away_divergence"])) |
+                                       ((odds["away_win_prob"] < .45) & (odds["away_divergence"] > 0)),
+                                       1,
+                                       0)
+    odds["potential_payout"] = np.where((odds["home_win_prob"] >= .6) |
+                                        (~((odds["away_win_prob"] >= .6) & odds["away_divergence"] <= 0)) |
+                                        ((odds["home_win_prob"] >= .45) &
+                                         (odds["home_win_prob"] < .6) &
+                                         (odds["home_divergence"] < odds["away_divergence"])) |
+                                        (~(odds["away_win_prob"] >= .45) &
+                                         (odds["away_win_prob"] < .6) &
+                                         (odds["home_divergence"] > odds["away_divergence"])) |
+                                        ((odds["home_win_prob"] < .45) &
+                                         (odds["home_divergence"] < odds["away_divergence"])) |
+                                        ((odds["away_win_prob"] < .45) & (odds["away_divergence"] > 0)),
+                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)))
+    odds["payout"] = np.where(odds["outcome_predict"] == odds["outcome"], odds["potential_payout"], -100)
+    num_hit = odds[odds["outcome_predict"] == odds["outcome"]]["payout"].count()
+    num_placed = odds["payout"].count()
+    profit = odds["payout"].sum()
+    print("SVM betting results:")
+    print("\tBets Hit: {}".format(num_hit))
+    print("\tBets Placed: {}".format(num_placed))
+    print("\tAccuracy: {}%".format(round(num_hit/num_placed * 100)))
+    print("\tProfit: ${}".format(round(profit)))
+
     print()
 
 
