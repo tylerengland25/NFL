@@ -90,12 +90,13 @@ def scrape_season(year, num_weeks):
     season_stats = pd.DataFrame()
 
     weeks = soup.find_all("tbody")
-    for week in range(num_weeks):
+    for week in range(10, num_weeks):
         print(week)
         if week == 10:
             print("debug")
         games = weeks[week].find_all("tr")
         for game in games:
+            link = game.find_all("td")[6].a
             link = game.find_all("td")[6].a["href"]
             away = link.split('/')[-1].split('vs')[0][:-1]
             home = "-".join(link.split('/')[-1].split('vs')[1].split('-')[:-1])[1:]
@@ -210,7 +211,7 @@ def main():
 
 
 def current_season(current):
-    season = scrape_season(current, 10)
+    season = scrape_season(current, 11)
     past_seasons = pd.read_csv("backend/data/weekly_stats.csv")
     df = pd.concat([past_seasons, season], ignore_index=True)
     df.to_csv("backend/data/current_season_stats.csv")

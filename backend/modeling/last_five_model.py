@@ -1,3 +1,4 @@
+import random
 import pandas as pd
 import pickle
 import numpy as np
@@ -109,26 +110,34 @@ def odds_calculations(probabilities, actual_odds, y_test):
     odds = pd.DataFrame(probabilities, columns=["Away_odds_predict", "Home_odds_predict"])
     odds = odds.join(actual_odds)
     odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
-    odds["predicted_winner"] = np.where(odds["Home_odds_predict"] >= odds["Away_odds_predict"],
-                                        odds["Home_odds_predict"],
-                                        odds["Away_odds_predict"])
-    odds["odds_actual"] = np.where(odds["Home_odds_predict"] >= odds["Away_odds_predict"],
+    # odds["Home_odds_predict"] > odds["Away_odds_predict"]
+    odds["odds_predicted"] = np.where(odds["Home_odds_predict"] > random.uniform(0, 1),
+                                      odds["Home_odds_predict"],
+                                      odds["Away_odds_predict"])
+    odds["odds_actual"] = np.where(odds["Home_odds_predict"] > odds["Away_odds_predict"],
                                    odds["Home_odds_actual"],
                                    odds["Away_odds_actual"])
+    odds["predicted_outcome"] = np.where(odds["Home_odds_predict"] > odds["Away_odds_predict"], 1, 0)
     odds["ML"] = np.where(odds["Home_odds_predict"] >= odds["Away_odds_predict"],
                           odds["ML_h"],
                           odds["ML_a"])
     odds["potential_payout"] = odds["ML"].apply(lambda x: calc_profit(100, x))
-    odds["divergence"] = odds["predicted_winner"] - odds["odds_actual"]
-    odds["place_bet"] = (odds["predicted_winner"] >= 0.7) | (odds["divergence"] >= 0.1)
-    odds = odds[odds["place_bet"]]
-    odds["payout"] = np.where(odds["outcome"] == 1, odds["potential_payout"], -100)
-    profit = odds["payout"].sum()
+    odds["divergence"] = odds["odds_predicted"] - odds["odds_actual"]
+    # odds["place_bet"] = (((odds["divergence"] >= -.15) & odds["divergence"] <= .15) | (odds["divergence"] < .2)) | \
+    #                     ((odds["ML"] < 0) & (odds["divergence"] < -0.15) & (odds["divergence"] > 0.04)) | \
+    #                     ((odds["ML"] > 0) & (odds["divergence"] < .08) & (odds["divergence"] > .2))
+    odds["place_bet"] = True
+    odds["payout"] = np.where(odds["outcome"] == odds["predicted_outcome"], odds["potential_payout"], -100)
+    profit = odds[odds["place_bet"]]["payout"].sum()
+    num_placed = odds[odds["place_bet"]]["payout"].count()
+    num_hit = odds[(odds["place_bet"]) & (odds["predicted_outcome"] == odds["outcome"])]["payout"].count()
     print("SVM result:")
-    print("\tBets placed: {}".format(odds.shape[0]))
-    print("\tBets hit: {}".format(odds["outcome"].sum()))
-    print("\tAccuracy: {}%".format(round(odds["outcome"].sum() / odds.shape[0] * 100)))
+    print("\tBets placed: {}".format(num_placed))
+    print("\tBets hit: {}".format(num_hit))
+    print("\tAccuracy: {}%".format(round(num_hit / num_placed * 100)))
     print("\tProfit: ${}".format(profit))
+    odds = odds[(odds["payout"] < 0) & (odds["place_bet"])]
+    print()
 
 
 def main_classifier():
