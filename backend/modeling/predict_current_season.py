@@ -109,24 +109,44 @@ def load_data_classifier():
 
 def main():
     # Load data and model
+    odds = pd.read_csv("backend/data/odds/2021/Week_11.csv")
+    current_week = 11
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
     X = X.reset_index()
     y = y.reset_index()
-    X = X[X["Year"] == 2021]
-    y = y[y["Year"] == 2021]
+    X = X[(X["Year"] == 2021) & (X["Week"] == current_week)]
 
     # Predict
     svm_prob = svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1))
-    svm_odds = pd.DataFrame(svm_prob, columns=["Away_odds_predict", "Home_odds_predict"], index=X.index)
-    odds = pd.merge(y, svm_odds, how="left", left_index=True, right_index=True)
-    odds["predicted_winner"] = np.where(odds["Home_odds_predict"] >= odds["Away_odds_predict"], 1, 0)
-    odds["correct_predictions"] = np.where(odds["predicted_winner"] == odds["win_lose"], 1, 0)
-    print("Number of correct predictions: {}".format(odds["correct_predictions"].sum()))
-    print("Number of games: {}".format(odds["correct_predictions"].count()))
-    print("Accuracy: {}%".format(
-        round(
-            odds["correct_predictions"].sum() / odds["correct_predictions"].count() * 100)))
+    svm_odds = pd.DataFrame(svm_prob, columns=["away_win_prob", "home_win_prob"])
+    odds = pd.merge(odds, svm_odds, how="left", left_index=True, right_index=True)
+    odds["Home_odds_actual"] = odds["ML_h"].apply(lambda x: convert_odds(x))
+    odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
+    odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
+    odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
+    odds["outcome_predict"] = np.where((odds["home_win_prob"] >= .6) |
+                                       (~((odds["away_win_prob"] >= .6) & odds["away_divergence"] <= 0)) |
+                                       ((odds["home_win_prob"] >= .45) &
+                                        (odds["home_win_prob"] < .6) &
+                                        (odds["home_divergence"] < odds["away_divergence"])) |
+                                       (~(odds["away_win_prob"] >= .45) &
+                                        (odds["away_win_prob"] < .6) &
+                                        (odds["home_divergence"] > odds["away_divergence"])) |
+                                       ((odds["home_win_prob"] < .45) &
+                                        (odds["home_divergence"] < odds["away_divergence"])) |
+                                       ((odds["away_win_prob"] < .45) & (odds["away_divergence"] > 0)),
+                                       1,
+                                       0)
+    odds["potential_payout"] = np.where(odds["outcome_predict"],
+                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
+    print("Week {} predictions:".format(current_week))
+    predictions = odds[["Home", "Away", "home_win_prob", "away_win_prob"]]
+    print("|Home|\t|Away|\t|Bet|\t|Potential Payout|")
+    for index, row in predictions.iterrows():
+        print("Home: {} ({}%)\tAway: {} ({}%)".format(row["Home"], round(row["home_win_prob"] * 100),
+                                                      row["Away"], round(row["away_win_prob"] * 100)))
 
 
 if __name__ == '__main__':

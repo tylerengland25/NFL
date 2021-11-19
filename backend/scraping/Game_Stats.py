@@ -90,21 +90,27 @@ def scrape_season(year, num_weeks):
     season_stats = pd.DataFrame()
 
     weeks = soup.find_all("tbody")
-    for week in range(10, num_weeks):
+    for week in range(num_weeks):
         print(week)
-        if week == 10:
-            print("debug")
         games = weeks[week].find_all("tr")
         for game in games:
             link = game.find_all("td")[6].a
-            link = game.find_all("td")[6].a["href"]
-            away = link.split('/')[-1].split('vs')[0][:-1]
-            home = "-".join(link.split('/')[-1].split('vs')[1].split('-')[:-1])[1:]
-            number = link.split('/')[-1].split('vs')[1].split('-')[-1]
-            game_stats = scrape_game(home, away, number, week + 1)
-            game_stats["H_Score"] = game.find_all("td")[4].text
-            game_stats["A_Score"] = game.find_all("td")[2].text
-            game_stats["Year"] = year
+            if link is None:
+                away = game.find_all("td")[1].find_all("span")[0].text
+                away = "-".join(away.lower().split(" "))
+                home = game.find_all("td")[3].find_all("span")[0].text
+                home = "-".join(home.lower().split(" "))
+                game_stats = {"Home": home, "Away": away, "Week": week + 1, "Year": year}
+            else:
+                link = link["href"]
+                away = link.split('/')[-1].split('vs')[0][:-1]
+                home = "-".join(link.split('/')[-1].split('vs')[1].split('-')[:-1])[1:]
+                number = link.split('/')[-1].split('vs')[1].split('-')[-1]
+                game_stats = scrape_game(home, away, number, week + 1)
+                game_stats["H_Score"] = game.find_all("td")[4].text
+                game_stats["A_Score"] = game.find_all("td")[2].text
+                game_stats["Year"] = year
+
             season_stats = season_stats.append(game_stats, ignore_index=True)
 
     return season_stats

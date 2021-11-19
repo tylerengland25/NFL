@@ -127,17 +127,7 @@ def odds_calculations(probabilities, actual_odds, y_test):
                                        ((odds["away_win_prob"] < .45) & (odds["away_divergence"] > 0)),
                                        1,
                                        0)
-    odds["potential_payout"] = np.where((odds["home_win_prob"] >= .6) |
-                                        (~((odds["away_win_prob"] >= .6) & odds["away_divergence"] <= 0)) |
-                                        ((odds["home_win_prob"] >= .45) &
-                                         (odds["home_win_prob"] < .6) &
-                                         (odds["home_divergence"] < odds["away_divergence"])) |
-                                        (~(odds["away_win_prob"] >= .45) &
-                                         (odds["away_win_prob"] < .6) &
-                                         (odds["home_divergence"] > odds["away_divergence"])) |
-                                        ((odds["home_win_prob"] < .45) &
-                                         (odds["home_divergence"] < odds["away_divergence"])) |
-                                        ((odds["away_win_prob"] < .45) & (odds["away_divergence"] > 0)),
+    odds["potential_payout"] = np.where(odds["outcome_predict"],
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)),
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)))
     odds["payout"] = np.where(odds["outcome_predict"] == odds["outcome"], odds["potential_payout"], -100)
@@ -151,6 +141,18 @@ def odds_calculations(probabilities, actual_odds, y_test):
     print("\tProfit: ${}".format(round(profit)))
 
     print()
+
+
+def performance():
+    svm = pickle.load(open('backend/modeling/models/svm.pkl', 'rb'))
+    # Load data
+    X_train, X_test, y_train, y_test = load_data_classifier()
+    actual_odds = y_test[["ML_h", "ML_a"]].reset_index().drop(["index"], axis=1)
+    actual_odds["Home_odds_actual"] = actual_odds["ML_h"].apply(lambda x: convert_odds(x))
+    actual_odds["Away_odds_actual"] = actual_odds["ML_a"].apply(lambda x: convert_odds(x))
+    y_test = y_test["win_lose"]
+    svm_prob = svm.predict_proba(X_test)
+    odds_calculations(svm_prob, actual_odds, y_test)
 
 
 def main_classifier():
@@ -168,10 +170,8 @@ def main_classifier():
     svm_predictions = svm.predict(X_test)
     print("Support Vector Machine report:")
     print(classification_report(y_test, svm_predictions))
-    svm_prob = svm.predict_proba(X_test)
-    odds_calculations(svm_prob, actual_odds, y_test)
     pickle.dump(svm, open('backend/modeling/models/svm.pkl', 'wb'))
 
 
 if __name__ == '__main__':
-    main_classifier()
+    performance()
