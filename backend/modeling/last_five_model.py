@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
 from backend.scraping.Game_Stats import convert_poss
@@ -114,33 +115,49 @@ def odds_calculations(probabilities, actual_odds, y_test):
     odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    odds["outcome_predict"] = np.where((odds["home_win_prob"] >= .6) |
-                                       (~((odds["away_win_prob"] >= .6) & odds["away_divergence"] <= 0)) |
-                                       ((odds["home_win_prob"] >= .45) &
-                                        (odds["home_win_prob"] < .6) &
-                                        (odds["home_divergence"] < odds["away_divergence"])) |
-                                       (~(odds["away_win_prob"] >= .45) &
-                                        (odds["away_win_prob"] < .6) &
-                                        (odds["home_divergence"] > odds["away_divergence"])) |
-                                       ((odds["home_win_prob"] < .45) &
-                                        (odds["home_divergence"] < odds["away_divergence"])) |
-                                       ((odds["away_win_prob"] < .45) & (odds["away_divergence"] > 0)),
-                                       1,
-                                       0)
-    odds["potential_payout"] = np.where(odds["outcome_predict"],
-                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)))
-    odds["payout"] = np.where(odds["outcome_predict"] == odds["outcome"], odds["potential_payout"], -100)
-    num_hit = odds[odds["outcome_predict"] == odds["outcome"]]["payout"].count()
-    num_placed = odds["payout"].count()
-    profit = odds["payout"].sum()
-    print("SVM betting results:")
-    print("\tBets Hit: {}".format(num_hit))
-    print("\tBets Placed: {}".format(num_placed))
-    print("\tAccuracy: {}%".format(round(num_hit/num_placed * 100)))
-    print("\tProfit: ${}".format(round(profit)))
+    odds = odds.dropna(axis=0)
+    odds_train, odds_test, outcome_train, outcome_test = train_test_split(odds.drop(["outcome"], axis=1),
+                                                                          odds["outcome"],
+                                                                          test_size=.2, random_state=17)
+    svm = SVC(probability=True)
+    svm.fit(odds_train, outcome_train)
+    predicted_outcome = svm.predict(odds_test)
+    print("SVM betting model:")
+    print(classification_report(outcome_test, predicted_outcome))
+    odds["svm_outcome"] = svm.predict(odds.drop(["outcome"], axis=1))
 
-    print()
+    decision_tree = DecisionTreeClassifier()
+    decision_tree.fit(odds_train, outcome_train)
+    predicted_outcome = decision_tree.predict(odds_test)
+    print("Decision Tree betting model:")
+    print(classification_report(outcome_test, predicted_outcome))
+    odds["tree_outcome"] = decision_tree.predict(odds.drop(["outcome", "svm_outcome"], axis=1))
+
+    odds["svm_potential_payout"] = np.where(odds["svm_outcome"],
+                                            odds["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                            odds["ML_h"].apply(lambda x: calc_profit(100, x)))
+    odds["tree_potential_payout"] = np.where(odds["tree_outcome"],
+                                             odds["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                             odds["ML_h"].apply(lambda x: calc_profit(100, x)))
+    odds["svm_payout"] = np.where(odds["outcome"] == odds["svm_outcome"], odds["svm_potential_payout"], -100)
+    odds["tree_payout"] = np.where(odds["outcome"] == odds["tree_outcome"], odds["tree_potential_payout"], -100)
+
+    svm_num_hit = odds[odds["outcome"] == odds["svm_outcome"]]["svm_payout"].count()
+    tree_num_hit = odds[odds["outcome"] == odds["tree_outcome"]]["tree_payout"].count()
+    num_placed = odds["svm_payout"].count()
+    svm_profit = odds["svm_payout"].sum()
+    tree_profit = odds["tree_payout"].sum()
+    print("SVM betting results:")
+    print("\tBets Hit: {}".format(svm_num_hit))
+    print("\tBets Placed: {}".format(num_placed))
+    print("\tAccuracy: {}%".format(round(svm_num_hit / num_placed * 100)))
+    print("\tProfit: ${}".format(round(svm_profit)))
+
+    print("Decision Tree betting results:")
+    print("\tBets Hit: {}".format(tree_num_hit))
+    print("\tBets Placed: {}".format(num_placed))
+    print("\tAccuracy: {}%".format(round(tree_num_hit / num_placed * 100)))
+    print("\tProfit: ${}".format(round(tree_profit)))
 
 
 def performance():
