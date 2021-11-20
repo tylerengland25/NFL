@@ -125,14 +125,38 @@ def current_week():
     odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    betting_model = pickle.load(open("backend/modeling/models/betting_model.pkl", "rb"))
-    odds["outcome_predict"] = betting_model.predict(odds[["away_win_prob", "home_win_prob", "ML_h", "ML_a",
-                                                          "Home_odds_actual", "Away_odds_actual", "home_divergence",
-                                                          "away_divergence"]])
-    odds["potential_payout"] = np.where(odds["outcome_predict"],
+    favorites = [(0.4, -0.3), (0.4, -0.2), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1), (0.7, 0.2)]
+    underdogs = [(0.2, -0.1), (0.3, -0.1), (0.3, -0.0), (0.4, -0.1),
+                 (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1), (0.7, 0.2)]
+
+    odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
+    odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
+    odds["fav_win_prob"] = np.where(odds["ML_h"] < 0,
+                                    round(odds["home_win_prob"], 1),
+                                    round(odds["away_win_prob"], 1))
+    odds["under_win_prob"] = np.where(odds["ML_h"] > 0,
+                                      round(odds["home_win_prob"], 1),
+                                      round(odds["away_win_prob"], 1))
+    odds["fav_div"] = np.where(odds["ML_h"] < 0,
+                               round(odds["home_divergence"], 1),
+                               round(odds["away_divergence"], 1))
+    odds["under_div"] = np.where(odds["ML_h"] > 0,
+                                 round(odds["home_divergence"], 1),
+                                 round(odds["away_divergence"], 1))
+    predicted_outcome = []
+    for index, row in odds.iterrows():
+        if (row["under_win_prob"], row["under_div"]) in underdogs:
+            predicted_outcome.append(row["underdog"])
+        elif (row["fav_win_prob"], row["fav_div"]) in favorites:
+            predicted_outcome.append(row["favorite"])
+        else:
+            predicted_outcome.append(None)
+    odds["predicted_outcome"] = predicted_outcome
+    odds = odds.dropna(axis=0)
+    odds["potential_payout"] = np.where(odds["predicted_outcome"],
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)),
                                         odds["ML_a"].apply(lambda x: calc_profit(100, x)))
-    odds["bet"] = np.where(odds["outcome_predict"], odds["Home"], odds["Away"])
+    odds["bet"] = np.where(odds["predicted_outcome"], odds["Home"], odds["Away"])
     odds["home_win_prob"] = odds["home_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
     odds["away_win_prob"] = odds["away_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
     odds["potential_payout"] = odds["potential_payout"].apply(lambda x: "$" + str(round(x)))
@@ -186,16 +210,39 @@ def current_season():
     odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    betting_model = pickle.load(open("backend/modeling/models/betting_model.pkl", "rb"))
-    odds["outcome_predict"] = betting_model.predict(odds[["away_win_prob", "home_win_prob", "ML_h", "ML_a",
-                                                          "Home_odds_actual", "Away_odds_actual", "home_divergence",
-                                                          "away_divergence"]])
-    odds["potential_payout"] = np.where(odds["outcome_predict"],
+    favorites = [(0.4, -0.3), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1)]
+    underdogs = [(0.2, -0.1), (0.3, -0.1), (0.3, -0.0), (0.4, -0.1), (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1)]
+
+    odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
+    odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
+    odds["fav_win_prob"] = np.where(odds["ML_h"] < 0,
+                                    round(odds["home_win_prob"], 1),
+                                    round(odds["away_win_prob"], 1))
+    odds["under_win_prob"] = np.where(odds["ML_h"] > 0,
+                                      round(odds["home_win_prob"], 1),
+                                      round(odds["away_win_prob"], 1))
+    odds["fav_div"] = np.where(odds["ML_h"] < 0,
+                               round(odds["home_divergence"], 1),
+                               round(odds["away_divergence"], 1))
+    odds["under_div"] = np.where(odds["ML_h"] > 0,
+                                 round(odds["home_divergence"], 1),
+                                 round(odds["away_divergence"], 1))
+    predicted_outcome = []
+    for index, row in odds.iterrows():
+        if (row["under_win_prob"], row["under_div"]) in underdogs:
+            predicted_outcome.append(row["underdog"])
+        elif (row["fav_win_prob"], row["fav_div"]) in favorites:
+            predicted_outcome.append(row["favorite"])
+        else:
+            predicted_outcome.append(None)
+    odds["predicted_outcome"] = predicted_outcome
+    odds = odds.dropna(axis=0)
+    odds["potential_payout"] = np.where(odds["predicted_outcome"],
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)),
                                         odds["ML_a"].apply(lambda x: calc_profit(100, x)))
-    odds["payout"] = np.where(odds["outcome_predict"] == odds["win_lose"], odds["potential_payout"], -100)
+    odds["payout"] = np.where(odds["predicted_outcome"] == odds["win_lose"], odds["potential_payout"], -100)
 
-    num_hit = odds[odds["outcome_predict"] == odds["win_lose"]]["payout"].count()
+    num_hit = odds[odds["predicted_outcome"] == odds["win_lose"]]["payout"].count()
     num_placed = odds["payout"].count()
     profit = odds["payout"].sum()
     print("Current Season performance:")
@@ -203,6 +250,7 @@ def current_season():
     print("\tNumber of bets placed: {}".format(num_placed))
     print("\tAccuracy: {}%".format(round(num_hit / num_placed * 100)))
     print("\tProfit: ${}".format(round(profit)))
+    print(odds.groupby(["Week"])["payout"].sum())
 
 
 if __name__ == '__main__':

@@ -109,61 +109,96 @@ def load_data_classifier():
     return train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
 
-def odds_calculations(probabilities, actual_odds, y_test):
+def winner_analysis(odds):
+    odds["winner_predict_prob"] = np.where(odds["outcome"], odds["home_win_prob"], odds["away_win_prob"])
+    odds["prediction"] = odds["winner_predict_prob"].apply(lambda x: round(x, 1))
+    odds["winner_actual_prob"] = np.where(odds["outcome"], odds["Home_odds_actual"], odds["Away_odds_actual"])
+    odds["winner_ML"] = np.where(odds["outcome"], odds["ML_h"], odds["ML_a"])
+    odds["winner_divergence"] = np.where(odds["outcome"], odds["home_divergence"], odds["away_divergence"])
+    odds["divergence"] = odds["winner_divergence"].apply(lambda x: round(x, 1))
+    odds["winner_payout"] = odds["winner_ML"].apply(lambda x: calc_profit(100, x))
+    odds = odds[["prediction", "winner_actual_prob", "divergence", "winner_ML", "winner_payout"]]
+    favorites = odds[odds["winner_ML"] < 0]
+    underdogs = odds[odds["winner_ML"] > 0]
+
+    favorites = favorites.groupby(["prediction", "divergence"]).agg({"winner_ML": "count", "winner_payout": "sum"})
+    underdogs = underdogs.groupby(["prediction", "divergence"]).agg({"winner_ML": "count", "winner_payout": "sum"})
+    # print("Winner Favorites:")
+    # print(favorites)
+    # print("\n\n Winner Underdogs:")
+    # print(underdogs)
+    return favorites, underdogs
+
+
+def loser_analysis(odds):
+    odds["loser_predict_prob"] = np.where(odds["outcome"], odds["away_win_prob"], odds["home_win_prob"])
+    odds["prediction"] = odds["loser_predict_prob"].apply(lambda x: round(x, 1))
+    odds["loser_actual_prob"] = np.where(odds["outcome"], odds["Away_odds_actual"], odds["Home_odds_actual"])
+    odds["loser_ML"] = np.where(odds["outcome"], odds["ML_a"], odds["ML_h"])
+    odds["loser_divergence"] = np.where(odds["outcome"], odds["away_divergence"], odds["home_divergence"])
+    odds["divergence"] = odds["loser_divergence"].apply(lambda x: round(x, 1))
+    odds["loser_payout"] = -100
+    odds = odds[["prediction", "loser_actual_prob", "divergence", "loser_ML", "loser_payout"]]
+    favorites = odds[odds["loser_ML"] < 0]
+    underdogs = odds[odds["loser_ML"] > 0]
+    favorites = favorites.groupby(["prediction", "divergence"]).agg({"loser_ML": "count", "loser_payout": "sum"})
+    underdogs = underdogs.groupby(["prediction", "divergence"]).agg({"loser_ML": "count", "loser_payout": "sum"})
+    # print("Loser Favorites:")
+    # print(favorites)
+    # print("\n\nLoser Underdogs:")
+    # print(underdogs)
+    return favorites, underdogs
+
+
+def odds_analysis(probabilities, actual_odds, y_test):
     odds = pd.DataFrame(probabilities, columns=["away_win_prob", "home_win_prob"])
     odds = odds.join(actual_odds)
     odds["outcome"] = y_test.reset_index().drop(["index"], axis=1)
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
     odds = odds.dropna(axis=0)
-    odds_train, odds_test, outcome_train, outcome_test = train_test_split(odds.drop(["outcome"], axis=1),
-                                                                          odds["outcome"],
-                                                                          test_size=.2, random_state=17)
-    svm = SVC(probability=True)
-    svm.fit(odds_train, outcome_train)
-    svm_predicted_outcome = svm.predict(odds_test)
-    print("SVM betting model:")
-    print(classification_report(outcome_test, svm_predicted_outcome))
-
-    decision_tree = DecisionTreeClassifier()
-    decision_tree.fit(odds_train, outcome_train)
-    tree_predicted_outcome = decision_tree.predict(odds_test)
-    print("Decision Tree betting model:")
-    print(classification_report(outcome_test, tree_predicted_outcome))
-
-    odds_test["svm_outcome"] = svm_predicted_outcome
-    odds_test["tree_outcome"] = tree_predicted_outcome
-    odds_test["outcome"] = outcome_test
-
-    odds_test["svm_potential_payout"] = np.where(odds_test["svm_outcome"],
-                                                 odds_test["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                                 odds_test["ML_h"].apply(lambda x: calc_profit(100, x)))
-    odds_test["tree_potential_payout"] = np.where(odds_test["tree_outcome"],
-                                                  odds_test["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                                  odds_test["ML_h"].apply(lambda x: calc_profit(100, x)))
-    odds_test["svm_payout"] = np.where(odds_test["outcome"] == odds_test["svm_outcome"],
-                                       odds_test["svm_potential_payout"], -100)
-    odds_test["tree_payout"] = np.where(odds_test["outcome"] == odds_test["tree_outcome"],
-                                        odds_test["tree_potential_payout"], -100)
-
-    svm_num_hit = odds_test[odds_test["outcome"] == odds_test["svm_outcome"]]["svm_payout"].count()
-    tree_num_hit = odds_test[odds_test["outcome"] == odds_test["tree_outcome"]]["tree_payout"].count()
-    num_placed = odds_test["svm_payout"].count()
-    svm_profit = odds_test["svm_payout"].sum()
-    tree_profit = odds_test["tree_payout"].sum()
-    print("SVM betting results:")
-    print("\tBets Hit: {}".format(svm_num_hit))
-    print("\tBets Placed: {}".format(num_placed))
-    print("\tAccuracy: {}%".format(round(svm_num_hit / num_placed * 100)))
-    print("\tProfit: ${}".format(round(svm_profit)))
-
-    print("Decision Tree betting results:")
-    print("\tBets Hit: {}".format(tree_num_hit))
-    print("\tBets Placed: {}".format(num_placed))
-    print("\tAccuracy: {}%".format(round(tree_num_hit / num_placed * 100)))
-    print("\tProfit: ${}".format(round(tree_profit)))
-
-    # pickle.dump(svm, open("backend/modeling/models/betting_model.pkl", "wb"))
+    winner_favorites, winner_underdogs = winner_analysis(odds)
+    loser_favorites, loser_underdogs = loser_analysis(odds)
+    favorites = pd.merge(winner_favorites, loser_favorites,
+                         left_on=["prediction", "divergence"], right_on=["prediction", "divergence"])
+    favorites["num_hits"] = favorites["winner_ML"] - favorites["loser_ML"]
+    favorites["profit"] = favorites["winner_payout"] + favorites["loser_payout"]
+    underdogs = pd.merge(winner_underdogs, loser_underdogs,
+                         left_on=["prediction", "divergence"], right_on=["prediction", "divergence"])
+    underdogs["num_hits"] = underdogs["winner_ML"] - underdogs["loser_ML"]
+    underdogs["profit"] = underdogs["winner_payout"] + underdogs["loser_payout"]
+    favorites = favorites[favorites["profit"] > 100]
+    underdogs = underdogs[underdogs["profit"] > 100]
+    print("Favorites:")
+    print(favorites)
+    print("Underdogs:")
+    print(underdogs)
+    odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
+    odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
+    odds["fav_win_prob"] = np.where(odds["ML_h"] < 0,
+                                    round(odds["home_win_prob"], 1),
+                                    round(odds["away_win_prob"], 1))
+    odds["under_win_prob"] = np.where(odds["ML_h"] > 0,
+                                      round(odds["home_win_prob"], 1),
+                                      round(odds["away_win_prob"], 1))
+    odds["fav_div"] = np.where(odds["ML_h"] < 0,
+                               round(odds["home_divergence"], 1),
+                               round(odds["away_divergence"], 1))
+    odds["under_div"] = np.where(odds["ML_h"] > 0,
+                                 round(odds["home_divergence"], 1),
+                                 round(odds["away_divergence"], 1))
+    predicted_outcome = []
+    for index, row in odds.iterrows():
+        if (row["under_win_prob"], row["under_div"]) in list(underdogs.index):
+            predicted_outcome.append(row["underdog"])
+        elif (row["fav_win_prob"], row["fav_div"]) in list(favorites.index):
+            predicted_outcome.append(row["favorite"])
+        else:
+            predicted_outcome.append(None)
+    odds["predicted_outcome"] = predicted_outcome
+    print(list(favorites.index))
+    print(list(underdogs.index))
+    return odds.dropna(axis=0)
 
 
 def performance():
@@ -175,7 +210,19 @@ def performance():
     actual_odds["Away_odds_actual"] = actual_odds["ML_a"].apply(lambda x: convert_odds(x))
     y_test = y_test["win_lose"]
     svm_prob = svm.predict_proba(X_test)
-    odds_calculations(svm_prob, actual_odds, y_test)
+    bets = odds_analysis(svm_prob, actual_odds, y_test)
+    bets["potential_payout"] = np.where(bets["predicted_outcome"],
+                                        bets["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                        bets["ML_a"].apply(lambda x: calc_profit(100, x)))
+    bets["payout"] = np.where(bets["outcome"] == bets["predicted_outcome"], bets["potential_payout"], -100)
+    num_hit = bets[bets["outcome"] == bets["predicted_outcome"]]["outcome"].count()
+    num_placed = bets["outcome"].count()
+    profit = bets["payout"].sum()
+    print("Performance:")
+    print("\tBets hit: {}".format(num_hit))
+    print("\tBets placed: {}".format(num_placed))
+    print("\tAccuracy: {}%".format(round(num_hit / num_placed * 100)))
+    print("\tProfit: ${}".format(round(profit)))
 
 
 def main_classifier():
