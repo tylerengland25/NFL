@@ -125,28 +125,19 @@ def main():
     odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    odds["outcome_predict"] = np.where((odds["home_win_prob"] >= .6) |
-                                       (~((odds["away_win_prob"] >= .6) & odds["away_divergence"] <= 0)) |
-                                       ((odds["home_win_prob"] >= .45) &
-                                        (odds["home_win_prob"] < .6) &
-                                        (odds["home_divergence"] < odds["away_divergence"])) |
-                                       (~(odds["away_win_prob"] >= .45) &
-                                        (odds["away_win_prob"] < .6) &
-                                        (odds["home_divergence"] > odds["away_divergence"])) |
-                                       ((odds["home_win_prob"] < .45) &
-                                        (odds["home_divergence"] < odds["away_divergence"])) |
-                                       ((odds["away_win_prob"] < .45) & (odds["away_divergence"] > 0)),
-                                       1,
-                                       0)
+    betting_model = pickle.load(open("backend/modeling/models/betting_model.pkl", "rb"))
+    odds["outcome_predict"] = betting_model.predict(odds[["away_win_prob", "home_win_prob", "ML_h", "ML_a",
+                                                          "Home_odds_actual", "Away_odds_actual", "home_divergence",
+                                                          "away_divergence"]])
     odds["potential_payout"] = np.where(odds["outcome_predict"],
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)),
                                         odds["ML_a"].apply(lambda x: calc_profit(100, x)))
-    print("Week {} predictions:".format(current_week))
-    predictions = odds[["Home", "Away", "home_win_prob", "away_win_prob"]]
-    print("|Home|\t|Away|\t|Bet|\t|Potential Payout|")
-    for index, row in predictions.iterrows():
-        print("Home: {} ({}%)\tAway: {} ({}%)".format(row["Home"], round(row["home_win_prob"] * 100),
-                                                      row["Away"], round(row["away_win_prob"] * 100)))
+    odds["bet"] = np.where(odds["outcome_predict"], odds["Home"], odds["Away"])
+    odds["home_win_prob"] = odds["home_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
+    odds["away_win_prob"] = odds["away_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
+    odds["potential_payout"] = odds["potential_payout"].apply(lambda x: "$" + str(round(x)))
+    odds = odds[["Home", "home_win_prob", "Away", "away_win_prob", "bet", "potential_payout"]]
+    odds.to_csv("backend/data/predictions/Week_"+ str(current_week) + "_predictions.csv")
 
 
 if __name__ == '__main__':

@@ -1,0 +1,16 @@
+,Home,home_win_prob,Away,away_win_prob,bet,potential_payout
+0,atlanta-falcons,37%,new-england-patriots,63%,new-england-patriots,$33 
+1,buffalo-bills,65%,indianapolis-colts,35%,buffalo-bills,$33 
+2,chicago-bears,45%,baltimore-ravens,55%,baltimore-ravens,$45 
+3,cleveland-browns,60%,detroit-lions,40%,cleveland-browns,$19 
+4,tennessee-titans,59%,houston-texans,41%,tennessee-titans,$24 
+5,minnesota-vikings,41%,green-bay-packers,59%,green-bay-packers,$83 
+6,new-york-jets,57%,miami-dolphins,43%,miami-dolphins,$61 
+7,philadelphia-eagles,51%,new-orleans-saints,49%,philadelphia-eagles,$77 
+8,carolina-panthers,59%,washington-football-team,41%,carolina-panthers,$62 
+9,jacksonville-jaguars,74%,san-francisco-49ers,26%,san-francisco-49ers,$34 
+10,las-vegas-raiders,42%,cincinnati-bengals,58%,cincinnati-bengals,$87 
+11,kansas-city-chiefs,51%,dallas-cowboys,49%,kansas-city-chiefs,$71 
+12,seattle-seahawks,57%,arizona-cardinals,43%,arizona-cardinals,$77 
+13,los-angeles-chargers,61%,pittsburgh-steelers,39%,los-angeles-chargers,$38 
+14,tampa-bay-buccaneers,59%,new-york-giants,41%,tampa-bay-buccaneers,$20 
