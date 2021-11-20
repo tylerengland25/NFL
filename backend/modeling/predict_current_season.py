@@ -107,15 +107,15 @@ def load_data_classifier():
     return X_standardized, y
 
 
-def main():
+def current_week():
     # Load data and model
     odds = pd.read_csv("backend/data/odds/2021/Week_11.csv")
-    current_week = 11
+    cw = 11
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
     X = X.reset_index()
     y = y.reset_index()
-    X = X[(X["Year"] == 2021) & (X["Week"] == current_week)]
+    X = X[(X["Year"] == 2021) & (X["Week"] == cw)]
 
     # Predict
     svm_prob = svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1))
@@ -137,8 +137,73 @@ def main():
     odds["away_win_prob"] = odds["away_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
     odds["potential_payout"] = odds["potential_payout"].apply(lambda x: "$" + str(round(x)))
     odds = odds[["Home", "home_win_prob", "Away", "away_win_prob", "bet", "potential_payout"]]
-    odds.to_csv("backend/data/predictions/Week_"+ str(current_week) + "_predictions.csv")
+    odds.to_csv("backend/data/predictions/Week_" + str(cw) + "_predictions.csv")
+
+
+def current_season_odds():
+    odds = pd.DataFrame()
+    for week in range(1, 11):
+        df = pd.read_excel("backend/data/odds/2021/Week_" + str(week) + ".xlsx")
+        odds = odds.append(df.drop(["Unnamed: 0"], axis=1))
+
+    teams_dict = {"Patriots": "new-england-patriots", "Colts": "indianapolis-colts", "Falcons": "atlanta-falcons",
+                  "Bills": "buffalo-bills", "Ravens": "baltimore-ravens", "Bears": "chicago-bears",
+                  "Lions": "detroit-lions", "Browns": "cleveland-browns", "Texans": "houston-texans",
+                  "Titans": "tennessee-titans", "Packers": "green-bay-packers", "Vikings": "minnesota-vikings",
+                  "Dolphins": "miami-dolphins", "Jets": "new-york-jets", "Saints": "new-orleans-saints",
+                  "Eagles": "philadelphia-eagles", "Washington": "washington-football-team",
+                  "Panthers": "carolina-panthers", "49ers": "san-francisco-49ers", "Jaguars": "jacksonville-jaguars",
+                  "Bengals": "cincinnati-bengals", "Raiders": "las-vegas-raiders", "Cowboys": "dallas-cowboys",
+                  "Chiefs": "kansas-city-chiefs", "Cardinals": "arizona-cardinals", "Seahawks": "seattle-seahawks",
+                  "Steelers": "pittsburgh-steelers", "Chargers": "los-angeles-chargers", "Giants": "new-york-giants",
+                  "Buccaneers": "tampa-bay-buccaneers", "Rams": "los-angeles-rams", "Broncos": "denver-broncos"}
+
+    odds["Home"] = odds["Home"].apply(lambda x: teams_dict[x])
+    odds["Away"] = odds["Away"].apply(lambda x: teams_dict[x])
+
+    odds.to_csv("backend/data/odds/current_season_odds.csv")
+
+
+def current_season():
+    odds = pd.read_csv("backend/data/odds/current_season_odds.csv")
+
+    cw = 11
+    X, y = load_data_classifier()
+    svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
+    y = y.reset_index()
+    X = X.reset_index()
+    X = X[(X["Year"] == 2021) & (X["Week"] < cw)]
+    y = y[(y["Year"] == 2021) & (y["Week"] < cw)]
+    y = pd.merge(y.drop(["ML_a", "ML_h"], axis=1), odds.drop(["Unnamed: 0"], axis=1),
+                 left_on=["Home", "Away", "Week", "Year"],
+                 right_on=["Home", "Away", "Week", "Year"])
+
+    # Predict
+    svm_prob = svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1))
+    svm_odds = pd.DataFrame(svm_prob, columns=["away_win_prob", "home_win_prob"])
+    odds = pd.merge(y, svm_odds, how="left", left_index=True, right_index=True)
+    odds["Home_odds_actual"] = odds["ML_h"].apply(lambda x: convert_odds(x))
+    odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
+    odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
+    odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
+    betting_model = pickle.load(open("backend/modeling/models/betting_model.pkl", "rb"))
+    odds["outcome_predict"] = betting_model.predict(odds[["away_win_prob", "home_win_prob", "ML_h", "ML_a",
+                                                          "Home_odds_actual", "Away_odds_actual", "home_divergence",
+                                                          "away_divergence"]])
+    odds["potential_payout"] = np.where(odds["outcome_predict"],
+                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
+    odds["payout"] = np.where(odds["outcome_predict"] == odds["win_lose"], odds["potential_payout"], -100)
+
+    num_hit = odds[odds["outcome_predict"] == odds["win_lose"]]["payout"].count()
+    num_placed = odds["payout"].count()
+    profit = odds["payout"].sum()
+    print("Current Season performance:")
+    print("\tNumber of bets hit: {}".format(num_hit))
+    print("\tNumber of bets placed: {}".format(num_placed))
+    print("\tAccuracy: {}%".format(round(num_hit / num_placed * 100)))
+    print("\tProfit: ${}".format(round(profit)))
 
 
 if __name__ == '__main__':
-    main()
+    current_season()

@@ -136,11 +136,11 @@ def odds_calculations(probabilities, actual_odds, y_test):
     odds_test["outcome"] = outcome_test
 
     odds_test["svm_potential_payout"] = np.where(odds_test["svm_outcome"],
-                                            odds_test["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                            odds_test["ML_h"].apply(lambda x: calc_profit(100, x)))
+                                                 odds_test["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                                 odds_test["ML_h"].apply(lambda x: calc_profit(100, x)))
     odds_test["tree_potential_payout"] = np.where(odds_test["tree_outcome"],
-                                             odds_test["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                             odds_test["ML_h"].apply(lambda x: calc_profit(100, x)))
+                                                  odds_test["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                                  odds_test["ML_h"].apply(lambda x: calc_profit(100, x)))
     odds_test["svm_payout"] = np.where(odds_test["outcome"] == odds_test["svm_outcome"],
                                        odds_test["svm_potential_payout"], -100)
     odds_test["tree_payout"] = np.where(odds_test["outcome"] == odds_test["tree_outcome"],
