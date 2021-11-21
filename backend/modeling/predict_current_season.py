@@ -1,9 +1,9 @@
 import pandas as pd
 import pickle
 import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from backend.scraping.Game_Stats import convert_poss
+from backend.scraping.odds import scrape_vegas
 
 
 def convert_odds(odds):
@@ -107,10 +107,9 @@ def load_data_classifier():
     return X_standardized, y
 
 
-def current_week():
+def current_week(cw):
     # Load data and model
     odds = pd.read_csv("backend/data/odds/2021/Week_11.csv")
-    cw = 11
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
     X = X.reset_index()
@@ -125,9 +124,8 @@ def current_week():
     odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    favorites = [(0.4, -0.3), (0.4, -0.2), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1), (0.7, 0.2)]
-    underdogs = [(0.2, -0.1), (0.3, -0.1), (0.3, -0.0), (0.4, -0.1),
-                 (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1), (0.7, 0.2)]
+    favorites = [(0.4, -0.3), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1), (0.7, 0.2)]
+    underdogs = [(0.3, -0.0), (0.4, -0.1), (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1)]
 
     odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
     odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
@@ -156,17 +154,26 @@ def current_week():
     odds["potential_payout"] = np.where(odds["predicted_outcome"],
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)),
                                         odds["ML_a"].apply(lambda x: calc_profit(100, x)))
+
+    # Format for excel file
     odds["bet"] = np.where(odds["predicted_outcome"], odds["Home"], odds["Away"])
     odds["home_win_prob"] = odds["home_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
     odds["away_win_prob"] = odds["away_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
-    odds["potential_payout"] = odds["potential_payout"].apply(lambda x: "$" + str(round(x)))
-    odds = odds[["Home", "home_win_prob", "Away", "away_win_prob", "bet", "potential_payout"]]
+    odds["potential_payout"] = odds["potential_payout"].apply(lambda x: round(x))
+    odds["potential_units"] = odds["potential_payout"].apply(lambda x: x / 100)
+    odds["Home_odds_actual"] = odds["Home_odds_actual"].apply(lambda x: str(round(x * 100)) + "%")
+    odds["Away_odds_actual"] = odds["Away_odds_actual"].apply(lambda x: str(round(x * 100)) + "%")
+    odds = odds[["Home", "home_win_prob", "Home_odds_actual", "ML_h",
+                 "Away", "away_win_prob", "Away_odds_actual", "ML_a",
+                 "bet", "potential_units"]]
+    odds = odds.rename(columns={"home_win_prob": "home_predicted_prob", "away_win_prob": "away_predicted_prob",
+                                "Home_odds_actual": "home_vegas_prob", "Away_odds_actual": "away_vegas_prob"})
     odds.to_csv("backend/data/predictions/Week_" + str(cw) + "_predictions.csv")
 
 
-def current_season_odds():
+def current_season_odds(cw):
     odds = pd.DataFrame()
-    for week in range(1, 11):
+    for week in range(1, cw):
         df = pd.read_excel("backend/data/odds/2021/Week_" + str(week) + ".xlsx")
         odds = odds.append(df.drop(["Unnamed: 0"], axis=1))
 
@@ -188,10 +195,9 @@ def current_season_odds():
     odds.to_csv("backend/data/odds/current_season_odds.csv")
 
 
-def current_season():
+def current_season(cw):
     odds = pd.read_csv("backend/data/odds/current_season_odds.csv")
 
-    cw = 11
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
     y = y.reset_index()
@@ -210,9 +216,8 @@ def current_season():
     odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    favorites = [(0.4, -0.3), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1)]
-    underdogs = [(0.2, -0.1), (0.3, -0.1), (0.3, -0.0), (0.4, -0.1), (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1)]
-
+    favorites = [(0.4, -0.3), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1), (0.7, 0.2)]
+    underdogs = [(0.3, -0.0), (0.4, -0.1), (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1)]
     odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
     odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
     odds["fav_win_prob"] = np.where(odds["ML_h"] < 0,
@@ -251,7 +256,13 @@ def current_season():
     print("\tAccuracy: {}%".format(round(num_hit / num_placed * 100)))
     print("\tProfit: ${}".format(round(profit)))
     print(odds.groupby(["Week"])["payout"].sum())
+    odds = odds[["Home", "Away", "Week", "ML_h", "ML_a", "predicted_outcome", "win_lose"]]
+    odds.to_csv("backend/data/predictions/season_picks.csv")
 
 
 if __name__ == '__main__':
-    current_season()
+    cw = 11
+    scrape_vegas(cw)
+    current_season_odds(cw)
+    current_season(cw)
+    current_week(cw)
