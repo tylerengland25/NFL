@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from backend.scraping.Game_Stats import convert_poss
 from backend.scraping.odds import scrape_vegas
-from backend.modeling.last_five_model import performance, print_performance
+from backend.modeling.last_five_model import performance, print_performance, exploratory_analysis
 
 
 def convert_odds(odds):
@@ -108,7 +108,7 @@ def load_data_classifier():
     return X_standardized, y
 
 
-def current_week(cw, home_index, away_index):
+def current_week(cw):
     # Load data
     odds = pd.read_csv("backend/data/odds/2021/Week_11.csv")
     X, y = load_data_classifier()
@@ -137,15 +137,26 @@ def current_week(cw, home_index, away_index):
     # Predict outcome
     predict_outcome = []
     for index, row in odds.iterrows():
-        if (row["home_predict_prob_rounded"], row["home_divergence_rounded"]) in home_index:
+        if (.6 <= row["home_predict_prob"] < .7) and (-.2 <= row["home_divergence"] < .2):
             predict_outcome.append(1)
-        elif (row["away_predict_prob_rounded"], row["away_divergence_rounded"]) in away_index:
+        elif (.6 <= row["away_predict_prob"] < .7) and (-.2 <= row["away_divergence"] < .1):
             predict_outcome.append(0)
-        elif row["home_predict_prob"] >= row["away_predict_prob"]:
+        elif (.5 <= row["home_predict_prob"] < .6) and (-.05 <= row["home_divergence"] < .1):
             predict_outcome.append(1)
+        elif (.5 <= row["away_predict_prob"] < .6) and (-.3 <= row["away_divergence"] < .4):
+            predict_outcome.append(0)
+        elif (.4 <= row["home_predict_prob"] < .5) and (-.2 <= row["home_divergence"] < .1):
+            predict_outcome.append(1)
+        elif (.4 <= row["away_predict_prob"] < .5) and (0 <= row["home_divergence"]):
+            predict_outcome.append(0)
+        elif (.2 <= row["home_predict_prob"] < .4) and (-.1 <= row["home_divergence"]):
+            predict_outcome.append(1)
+        elif (.2 <= row["away_predict_prob"] < .4) and (-.1 <= row["away_divergence"] < .1):
+            predict_outcome.append(0)
         else:
-            predict_outcome.append(0)
+            predict_outcome.append(None)
     odds["predict_outcome"] = predict_outcome
+    odds = odds.dropna(axis=0)
 
     # Calculate potential units
     odds["potential_units"] = np.where(odds["predict_outcome"],
@@ -168,8 +179,8 @@ def current_week(cw, home_index, away_index):
 
 def current_season_odds(cw):
     odds = pd.DataFrame()
-    for week in range(1, cw):
-        df = pd.read_excel("backend/data/odds/2021/Week_" + str(week) + ".xlsx")
+    for i in range(1, cw):
+        df = pd.read_excel("backend/data/odds/2021/Week_" + str(i) + ".xlsx")
         odds = odds.append(df.drop(["Unnamed: 0"], axis=1))
 
     teams_dict = {"Patriots": "new-england-patriots", "Colts": "indianapolis-colts", "Falcons": "atlanta-falcons",
@@ -190,7 +201,7 @@ def current_season_odds(cw):
     odds.to_csv("backend/data/odds/current_season_odds.csv")
 
 
-def current_season(cw, home_index, away_index):
+def current_season(cw):
     # Load data
     odds = pd.read_csv("backend/data/odds/current_season_odds.csv")
     X, y = load_data_classifier()
@@ -219,19 +230,36 @@ def current_season(cw, home_index, away_index):
     odds["home_divergence"] = odds["home_divergence"].apply(lambda x: round(x, 1))
     odds["home_predict_prob"] = odds["home_predict_prob"].apply(lambda x: round(x, 1))
     odds["away_predict_prob"] = odds["away_predict_prob"].apply(lambda x: round(x, 1))
+    odds["potential_payout"] = np.where(odds["outcome"],
+                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
+
+    # Analysis
+    exploratory_analysis(odds)
 
     # Predict outcome
     predict_outcome = []
     for index, row in odds.iterrows():
-        if (row["home_predict_prob"], row["home_divergence"]) in home_index:
+        if (.6 <= row["home_predict_prob"] < .7) and (-.2 <= row["home_divergence"] < .2):
             predict_outcome.append(1)
-        elif (row["away_predict_prob"], row["away_divergence"]) in away_index:
+        elif (.6 <= row["away_predict_prob"] < .7) and (-.2 <= row["away_divergence"] < .1):
             predict_outcome.append(0)
-        elif row["home_predict_prob"] >= row["away_predict_prob"]:
+        elif (.5 <= row["home_predict_prob"] < .6) and (-.05 <= row["home_divergence"] < .1):
             predict_outcome.append(1)
+        elif (.5 <= row["away_predict_prob"] < .6) and (-.3 <= row["away_divergence"] < .4):
+            predict_outcome.append(0)
+        elif (.4 <= row["home_predict_prob"] < .5) and (-.2 <= row["home_divergence"] < .1):
+            predict_outcome.append(1)
+        elif (.4 <= row["away_predict_prob"] < .5) and (0 <= row["home_divergence"]):
+            predict_outcome.append(0)
+        elif (.2 <= row["home_predict_prob"] < .4) and (-.1 <= row["home_divergence"]):
+            predict_outcome.append(1)
+        elif (.2 <= row["away_predict_prob"] < .4) and (-.1 <= row["away_divergence"] < .1):
+            predict_outcome.append(0)
         else:
-            predict_outcome.append(0)
+            predict_outcome.append(None)
     odds["predict_outcome"] = predict_outcome
+    odds = odds.dropna(axis=0)
 
     # Calculate payout
     odds["potential_payout"] = np.where(odds["predict_outcome"],
@@ -240,15 +268,18 @@ def current_season(cw, home_index, away_index):
     odds["payout"] = np.where(odds["predict_outcome"] == odds["outcome"], odds["potential_payout"], -100)
 
     print("Current season performance:")
-    print_performance(odds)
-    odds = odds[["Home", "Away", "Week", "ML_h", "ML_a", "predict_outcome", "outcome"]]
+    by_week = print_performance(odds)
+    odds = odds[["Home", "Away", "Week", "ML_h", "ML_a", "predict_outcome", "outcome", "payout"]]
     odds.to_csv("backend/data/predictions/season_picks.csv")
+    return by_week
 
 
 if __name__ == '__main__':
     week = 11
-    home, away = performance()
-    scrape_vegas(week)
+    testing_by_week = performance()
+    # scrape_vegas(week)
     current_season_odds(week)
-    current_season(week, home, away)
-    current_week(week, home, away)
+    season_by_week = current_season(week)
+    current_week(week)
+    weekly = pd.merge(testing_by_week, season_by_week, left_index=True, right_index=True)
+    print(weekly)
