@@ -241,8 +241,6 @@ def current_season(cw, home_index, away_index):
 
     print("Current season performance:")
     print_performance(odds)
-    print("Performance by week:")
-    print(odds.groupby(["Week"])["payout"].sum())
     odds = odds[["Home", "Away", "Week", "ML_h", "ML_a", "predict_outcome", "outcome"]]
     odds.to_csv("backend/data/predictions/season_picks.csv")
 

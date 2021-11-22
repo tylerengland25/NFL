@@ -178,6 +178,8 @@ def print_performance(odds):
     print("\tTotal bets: {}".format(total))
     print("\tAccuracy: {}%".format(round(hits / total * 100)))
     print("\tProfit: ${}".format(round(profit)))
+    print("Performance by week:")
+    print(odds.groupby(["Week"])["payout"].sum())
 
 
 def main_classifier():
