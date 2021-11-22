@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from backend.scraping.Game_Stats import convert_poss
 from backend.scraping.odds import scrape_vegas
-from backend.modeling.last_five_model import performance, print_performance, exploratory_analysis
+from backend.modeling.last_five_model import performance, print_performance, exploratory_analysis, predict
 
 
 def convert_odds(odds):
@@ -135,27 +135,7 @@ def current_week(cw):
     odds["away_predict_prob_rounded"] = odds["away_predict_prob"].apply(lambda x: round(x, 1))
 
     # Predict outcome
-    predict_outcome = []
-    for index, row in odds.iterrows():
-        if (.6 <= row["home_predict_prob"] < .7) and (-.2 <= row["home_divergence"] < .2):
-            predict_outcome.append(1)
-        elif (.6 <= row["away_predict_prob"] < .7) and (-.2 <= row["away_divergence"] < .1):
-            predict_outcome.append(0)
-        elif (.5 <= row["home_predict_prob"] < .6) and (-.05 <= row["home_divergence"] < .1):
-            predict_outcome.append(1)
-        elif (.5 <= row["away_predict_prob"] < .6) and (-.3 <= row["away_divergence"] < .4):
-            predict_outcome.append(0)
-        elif (.4 <= row["home_predict_prob"] < .5) and (-.2 <= row["home_divergence"] < .1):
-            predict_outcome.append(1)
-        elif (.4 <= row["away_predict_prob"] < .5) and (0 <= row["home_divergence"]):
-            predict_outcome.append(0)
-        elif (.2 <= row["home_predict_prob"] < .4) and (-.1 <= row["home_divergence"]):
-            predict_outcome.append(1)
-        elif (.2 <= row["away_predict_prob"] < .4) and (-.1 <= row["away_divergence"] < .1):
-            predict_outcome.append(0)
-        else:
-            predict_outcome.append(None)
-    odds["predict_outcome"] = predict_outcome
+    odds["predict_outcome"] = predict(odds)
     odds = odds.dropna(axis=0)
 
     # Calculate potential units
@@ -238,27 +218,7 @@ def current_season(cw):
     exploratory_analysis(odds)
 
     # Predict outcome
-    predict_outcome = []
-    for index, row in odds.iterrows():
-        if (.6 <= row["home_predict_prob"] < .7) and (-.2 <= row["home_divergence"] < .2):
-            predict_outcome.append(1)
-        elif (.6 <= row["away_predict_prob"] < .7) and (-.2 <= row["away_divergence"] < .1):
-            predict_outcome.append(0)
-        elif (.5 <= row["home_predict_prob"] < .6) and (-.05 <= row["home_divergence"] < .1):
-            predict_outcome.append(1)
-        elif (.5 <= row["away_predict_prob"] < .6) and (-.3 <= row["away_divergence"] < .4):
-            predict_outcome.append(0)
-        elif (.4 <= row["home_predict_prob"] < .5) and (-.2 <= row["home_divergence"] < .1):
-            predict_outcome.append(1)
-        elif (.4 <= row["away_predict_prob"] < .5) and (0 <= row["home_divergence"]):
-            predict_outcome.append(0)
-        elif (.2 <= row["home_predict_prob"] < .4) and (-.1 <= row["home_divergence"]):
-            predict_outcome.append(1)
-        elif (.2 <= row["away_predict_prob"] < .4) and (-.1 <= row["away_divergence"] < .1):
-            predict_outcome.append(0)
-        else:
-            predict_outcome.append(None)
-    odds["predict_outcome"] = predict_outcome
+    odds["predict_outcome"] = predict(odds)
     odds = odds.dropna(axis=0)
 
     # Calculate payout

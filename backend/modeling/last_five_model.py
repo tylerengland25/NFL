@@ -131,6 +131,19 @@ def performance():
     home_index, away_index = exploratory_analysis(odds)
 
     # Predict outcome
+    odds["predict_outcome"] = predict(odds)
+    odds = odds.dropna(axis=0)
+    # Calculate payout
+    odds["potential_payout"] = np.where(odds["outcome"],
+                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
+                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
+    odds["payout"] = np.where(odds["predict_outcome"] == odds["outcome"], odds["potential_payout"], -100)
+    performance_by_week = print_performance(odds)
+    return performance_by_week
+
+
+def predict(odds):
+    # Predict outcome
     predict_outcome = []
     for index, row in odds.iterrows():
         if (.6 <= row["home_predict_prob"] < .7) and (-.2 <= row["home_divergence"] < .2):
@@ -151,15 +164,7 @@ def performance():
             predict_outcome.append(0)
         else:
             predict_outcome.append(None)
-    odds["predict_outcome"] = predict_outcome
-    odds = odds.dropna(axis=0)
-    # Calculate payout
-    odds["potential_payout"] = np.where(odds["outcome"],
-                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
-    odds["payout"] = np.where(odds["predict_outcome"] == odds["outcome"], odds["potential_payout"], -100)
-    performance_by_week = print_performance(odds)
-    return performance_by_week
+    return predict_outcome
 
 
 def exploratory_analysis(odds):
@@ -210,4 +215,3 @@ def main_classifier():
 
 if __name__ == '__main__':
     performance()
-
