@@ -107,7 +107,7 @@ def load_data_classifier():
     return X_standardized, y
 
 
-def current_week(cw):
+def current_week(cw, favorites, underdogs):
     # Load data and model
     odds = pd.read_csv("backend/data/odds/2021/Week_11.csv")
     X, y = load_data_classifier()
@@ -124,8 +124,6 @@ def current_week(cw):
     odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    favorites = [(0.4, -0.3), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1), (0.7, 0.2)]
-    underdogs = [(0.3, -0.0), (0.4, -0.1), (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1)]
 
     odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
     odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
@@ -195,7 +193,7 @@ def current_season_odds(cw):
     odds.to_csv("backend/data/odds/current_season_odds.csv")
 
 
-def current_season(cw):
+def current_season(cw, favorites, underdogs):
     odds = pd.read_csv("backend/data/odds/current_season_odds.csv")
 
     X, y = load_data_classifier()
@@ -216,8 +214,6 @@ def current_season(cw):
     odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
     odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    favorites = [(0.4, -0.3), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1), (0.7, 0.2)]
-    underdogs = [(0.3, -0.0), (0.4, -0.1), (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1)]
     odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
     odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
     odds["fav_win_prob"] = np.where(odds["ML_h"] < 0,
@@ -261,8 +257,10 @@ def current_season(cw):
 
 
 if __name__ == '__main__':
-    cw = 11
-    scrape_vegas(cw)
-    current_season_odds(cw)
-    current_season(cw)
-    current_week(cw)
+    week = 11
+    favorite_index = [(0.4, -0.3), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1), (0.7, 0.2)]
+    underdog_index = [(0.3, -0.0), (0.4, -0.1), (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1)]
+    scrape_vegas(week)
+    current_season_odds(week)
+    current_season(week, favorite_index, underdog_index)
+    current_week(week, favorite_index, underdog_index)
