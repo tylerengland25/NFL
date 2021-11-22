@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from backend.scraping.Game_Stats import convert_poss
 from backend.scraping.odds import scrape_vegas
+from backend.modeling.last_five_model import performance, print_performance
 
 
 def convert_odds(odds):
@@ -107,65 +108,61 @@ def load_data_classifier():
     return X_standardized, y
 
 
-def current_week(cw, favorites, underdogs):
-    # Load data and model
+def current_week(cw, home_index, away_index):
+    # Load data
     odds = pd.read_csv("backend/data/odds/2021/Week_11.csv")
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
+    # Filter data
     X = X.reset_index()
-    y = y.reset_index()
     X = X[(X["Year"] == 2021) & (X["Week"] == cw)]
 
     # Predict
-    svm_prob = svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1))
-    svm_odds = pd.DataFrame(svm_prob, columns=["away_win_prob", "home_win_prob"])
-    odds = pd.merge(odds, svm_odds, how="left", left_index=True, right_index=True)
-    odds["Home_odds_actual"] = odds["ML_h"].apply(lambda x: convert_odds(x))
-    odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
-    odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
-    odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
+    predictions = pd.DataFrame(svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1)),
+                               columns=["away_predict_prob", "home_predict_prob"])
+    # Join vegas odds
+    odds = pd.merge(odds, predictions, how="left", left_index=True, right_index=True)
+    odds = odds.drop(["Unnamed: 0"], axis=1)
 
-    odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
-    odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
-    odds["fav_win_prob"] = np.where(odds["ML_h"] < 0,
-                                    round(odds["home_win_prob"], 1),
-                                    round(odds["away_win_prob"], 1))
-    odds["under_win_prob"] = np.where(odds["ML_h"] > 0,
-                                      round(odds["home_win_prob"], 1),
-                                      round(odds["away_win_prob"], 1))
-    odds["fav_div"] = np.where(odds["ML_h"] < 0,
-                               round(odds["home_divergence"], 1),
-                               round(odds["away_divergence"], 1))
-    odds["under_div"] = np.where(odds["ML_h"] > 0,
-                                 round(odds["home_divergence"], 1),
-                                 round(odds["away_divergence"], 1))
-    predicted_outcome = []
+    # Feature engineer probabilities, potential payouts, and divergences
+    odds["away_actual_prob"] = odds["ML_a"].apply(lambda x: convert_odds(x))
+    odds["home_actual_prob"] = odds["ML_h"].apply(lambda x: convert_odds(x))
+    odds["away_divergence"] = odds["away_predict_prob"] - odds["away_actual_prob"]
+    odds["away_divergence_rounded"] = odds["away_divergence"].apply(lambda x: round(x, 1))
+    odds["home_divergence"] = odds["home_predict_prob"] - odds["home_actual_prob"]
+    odds["home_divergence_rounded"] = odds["home_divergence"].apply(lambda x: round(x, 1))
+    odds["home_predict_prob_rounded"] = odds["home_predict_prob"].apply(lambda x: round(x, 1))
+    odds["away_predict_prob_rounded"] = odds["away_predict_prob"].apply(lambda x: round(x, 1))
+
+    # Predict outcome
+    predict_outcome = []
     for index, row in odds.iterrows():
-        if (row["under_win_prob"], row["under_div"]) in underdogs:
-            predicted_outcome.append(row["underdog"])
-        elif (row["fav_win_prob"], row["fav_div"]) in favorites:
-            predicted_outcome.append(row["favorite"])
+        if (row["home_predict_prob_rounded"], row["home_divergence_rounded"]) in home_index:
+            predict_outcome.append(1)
+        elif (row["away_predict_prob_rounded"], row["away_divergence_rounded"]) in away_index:
+            predict_outcome.append(0)
+        elif row["home_predict_prob"] >= row["away_predict_prob"]:
+            predict_outcome.append(1)
         else:
-            predicted_outcome.append(None)
-    odds["predicted_outcome"] = predicted_outcome
-    odds = odds.dropna(axis=0)
-    odds["potential_payout"] = np.where(odds["predicted_outcome"],
-                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
+            predict_outcome.append(0)
+    odds["predict_outcome"] = predict_outcome
+
+    # Calculate potential units
+    odds["potential_units"] = np.where(odds["predict_outcome"],
+                                       odds["ML_h"].apply(lambda x: calc_profit(100, x) / 100),
+                                       odds["ML_a"].apply(lambda x: calc_profit(100, x) / 100))
 
     # Format for excel file
-    odds["bet"] = np.where(odds["predicted_outcome"], odds["Home"], odds["Away"])
-    odds["home_win_prob"] = odds["home_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
-    odds["away_win_prob"] = odds["away_win_prob"].apply(lambda x: str(round(x * 100)) + "%")
-    odds["potential_payout"] = odds["potential_payout"].apply(lambda x: round(x))
-    odds["potential_units"] = odds["potential_payout"].apply(lambda x: x / 100)
-    odds["Home_odds_actual"] = odds["Home_odds_actual"].apply(lambda x: str(round(x * 100)) + "%")
-    odds["Away_odds_actual"] = odds["Away_odds_actual"].apply(lambda x: str(round(x * 100)) + "%")
-    odds = odds[["Home", "home_win_prob", "Home_odds_actual", "ML_h",
-                 "Away", "away_win_prob", "Away_odds_actual", "ML_a",
+    odds["bet"] = np.where(odds["predict_outcome"], odds["Home"], odds["Away"])
+    odds["home_predict_prob"] = odds["home_predict_prob"].apply(lambda x: str(round(x * 100)) + "%")
+    odds["away_predict_prob"] = odds["away_predict_prob"].apply(lambda x: str(round(x * 100)) + "%")
+    odds["home_actual_prob"] = odds["home_actual_prob"].apply(lambda x: str(round(x * 100)) + "%")
+    odds["away_actual_prob"] = odds["away_actual_prob"].apply(lambda x: str(round(x * 100)) + "%")
+    odds = odds[["Home", "home_predict_prob", "home_actual_prob", "ML_h",
+                 "Away", "away_predict_prob", "away_actual_prob", "ML_a",
                  "bet", "potential_units"]]
-    odds = odds.rename(columns={"home_win_prob": "home_predicted_prob", "away_win_prob": "away_predicted_prob",
-                                "Home_odds_actual": "home_vegas_prob", "Away_odds_actual": "away_vegas_prob"})
+    odds = odds.rename(columns={"home_predict_prob": "home_predicted_prob", "away_predict_prob": "away_predicted_prob",
+                                "home_actual_prob": "home_vegas_prob", "away_actual_prob": "away_vegas_prob"})
     odds.to_csv("backend/data/predictions/Week_" + str(cw) + "_predictions.csv")
 
 
@@ -193,74 +190,67 @@ def current_season_odds(cw):
     odds.to_csv("backend/data/odds/current_season_odds.csv")
 
 
-def current_season(cw, favorites, underdogs):
+def current_season(cw, home_index, away_index):
+    # Load data
     odds = pd.read_csv("backend/data/odds/current_season_odds.csv")
-
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
+    # Filter data for current season
     y = y.reset_index()
     X = X.reset_index()
     X = X[(X["Year"] == 2021) & (X["Week"] < cw)]
     y = y[(y["Year"] == 2021) & (y["Week"] < cw)]
+    # Join odds and data
     y = pd.merge(y.drop(["ML_a", "ML_h"], axis=1), odds.drop(["Unnamed: 0"], axis=1),
                  left_on=["Home", "Away", "Week", "Year"],
                  right_on=["Home", "Away", "Week", "Year"])
 
-    # Predict
-    svm_prob = svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1))
-    svm_odds = pd.DataFrame(svm_prob, columns=["away_win_prob", "home_win_prob"])
-    odds = pd.merge(y, svm_odds, how="left", left_index=True, right_index=True)
-    odds["Home_odds_actual"] = odds["ML_h"].apply(lambda x: convert_odds(x))
-    odds["Away_odds_actual"] = odds["ML_a"].apply(lambda x: convert_odds(x))
-    odds["home_divergence"] = odds["home_win_prob"] - odds["Home_odds_actual"]
-    odds["away_divergence"] = odds["away_win_prob"] - odds["Away_odds_actual"]
-    odds["favorite"] = np.where(odds["ML_h"] < 0, 1, 0)
-    odds["underdog"] = np.where(odds["ML_h"] > 0, 1, 0)
-    odds["fav_win_prob"] = np.where(odds["ML_h"] < 0,
-                                    round(odds["home_win_prob"], 1),
-                                    round(odds["away_win_prob"], 1))
-    odds["under_win_prob"] = np.where(odds["ML_h"] > 0,
-                                      round(odds["home_win_prob"], 1),
-                                      round(odds["away_win_prob"], 1))
-    odds["fav_div"] = np.where(odds["ML_h"] < 0,
-                               round(odds["home_divergence"], 1),
-                               round(odds["away_divergence"], 1))
-    odds["under_div"] = np.where(odds["ML_h"] > 0,
-                                 round(odds["home_divergence"], 1),
-                                 round(odds["away_divergence"], 1))
-    predicted_outcome = []
+    # Predict probabilities and merge with odds
+    predictions = pd.DataFrame(svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1)),
+                               columns=["away_predict_prob", "home_predict_prob"])
+    odds = pd.merge(y, predictions, how="left", left_index=True, right_index=True)
+    odds = odds.rename(columns={"win_lose": "outcome"})
+    # Feature engineer vegas probabilities, potential payouts, and divergences
+    odds["away_actual_prob"] = odds["ML_a"].apply(lambda x: convert_odds(x))
+    odds["home_actual_prob"] = odds["ML_h"].apply(lambda x: convert_odds(x))
+    odds["away_divergence"] = odds["away_predict_prob"] - odds["away_actual_prob"]
+    odds["away_divergence"] = odds["away_divergence"].apply(lambda x: round(x, 1))
+    odds["home_divergence"] = odds["home_predict_prob"] - odds["home_actual_prob"]
+    odds["home_divergence"] = odds["home_divergence"].apply(lambda x: round(x, 1))
+    odds["home_predict_prob"] = odds["home_predict_prob"].apply(lambda x: round(x, 1))
+    odds["away_predict_prob"] = odds["away_predict_prob"].apply(lambda x: round(x, 1))
+
+    # Predict outcome
+    predict_outcome = []
     for index, row in odds.iterrows():
-        if (row["under_win_prob"], row["under_div"]) in underdogs:
-            predicted_outcome.append(row["underdog"])
-        elif (row["fav_win_prob"], row["fav_div"]) in favorites:
-            predicted_outcome.append(row["favorite"])
+        if (row["home_predict_prob"], row["home_divergence"]) in home_index:
+            predict_outcome.append(1)
+        elif (row["away_predict_prob"], row["away_divergence"]) in away_index:
+            predict_outcome.append(0)
+        elif row["home_predict_prob"] >= row["away_predict_prob"]:
+            predict_outcome.append(1)
         else:
-            predicted_outcome.append(None)
-    odds["predicted_outcome"] = predicted_outcome
-    odds = odds.dropna(axis=0)
-    odds["potential_payout"] = np.where(odds["predicted_outcome"],
+            predict_outcome.append(0)
+    odds["predict_outcome"] = predict_outcome
+
+    # Calculate payout
+    odds["potential_payout"] = np.where(odds["predict_outcome"],
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)),
                                         odds["ML_a"].apply(lambda x: calc_profit(100, x)))
-    odds["payout"] = np.where(odds["predicted_outcome"] == odds["win_lose"], odds["potential_payout"], -100)
+    odds["payout"] = np.where(odds["predict_outcome"] == odds["outcome"], odds["potential_payout"], -100)
 
-    num_hit = odds[odds["predicted_outcome"] == odds["win_lose"]]["payout"].count()
-    num_placed = odds["payout"].count()
-    profit = odds["payout"].sum()
-    print("Current Season performance:")
-    print("\tNumber of bets hit: {}".format(num_hit))
-    print("\tNumber of bets placed: {}".format(num_placed))
-    print("\tAccuracy: {}%".format(round(num_hit / num_placed * 100)))
-    print("\tProfit: ${}".format(round(profit)))
+    print("Current season performance:")
+    print_performance(odds)
+    print("Performance by week:")
     print(odds.groupby(["Week"])["payout"].sum())
-    odds = odds[["Home", "Away", "Week", "ML_h", "ML_a", "predicted_outcome", "win_lose"]]
+    odds = odds[["Home", "Away", "Week", "ML_h", "ML_a", "predict_outcome", "outcome"]]
     odds.to_csv("backend/data/predictions/season_picks.csv")
 
 
 if __name__ == '__main__':
     week = 11
-    favorite_index = [(0.4, -0.3), (0.5, -0.3), (0.6, -0.2), (0.6, -0.1), (0.7, -0.2), (0.7, 0.1), (0.7, 0.2)]
-    underdog_index = [(0.3, -0.0), (0.4, -0.1), (0.4, 0.2), (0.5, -0.0), (0.5, 0.2), (0.6, 0.1)]
+    home, away = performance()
     scrape_vegas(week)
     current_season_odds(week)
-    current_season(week, favorite_index, underdog_index)
-    current_week(week, favorite_index, underdog_index)
+    current_season(week, home, away)
+    current_week(week, home, away)
