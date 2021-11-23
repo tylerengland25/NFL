@@ -1,9 +1,8 @@
 ,Home,home_predicted_prob,home_vegas_prob,ML_h,Away,away_predicted_prob,away_vegas_prob,ML_a,bet,potential_units
-0,atlanta-falcons,37%,30%,235,new-england-patriots,63%,75%,-300,new-england-patriots,0.33333333333333337
-1,buffalo-bills,65%,75%,-300,indianapolis-colts,35%,30%,235,buffalo-bills,0.33333333333333337
 2,chicago-bears,45%,49%,105,baltimore-ravens,55%,56%,-125,baltimore-ravens,0.8
 5,minnesota-vikings,41%,49%,105,green-bay-packers,59%,56%,-125,green-bay-packers,0.8
-6,new-york-jets,57%,38%,160,miami-dolphins,43%,66%,-190,miami-dolphins,0.5263157894736843
-8,carolina-panthers,59%,63%,-170,washington-football-team,41%,40%,150,carolina-panthers,0.5882352941176471
+6,new-york-jets,57%,38%,160,miami-dolphins,43%,66%,-190,new-york-jets,1.6
+7,philadelphia-eagles,51%,60%,-150,new-orleans-saints,49%,43%,130,new-orleans-saints,1.3
+9,jacksonville-jaguars,74%,30%,235,san-francisco-49ers,26%,75%,-300,jacksonville-jaguars,2.35
 10,las-vegas-raiders,42%,47%,115,cincinnati-bengals,58%,57%,-135,cincinnati-bengals,0.7407407407407408
-13,los-angeles-chargers,61%,74%,-290,pittsburgh-steelers,39%,30%,230,los-angeles-chargers,0.3448275862068966
+11,kansas-city-chiefs,51%,58%,-140,dallas-cowboys,49%,45%,120,dallas-cowboys,1.2

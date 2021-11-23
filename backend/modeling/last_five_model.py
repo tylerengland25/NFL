@@ -119,16 +119,12 @@ def performance():
     odds["away_actual_prob"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_actual_prob"] = odds["ML_h"].apply(lambda x: convert_odds(x))
     odds["away_divergence"] = odds["away_predict_prob"] - odds["away_actual_prob"]
-    odds["away_divergence"] = odds["away_divergence"].apply(lambda x: round(x, 1))
     odds["home_divergence"] = odds["home_predict_prob"] - odds["home_actual_prob"]
-    odds["home_divergence"] = odds["home_divergence"].apply(lambda x: round(x, 1))
-    odds["home_predict_prob"] = odds["home_predict_prob"].apply(lambda x: round(x, 1))
-    odds["away_predict_prob"] = odds["away_predict_prob"].apply(lambda x: round(x, 1))
     odds["potential_payout"] = np.where(odds["outcome"],
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)),
                                         odds["ML_a"].apply(lambda x: calc_profit(100, x)))
     # Exploratory analysis
-    home_index, away_index = exploratory_analysis(odds)
+    exploratory_analysis(odds)
 
     # Predict outcome
     odds["predict_outcome"] = predict(odds)
@@ -143,45 +139,67 @@ def performance():
 
 
 def predict(odds):
-    # Predict outcome
+    # Feature Engineer
+    odds["home_divergence"] = odds["home_divergence"] / odds["home_actual_prob"]
+    odds["away_divergence"] = odds["away_divergence"] / odds["away_actual_prob"]
+    odds["home_perc_divergence"] = odds["home_divergence"] / odds["home_actual_prob"]
+    odds["away_perc_divergence"] = odds["away_divergence"] / odds["away_actual_prob"]
+    odds['favorite'] = np.where(odds['ML_h'] < 0, 1, 0)
+    odds['underdog'] = np.where(odds['ML_h'] > 0, 1, 0)
+    odds['favorite_divergence'] = np.where(odds['ML_h'] < 0, odds['home_perc_divergence'], odds['away_perc_divergence'])
+    odds['favorite_predict_prob'] = np.where(odds['ML_h'] < 0, odds['home_predict_prob'], odds['away_predict_prob'])
+    odds['underdog_divergence'] = np.where(odds['ML_h'] > 0, odds['home_perc_divergence'], odds['away_perc_divergence'])
+    odds['underdog_predict_prob'] = np.where(odds['ML_h'] > 0, odds['home_predict_prob'], odds['away_predict_prob'])
+
+    # Predict
     predict_outcome = []
     for index, row in odds.iterrows():
-        if (.6 <= row["home_predict_prob"] < .7) and (-.2 <= row["home_divergence"] < .2):
-            predict_outcome.append(1)
-        elif (.6 <= row["away_predict_prob"] < .7) and (-.2 <= row["away_divergence"] < .1):
-            predict_outcome.append(0)
-        elif (.5 <= row["home_predict_prob"] < .6) and (-.05 <= row["home_divergence"] < .1):
-            predict_outcome.append(1)
-        elif (.5 <= row["away_predict_prob"] < .6) and (-.3 <= row["away_divergence"] < .4):
-            predict_outcome.append(0)
-        elif (.4 <= row["home_predict_prob"] < .5) and (-.2 <= row["home_divergence"] < .1):
-            predict_outcome.append(1)
-        elif (.4 <= row["away_predict_prob"] < .5) and (0 <= row["home_divergence"]):
-            predict_outcome.append(0)
-        elif (.2 <= row["home_predict_prob"] < .4) and (-.1 <= row["home_divergence"]):
-            predict_outcome.append(1)
-        elif (.2 <= row["away_predict_prob"] < .4) and (-.1 <= row["away_divergence"] < .1):
-            predict_outcome.append(0)
+        if (row['underdog_predict_prob'] >= row['favorite_predict_prob']) and \
+                (row['underdog_divergence'] >= row['favorite_divergence']):
+            predict_outcome.append(row['underdog'])
+        elif (row['favorite_predict_prob'] >= row['underdog_predict_prob']) and \
+                (row['favorite_divergence'] >= row['underdog_divergence']):
+            predict_outcome.append(row['favorite'])
+        elif (row['underdog_predict_prob'] <= row['favorite_predict_prob']) and \
+                (.1 <= row['underdog_divergence'] <= .3):
+            predict_outcome.append(row['underdog'])
         else:
             predict_outcome.append(None)
     return predict_outcome
 
 
 def exploratory_analysis(odds):
+    # Feature Engineer
     odds["home_payout"] = np.where(odds["outcome"], odds["potential_payout"], -100)
     odds["away_payout"] = np.where(odds["outcome"], -100, odds["potential_payout"])
-    # Home analysis
-    home = odds.groupby(["home_divergence", "home_predict_prob"]).agg({"outcome": ["sum", "count"],
-                                                                       "home_payout": ["sum"]})
-    home["perc"] = home[('outcome', 'sum')] / home[('outcome', 'count')]
-    home = home[(home[('home_payout', 'sum')] > 0)]
-    # Away analysis
-    away = odds.groupby(["away_divergence", "away_predict_prob"]).agg({"outcome": ["sum", "count"],
-                                                                       "away_payout": ["sum"]})
-    away["perc"] = (away[('outcome', 'count')] - away[('outcome', 'sum')]) / away[('outcome', 'count')]
-    away = away[(away[('away_payout', 'sum')] > 0)]
-
-    return home.index, away.index
+    odds["home_perc_divergence"] = odds["home_divergence"] / odds["home_actual_prob"]
+    odds["away_perc_divergence"] = odds["away_divergence"] / odds["away_actual_prob"]
+    odds["home_perc_divergence_round"] = odds["home_perc_divergence"].apply(lambda x: round(x, 1))
+    odds["away_perc_divergence_round"] = odds["away_perc_divergence"].apply(lambda x: round(x, 1))
+    odds["home_predict_prob_round"] = odds["home_predict_prob"].apply(lambda x: round(x, 1))
+    odds["away_predict_prob_round"] = odds["away_predict_prob"].apply(lambda x: round(x, 1))
+    # Home teams
+    home = odds.loc[:, ["home_predict_prob_round", "ML_h", "home_actual_prob",
+                        "home_perc_divergence_round", "home_payout"]]
+    home = home.rename(columns={"home_predict_prob_round": "predict_prob", "ML_h": "ML",
+                                "home_actual_prob": "actual_prob", "home_perc_divergence_round": "perc_divergence",
+                                "home_payout": "payout"})
+    # Away teams
+    away = odds.loc[:, ["away_predict_prob_round", "ML_a", "away_actual_prob",
+                        "away_perc_divergence_round", "away_payout"]]
+    away = away.rename(columns={"away_predict_prob_round": "predict_prob", "ML_a": "ML",
+                                "away_actual_prob": "actual_prob", "away_perc_divergence_round": "divergence",
+                                "away_payout": "payout"})
+    # Merge teams
+    teams = pd.concat([home, away])
+    favorites = teams[teams['ML'] < 0].groupby(["perc_divergence", "predict_prob"]).agg(
+        {'payout': 'sum', 'ML': 'count'})
+    favorites = favorites[(favorites['payout'] > 0)]
+    underdogs = teams[teams['ML'] > 0].groupby(["perc_divergence", "predict_prob"]).agg(
+        {'payout': 'sum', 'ML': 'count'})
+    underdogs = underdogs[(underdogs['payout'] > 0)]
+    # print(favorites)
+    # print(underdogs)
 
 
 def print_performance(odds):
@@ -193,8 +211,6 @@ def print_performance(odds):
     print("\tTotal bets: {}".format(total))
     print("\tAccuracy: {}%".format(round(hits / total * 100)))
     print("\tProfit: ${}".format(round(profit)))
-    print("Performance by week:")
-    print(odds.groupby(["Week"])["payout"].sum())
     return odds.groupby(["Week"])["payout"].sum()
 
 

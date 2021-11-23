@@ -128,11 +128,7 @@ def current_week(cw):
     odds["away_actual_prob"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_actual_prob"] = odds["ML_h"].apply(lambda x: convert_odds(x))
     odds["away_divergence"] = odds["away_predict_prob"] - odds["away_actual_prob"]
-    odds["away_divergence_rounded"] = odds["away_divergence"].apply(lambda x: round(x, 1))
     odds["home_divergence"] = odds["home_predict_prob"] - odds["home_actual_prob"]
-    odds["home_divergence_rounded"] = odds["home_divergence"].apply(lambda x: round(x, 1))
-    odds["home_predict_prob_rounded"] = odds["home_predict_prob"].apply(lambda x: round(x, 1))
-    odds["away_predict_prob_rounded"] = odds["away_predict_prob"].apply(lambda x: round(x, 1))
 
     # Predict outcome
     odds["predict_outcome"] = predict(odds)
@@ -205,16 +201,12 @@ def current_season(cw):
     odds["away_actual_prob"] = odds["ML_a"].apply(lambda x: convert_odds(x))
     odds["home_actual_prob"] = odds["ML_h"].apply(lambda x: convert_odds(x))
     odds["away_divergence"] = odds["away_predict_prob"] - odds["away_actual_prob"]
-    odds["away_divergence"] = odds["away_divergence"].apply(lambda x: round(x, 1))
     odds["home_divergence"] = odds["home_predict_prob"] - odds["home_actual_prob"]
-    odds["home_divergence"] = odds["home_divergence"].apply(lambda x: round(x, 1))
-    odds["home_predict_prob"] = odds["home_predict_prob"].apply(lambda x: round(x, 1))
-    odds["away_predict_prob"] = odds["away_predict_prob"].apply(lambda x: round(x, 1))
     odds["potential_payout"] = np.where(odds["outcome"],
                                         odds["ML_h"].apply(lambda x: calc_profit(100, x)),
                                         odds["ML_a"].apply(lambda x: calc_profit(100, x)))
 
-    # Analysis
+    # Exploratory analysis
     exploratory_analysis(odds)
 
     # Predict outcome
@@ -229,7 +221,8 @@ def current_season(cw):
 
     print("Current season performance:")
     by_week = print_performance(odds)
-    odds = odds[["Home", "Away", "Week", "ML_h", "ML_a", "predict_outcome", "outcome", "payout"]]
+    odds = odds[["Home", "home_predict_prob", "Away", "away_predict_prob", "Week", "ML_h", "ML_a",
+                 "predict_outcome", "outcome", "payout"]]
     odds.to_csv("backend/data/predictions/season_picks.csv")
     return by_week
 
@@ -242,4 +235,4 @@ if __name__ == '__main__':
     season_by_week = current_season(week)
     current_week(week)
     weekly = pd.merge(testing_by_week, season_by_week, left_index=True, right_index=True)
-    print(weekly)
+    # print(weekly)
