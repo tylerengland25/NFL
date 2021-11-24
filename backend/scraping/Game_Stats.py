@@ -217,7 +217,7 @@ def main():
 
 
 def current_season(current):
-    season = scrape_season(current, 11)
+    season = scrape_season("2021", current)
     past_seasons = pd.read_csv("backend/data/weekly_stats.csv")
     df = pd.concat([past_seasons, season], ignore_index=True)
     df.to_csv("backend/data/current_season_stats.csv")
@@ -225,4 +225,4 @@ def current_season(current):
 
 
 if __name__ == '__main__':
-    current_season("2021")
+    current_season(12)

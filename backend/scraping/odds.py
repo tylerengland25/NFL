@@ -83,23 +83,8 @@ def scrape_vegas(current_week):
     df["Week"] = current_week
     df["Year"] = 2021
 
-    teams_dict = {"Patriots": "new-england-patriots", "Colts": "indianapolis-colts", "Falcons": "atlanta-falcons",
-                  "Bills": "buffalo-bills", "Ravens": "baltimore-ravens", "Bears": "chicago-bears",
-                  "Lions": "detroit-lions", "Browns": "cleveland-browns", "Texans": "houston-texans",
-                  "Titans": "tennessee-titans", "Packers": "green-bay-packers", "Vikings": "minnesota-vikings",
-                  "Dolphins": "miami-dolphins", "Jets": "new-york-jets", "Saints": "new-orleans-saints",
-                  "Eagles": "philadelphia-eagles", "Washington": "washington-football-team",
-                  "Panthers": "carolina-panthers", "49ers": "san-francisco-49ers", "Jaguars": "jacksonville-jaguars",
-                  "Bengals": "cincinnati-bengals", "Raiders": "las-vegas-raiders", "Cowboys": "dallas-cowboys",
-                  "Chiefs": "kansas-city-chiefs", "Cardinals": "arizona-cardinals", "Seahawks": "seattle-seahawks",
-                  "Steelers": "pittsburgh-steelers", "Chargers": "los-angeles-chargers", "Giants": "new-york-giants",
-                  "Buccaneers": "tampa-bay-buccaneers", "Rams": "los-angeles-rams", "Denver": "denver-broncos"}
-
-    df["Home"] = df["Home"].apply(lambda x: teams_dict[x])
-    df["Away"] = df["Away"].apply(lambda x: teams_dict[x])
-
-    df.to_csv("backend/data/odds/2021/Week_" + str(current_week) + ".csv")
+    df.to_excel("backend/data/odds/2021/Week_" + str(current_week) + ".xlsx")
 
 
 if __name__ == '__main__':
-    scrape_vegas(11)
+    scrape_vegas(12)

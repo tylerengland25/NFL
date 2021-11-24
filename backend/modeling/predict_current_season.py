@@ -110,7 +110,7 @@ def load_data_classifier():
 
 def current_week(cw):
     # Load data
-    odds = pd.read_csv("backend/data/odds/2021/Week_11.csv")
+    odds = pd.read_excel("backend/data/odds/2021/Week_" + str(cw) + ".xlsx")
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
     # Filter data
@@ -174,12 +174,12 @@ def current_season_odds(cw):
     odds["Home"] = odds["Home"].apply(lambda x: teams_dict[x])
     odds["Away"] = odds["Away"].apply(lambda x: teams_dict[x])
 
-    odds.to_csv("backend/data/odds/current_season_odds.csv")
+    odds.to_excel("backend/data/odds/nfl odds 2021-22.xlsx")
 
 
 def current_season(cw):
     # Load data
-    odds = pd.read_csv("backend/data/odds/current_season_odds.csv")
+    odds = pd.read_excel("backend/data/odds/nfl odds 2021-22.xlsx")
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
     # Filter data for current season
@@ -228,11 +228,11 @@ def current_season(cw):
 
 
 if __name__ == '__main__':
-    week = 11
+    week = 12
     testing_by_week = performance()
     scrape_vegas(week)
     current_season_odds(week)
     season_by_week = current_season(week)
     current_week(week)
     weekly = pd.merge(testing_by_week, season_by_week, left_index=True, right_index=True)
-    # print(weekly)
+    print(weekly)
