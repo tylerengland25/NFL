@@ -1,3 +1,5 @@
+import random
+
 import pandas as pd
 import pickle
 import numpy as np
@@ -155,14 +157,15 @@ def predict(odds):
     predict_outcome = []
     for index, row in odds.iterrows():
         if (row['underdog_predict_prob'] >= row['favorite_predict_prob']) and \
-                (row['underdog_divergence'] >= row['favorite_divergence']):
+                (0 <= row['underdog_divergence'] < .8):
             predict_outcome.append(row['underdog'])
-        elif (row['favorite_predict_prob'] >= row['underdog_predict_prob']) and \
-                (row['favorite_divergence'] >= row['underdog_divergence']):
-            predict_outcome.append(row['favorite'])
         elif (row['underdog_predict_prob'] <= row['favorite_predict_prob']) and \
-                (.1 <= row['underdog_divergence'] <= .3):
+                (-.1 <= row['underdog_divergence'] <= .8):
             predict_outcome.append(row['underdog'])
+        elif (.6 <= row['favorite_predict_prob'] <= .75) and (-.4 <= row['favorite_divergence'] <= -.12):
+            predict_outcome.append(row['favorite'])
+        elif (-.4 <= row["favorite_divergence"] <= -.2) or (.2 <= row["favorite_divergence"] <= .4):
+            predict_outcome.append(row['favorite'])
         else:
             predict_outcome.append(None)
     return predict_outcome
