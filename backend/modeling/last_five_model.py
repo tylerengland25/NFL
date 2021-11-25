@@ -107,7 +107,7 @@ def load_data_classifier():
     return train_test_split(X_standardized, y, test_size=.2, random_state=17)
 
 
-def performance():
+def performance(unit):
     svm = pickle.load(open('backend/modeling/models/svm.pkl', 'rb'))
     # Load data
     X_train, X_test, y_train, y_test = load_data_classifier()
@@ -123,10 +123,10 @@ def performance():
     odds["away_divergence"] = odds["away_predict_prob"] - odds["away_actual_prob"]
     odds["home_divergence"] = odds["home_predict_prob"] - odds["home_actual_prob"]
     odds["potential_payout"] = np.where(odds["outcome"],
-                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
+                                        odds["ML_h"].apply(lambda x: calc_profit(unit, x)),
+                                        odds["ML_a"].apply(lambda x: calc_profit(unit, x)))
     # Exploratory analysis
-    exploratory_analysis(odds)
+    exploratory_analysis(odds, unit)
 
     # Predict outcome
     odds["predict_outcome"] = predict(odds)
@@ -138,9 +138,9 @@ def performance():
     odds = odds.dropna(axis=0)
     # Calculate payout
     odds["potential_payout"] = np.where(odds["outcome"],
-                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
-    odds["payout"] = np.where(odds["predict_outcome"] == odds["outcome"], odds["potential_payout"], -100)
+                                        odds["ML_h"].apply(lambda x: calc_profit(unit, x)),
+                                        odds["ML_a"].apply(lambda x: calc_profit(unit, x)))
+    odds["payout"] = np.where(odds["predict_outcome"] == odds["outcome"], odds["potential_payout"], -1 * unit)
     performance_by_week = print_performance(odds)
     return performance_by_week
 
@@ -177,10 +177,10 @@ def predict(odds):
     return predict_outcome
 
 
-def exploratory_analysis(odds):
+def exploratory_analysis(odds, unit):
     # Feature Engineer
-    odds["home_payout"] = np.where(odds["outcome"], odds["potential_payout"], -100)
-    odds["away_payout"] = np.where(odds["outcome"], -100, odds["potential_payout"])
+    odds["home_payout"] = np.where(odds["outcome"], odds["potential_payout"], -1 * unit)
+    odds["away_payout"] = np.where(odds["outcome"], -1 * unit, odds["potential_payout"])
     odds["home_perc_divergence"] = odds["home_divergence"] / odds["home_actual_prob"]
     odds["away_perc_divergence"] = odds["away_divergence"] / odds["away_actual_prob"]
     odds["home_perc_divergence_round"] = odds["home_perc_divergence"].apply(lambda x: round(x, 1))
@@ -220,7 +220,9 @@ def print_performance(odds):
     print("\tTotal bets: {}".format(total))
     print("\tAccuracy: {}%".format(round(hits / total * 100)))
     print("\tProfit: ${}".format(round(profit)))
-    return odds.groupby(["Week"])["payout"].sum()
+    by_year = odds.groupby(["Year"]).agg({'payout': ['sum', 'count']})
+    by_week = odds.groupby(["Week"]).agg({'payout': ['sum', 'count']})
+    return by_week
 
 
 def main_classifier():
@@ -239,4 +241,5 @@ def main_classifier():
 
 
 if __name__ == '__main__':
-    performance()
+    stake = 100
+    performance(stake)

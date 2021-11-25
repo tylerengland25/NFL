@@ -108,7 +108,7 @@ def load_data_classifier():
     return X_standardized, y
 
 
-def current_week(cw):
+def current_week(cw, unit):
     # Load data
     odds = pd.read_excel("backend/data/odds/2021/Week_" + str(cw) + ".xlsx")
     X, y = load_data_classifier()
@@ -136,8 +136,8 @@ def current_week(cw):
 
     # Calculate potential units
     odds["potential_units"] = np.where(odds["predict_outcome"],
-                                       odds["ML_h"].apply(lambda x: calc_profit(100, x) / 100),
-                                       odds["ML_a"].apply(lambda x: calc_profit(100, x) / 100))
+                                       odds["ML_h"].apply(lambda x: calc_profit(unit, x) / unit),
+                                       odds["ML_a"].apply(lambda x: calc_profit(unit, x) / unit))
 
     # Format for excel file
     odds["bet"] = np.where(odds["predict_outcome"], odds["Home"], odds["Away"])
@@ -177,7 +177,7 @@ def current_season_odds(cw):
     odds.to_excel("backend/data/odds/nfl odds 2021-22.xlsx")
 
 
-def current_season(cw):
+def current_season(cw, unit):
     # Load data
     odds = pd.read_excel("backend/data/odds/nfl odds 2021-22.xlsx")
     X, y = load_data_classifier()
@@ -203,11 +203,11 @@ def current_season(cw):
     odds["away_divergence"] = odds["away_predict_prob"] - odds["away_actual_prob"]
     odds["home_divergence"] = odds["home_predict_prob"] - odds["home_actual_prob"]
     odds["potential_payout"] = np.where(odds["outcome"],
-                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
+                                        odds["ML_h"].apply(lambda x: calc_profit(unit, x)),
+                                        odds["ML_a"].apply(lambda x: calc_profit(unit, x)))
 
     # Exploratory analysis
-    exploratory_analysis(odds)
+    exploratory_analysis(odds, unit)
 
     # Predict outcome
     odds["predict_outcome"] = predict(odds)
@@ -215,24 +215,27 @@ def current_season(cw):
 
     # Calculate payout
     odds["potential_payout"] = np.where(odds["predict_outcome"],
-                                        odds["ML_h"].apply(lambda x: calc_profit(100, x)),
-                                        odds["ML_a"].apply(lambda x: calc_profit(100, x)))
-    odds["payout"] = np.where(odds["predict_outcome"] == odds["outcome"], odds["potential_payout"], -100)
+                                        odds["ML_h"].apply(lambda x: calc_profit(unit, x)),
+                                        odds["ML_a"].apply(lambda x: calc_profit(unit, x)))
+    odds["payout"] = np.where(odds["predict_outcome"] == odds["outcome"], odds["potential_payout"], -1 * unit)
 
     print("Current season performance:")
     by_week = print_performance(odds)
     odds = odds[["Home", "home_predict_prob", "Away", "away_predict_prob", "Week", "ML_h", "ML_a",
                  "predict_outcome", "outcome", "payout"]]
+    odds["predict_outcome"] = np.where(odds["predict_outcome"], odds["Home"], odds["Away"])
+    odds["outcome"] = np.where(odds["outcome"], odds["Home"], odds["Away"])
     odds.to_csv("backend/data/predictions/season_picks.csv")
     return by_week
 
 
 if __name__ == '__main__':
     week = 12
-    testing_by_week = performance()
-    scrape_vegas(week)
+    stake = 100
+    testing_by_week = performance(stake)
+    # scrape_vegas(week)
     current_season_odds(week)
-    season_by_week = current_season(week)
-    current_week(week)
+    season_by_week = current_season(week, stake)
+    current_week(week, stake)
     weekly = pd.merge(testing_by_week, season_by_week, left_index=True, right_index=True)
     print(weekly)

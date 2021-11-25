@@ -24,13 +24,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\backend\data\odds\2021\Week_11.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\backend\data\odds\odds.csv">
           <value>
             <Attribute>
