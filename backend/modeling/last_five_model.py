@@ -215,8 +215,12 @@ def print_performance(odds):
     print("\tTotal bets: {}".format(total))
     print("\tAccuracy: {}%".format(round(hits / total * 100)))
     print("\tProfit: ${}".format(round(profit)))
-    by_year = odds.groupby(["Year"]).agg({'payout': ['sum', 'count']})
-    by_week = odds.groupby(["Week"]).agg({'payout': ['sum', 'count']})
+    odds["hit"] = np.where(odds["outcome"] == odds["predict_outcome"], 1, 0)
+    by_year = odds.groupby(["Year"]).agg({'payout': ['sum'], 'hit': ['sum', 'count']})
+    by_year['perc_hit'] = round(by_year[('hit', 'sum')] / by_year[('hit', 'count')] * 100)
+    # print(by_year)
+    by_week = odds.groupby(["Week"]).agg({'payout': ['sum'], 'hit': ['sum', 'count']})
+    by_week['perc_hit'] = round(by_week[('hit', 'sum')] / by_week[('hit', 'count')] * 100)
     return by_week
 
 
