@@ -130,11 +130,6 @@ def performance(unit):
 
     # Predict outcome
     odds["predict_outcome"] = predict(odds)
-    no_bet = odds[odds["predict_outcome"].isna()][["outcome",
-                                                   "favorite", "underdog",
-                                                   "favorite_predict_prob", "underdog_predict_prob",
-                                                   "favorite_divergence", "underdog_divergence"]]
-    no_bet = no_bet[no_bet["outcome"] == no_bet["favorite"]]
     odds = odds.dropna(axis=0)
     # Calculate payout
     odds["potential_payout"] = np.where(odds["outcome"],

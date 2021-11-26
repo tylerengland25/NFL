@@ -31,8 +31,6 @@ def scrape_excel_files():
     odds_df.drop(["Week_a", "Year_a"], axis=1, inplace=True)
     odds_df.rename(columns={"Year_h": "Year", "Week_h": "Week"}, inplace=True)
 
-    test = odds_df[odds_df["Away"] == "LVRaiders"]
-
     teams_dict = {'Philadelphia': 'philadelphia-eagles', 'St.Louis': 'st-louis-rams',
                   'TampaBay': 'tampa-bay-buccaneers', 'NYGiants': 'new-york-giants', 'GreenBay': 'green-bay-packers',
                   'Chicago': 'chicago-bears', 'NewEngland': 'new-england-patriots', 'Pittsburgh': 'pittsburgh-steelers',
