@@ -150,6 +150,8 @@ def current_week(cw, unit):
                  "bet", "potential_units"]]
     odds = odds.rename(columns={"home_predict_prob": "home_predicted_prob", "away_predict_prob": "away_predicted_prob",
                                 "home_actual_prob": "home_vegas_prob", "away_actual_prob": "away_vegas_prob"})
+    odds["hold"] = odds["ML_h"].apply(lambda x: convert_odds(x)) - odds["ML_a"].apply(lambda x: convert_odds(-1 * x))
+    odds["hold"] = odds["hold"].apply(lambda x: str(round(x * 100, 2)) + "%")
     odds.to_csv("backend/data/predictions/Week_" + str(cw) + "_predictions.csv")
 
 
@@ -225,6 +227,7 @@ def current_season(cw, unit):
                  "predict_outcome", "outcome", "payout"]]
     odds["predict_outcome"] = np.where(odds["predict_outcome"], odds["Home"], odds["Away"])
     odds["outcome"] = np.where(odds["outcome"], odds["Home"], odds["Away"])
+    odds["hold"] = odds["ML_h"].apply(lambda x: convert_odds(x)) - odds["ML_a"].apply(lambda x: convert_odds(-1 * x))
     odds.to_csv("backend/data/predictions/season_picks.csv")
     return by_week
 
