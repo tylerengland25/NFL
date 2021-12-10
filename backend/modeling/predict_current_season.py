@@ -233,10 +233,10 @@ def current_season(cw, unit):
 
 
 if __name__ == '__main__':
-    week = 12
+    week = 14
     stake = 100
     testing_by_week = performance(stake)
-    # scrape_vegas(week)
+    scrape_vegas(week)
     current_season_odds(week)
     season_by_week = current_season(week, stake)
     current_week(week, stake)
