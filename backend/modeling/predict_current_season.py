@@ -233,7 +233,7 @@ def current_season(cw, unit):
 
 
 if __name__ == '__main__':
-    week = 14
+    week = 15
     stake = 100
     testing_by_week = performance(stake)
     scrape_vegas(week)

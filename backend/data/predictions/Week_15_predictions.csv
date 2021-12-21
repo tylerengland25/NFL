@@ -1,0 +1,17 @@
+,Home,home_predicted_prob,home_vegas_prob,ML_h,Away,away_predicted_prob,away_vegas_prob,ML_a,bet,potential_units,hold
+0,Chargers,55%,40%,150,Chiefs,45%,63%,-170,Chiefs,0.5882352941176471,2.96%
+1,Colts,56%,55%,-120,Patriots,44%,50%,100,Patriots,1.0,4.55%
+2,Bills,50%,90%,-900,Panthers,50%,14%,600,Bills,0.1111111111111111,4.29%
+3,Dolphins,58%,83%,-475,Jets,42%,22%,350,Dolphins,0.2105263157894737,4.83%
+4,Lions,46%,16%,525,Cardinals,54%,88%,-760,Cardinals,0.13157894736842107,4.37%
+5,Giants,49%,19%,425,Cowboys,51%,86%,-590,Cowboys,0.16949152542372878,4.55%
+6,Steelers,68%,55%,-120,Titans,32%,50%,100,Titans,1.0,4.55%
+7,Jaguars,46%,73%,-265,Texans,54%,32%,215,Jaguars,0.37735849056603776,4.35%
+8,Broncos,68%,57%,-135,Bengals,32%,47%,115,Broncos,0.7407407407407408,3.96%
+9,49ers,45%,81%,-425,Falcons,55%,24%,320,49ers,0.23529411764705885,4.76%
+10,Ravens,49%,24%,310,Packers,51%,80%,-410,Packers,0.24390243902439024,4.78%
+11,Buccaneers,73%,86%,-630,Saints,27%,18%,450,Buccaneers,0.15873015873015872,4.48%
+12,Browns,44%,43%,135,Raiders,56%,61%,-155,Browns,1.35,3.34%
+13,Bears,62%,31%,225,Vikings,38%,74%,-280,Vikings,0.35714285714285715,4.45%
+14,Eagles,71%,73%,-275,Washington,29%,31%,220,Washington,2.2,4.58%
+15,Rams,43%,75%,-305,Seahawks,57%,29%,240,Rams,0.3278688524590164,4.72%
