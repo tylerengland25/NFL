@@ -79,9 +79,10 @@ def scrape_season(year):
 
 def update_scoring():
     df = pd.read_csv("backend/data/scoring.csv")
+    df = df.drop(["Unnamed: 0"], axis=1)
     scoring_df = scrape_season(str(2021))
     df = df.append(scoring_df, ignore_index=True)
-
+    df = df.drop_duplicates()
     df.to_csv("backend/data/scoring.csv")
 
 

@@ -1,5 +1,6 @@
 import pandas as pd
-import numpy as np
+from backend.scraping.scores import update_scoring
+from backend.scraping.odds import scrape_vegas
 
 
 def spreads(col1, col2):
