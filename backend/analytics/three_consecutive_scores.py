@@ -1,22 +1,47 @@
-from bs4 import BeautifulSoup
-from urllib.request import Request, urlopen
 import pandas as pd
+import numpy as np
+
+
+def spreads(col1, col2):
+    if col1 == "pk":
+        col1 = 0
+    if col2 == "pk":
+        col2 = 0
+    if col1 < col2:
+        return col1
+    else:
+        return col2
+
+
+def totals(col1, col2):
+    if col1 == "pk":
+        col1 = 0
+    if col2 == "pk":
+        col2 = 0
+    if col1 < col2:
+        return col2
+    else:
+        return col1
 
 
 def odds_season(filename):
     df = pd.read_excel(filename)
     df["Year"] = filename.split("-")[0][-4:]
 
-    home_df = df[df["VH"] == "H"].reset_index()[["Team", "ML", "Year", "Week"]]
+    home_df = df[df["VH"] == "H"].reset_index()[["Team", "ML", "Close", "Year", "Week"]]
     home_df.rename(columns={"Team": "Home"}, inplace=True)
-    away_df = df[df["VH"] == "V"].reset_index()[["Team", "ML", "Year", "Week"]]
+    away_df = df[df["VH"] == "V"].reset_index()[["Team", "ML", "Close", "Year", "Week"]]
     away_df.rename(columns={"Team": "Away"}, inplace=True)
     df = home_df.join(away_df, lsuffix="_h", rsuffix="_a")
+
+    df["Spread"] = df.apply(lambda x: spreads(x.Close_h, x.Close_a), axis=1)
+    df["Total"] = df.apply(lambda x: totals(x.Close_h, x.Close_a), axis=1)
+    df = df.drop(["Close_h", "Close_a"], axis=1)
 
     return df
 
 
-def scrape_excel_files():
+def spread_totals():
     files = ["backend/data/odds/nfl odds 2010-11.xlsx", "backend/data/odds/nfl odds 2011-12.xlsx",
              "backend/data/odds/nfl odds 2012-13.xlsx", "backend/data/odds/nfl odds 2013-14.xlsx",
              "backend/data/odds/nfl odds 2014-15.xlsx", "backend/data/odds/nfl odds 2015-16.xlsx",
@@ -49,43 +74,38 @@ def scrape_excel_files():
     odds_df["Home"] = odds_df["Home"].apply(lambda x: teams_dict[x])
     odds_df["Away"] = odds_df["Away"].apply(lambda x: teams_dict[x])
 
-    odds_df.to_csv("backend/data/odds/odds.csv")
+    return odds_df
 
 
-def scrape_vegas(current_week):
-    url = "https://www.lines.com/betting/nfl/odds/moneyline"
-    hdr = {
-        'User-Agent': """Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 
-        Chrome/92.0.4515.159 Safari/537.36""",
-        'Connection': 'close'}
-    req = Request(url, headers=hdr)
-    page = urlopen(req)
-    soup = BeautifulSoup(page, "html.parser")
+def round_by_base(number, base):
+    return base * round(number/base)
 
-    tags = soup.find_all("div", attrs={"class": "odds-list-panel"})
-    tags = [tag.text for tag in tags]
-    tags = [game.split("\n") for game in tags]
-    week = []
-    for game in tags:
-        important_info = []
-        for info in game:
-            if len(info) > 0:
-                important_info.append(info)
-        week.append(important_info)
 
-    home_teams = [game[2] for game in week]
-    away_teams = [game[1] for game in week]
-    home_odds = [game[4] for game in week]
-    away_odds = [game[3] for game in week]
-    df = pd.DataFrame({"Home": home_teams, "Away": away_teams, "ML_h": home_odds, "ML_a": away_odds})
-    df["Week"] = current_week
-    df["Year"] = 2021
+def pivot_table():
+    # Load data
+    df = pd.read_csv("backend/data/scoring.csv")
+    odds = spread_totals()
 
-    odds = pd.read_csv("backend/data/odds/nfl odds 2021-22.xlsx")
-    odds = odds.append(df, ignore_index=True)
+    # Join data
+    df["week"] = df["week"] + 1
+    odds["Year"] = odds["Year"].astype(int)
+    df = pd.merge(df, odds, left_on=["home", "away", "week", "year"], right_on=["Home", "Away", "Week", "Year"])
 
-    odds.to_excel("backend/data/odds/nfl odds 2021-22.xlsx")
+    # Round spreads and totals
+    df["Spread"] = df["Spread"].apply(lambda x: round_by_base(x, 2))
+    df["Total"] = df["Total"].apply(lambda x: round_by_base(x, 4))
+
+    # Create pivot table
+    values = df.groupby(["Spread", "Total"]).agg({"3_consecutive_scores": ["sum", "count"]})
+    values["perc"] = values[("3_consecutive_scores", "sum")] / values[("3_consecutive_scores", "count")]
+    values["perc"] = values["perc"].apply(lambda x: 100 * round(x, 2))
+
+    values.to_csv("backend/data/analytics/3_consecutive_scores.csv")
+
+
+def main():
+    pivot_table()
 
 
 if __name__ == '__main__':
-    scrape_vegas(12)
+    main()

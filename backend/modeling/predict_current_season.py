@@ -155,30 +155,6 @@ def current_week(cw, unit):
     odds.to_csv("backend/data/predictions/Week_" + str(cw) + "_predictions.csv")
 
 
-def current_season_odds(cw):
-    odds = pd.DataFrame()
-    for i in range(1, cw):
-        df = pd.read_excel("backend/data/odds/2021/Week_" + str(i) + ".xlsx")
-        odds = odds.append(df.drop(["Unnamed: 0"], axis=1))
-
-    teams_dict = {"Patriots": "new-england-patriots", "Colts": "indianapolis-colts", "Falcons": "atlanta-falcons",
-                  "Bills": "buffalo-bills", "Ravens": "baltimore-ravens", "Bears": "chicago-bears",
-                  "Lions": "detroit-lions", "Browns": "cleveland-browns", "Texans": "houston-texans",
-                  "Titans": "tennessee-titans", "Packers": "green-bay-packers", "Vikings": "minnesota-vikings",
-                  "Dolphins": "miami-dolphins", "Jets": "new-york-jets", "Saints": "new-orleans-saints",
-                  "Eagles": "philadelphia-eagles", "Washington": "washington-football-team",
-                  "Panthers": "carolina-panthers", "49ers": "san-francisco-49ers", "Jaguars": "jacksonville-jaguars",
-                  "Bengals": "cincinnati-bengals", "Raiders": "las-vegas-raiders", "Cowboys": "dallas-cowboys",
-                  "Chiefs": "kansas-city-chiefs", "Cardinals": "arizona-cardinals", "Seahawks": "seattle-seahawks",
-                  "Steelers": "pittsburgh-steelers", "Chargers": "los-angeles-chargers", "Giants": "new-york-giants",
-                  "Buccaneers": "tampa-bay-buccaneers", "Rams": "los-angeles-rams", "Broncos": "denver-broncos"}
-
-    odds["Home"] = odds["Home"].apply(lambda x: teams_dict[x])
-    odds["Away"] = odds["Away"].apply(lambda x: teams_dict[x])
-
-    odds.to_excel("backend/data/odds/nfl odds 2021-22.xlsx")
-
-
 def current_season(cw, unit):
     # Load data
     odds = pd.read_excel("backend/data/odds/nfl odds 2021-22.xlsx")
@@ -237,7 +213,6 @@ if __name__ == '__main__':
     stake = 100
     testing_by_week = performance(stake)
     scrape_vegas(week)
-    current_season_odds(week)
     season_by_week = current_season(week, stake)
     current_week(week, stake)
     weekly = pd.merge(testing_by_week, season_by_week, left_index=True, right_index=True)
