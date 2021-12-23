@@ -74,6 +74,11 @@ def spread_totals():
     odds_df["Home"] = odds_df["Home"].apply(lambda x: teams_dict[x])
     odds_df["Away"] = odds_df["Away"].apply(lambda x: teams_dict[x])
 
+    # Current season
+    current_season_odds = pd.read_excel("backend/data/odds/nfl odds 2021-22.xlsx")
+    current_season_odds = current_season_odds.drop(["Unnamed: 0"], axis=1)
+    odds_df = odds_df.append(current_season_odds, ignore_index=True)
+
     return odds_df
 
 
@@ -87,7 +92,6 @@ def pivot_table():
     odds = spread_totals()
 
     # Join data
-    df["week"] = df["week"] + 1
     odds["Year"] = odds["Year"].astype(int)
     df = pd.merge(df, odds, left_on=["home", "away", "week", "year"], right_on=["Home", "Away", "Week", "Year"])
 
@@ -95,12 +99,37 @@ def pivot_table():
     df["Spread"] = df["Spread"].apply(lambda x: round_by_base(x, 2))
     df["Total"] = df["Total"].apply(lambda x: round_by_base(x, 4))
 
-    # Create pivot table
-    values = df.groupby(["Spread", "Total"]).agg({"3_consecutive_scores": ["sum", "count"]})
-    values["perc"] = values[("3_consecutive_scores", "sum")] / values[("3_consecutive_scores", "count")]
-    values["perc"] = values["perc"].apply(lambda x: 100 * round(x, 2))
+    # Create pivot table for all games
+    table = df.groupby(["Spread", "Total"]).agg({"3_consecutive_scores": ["sum", "count"]})
+    table["perc"] = table[("3_consecutive_scores", "sum")] / table[("3_consecutive_scores", "count")]
+    table["perc"] = table["perc"].apply(lambda x: 100 * round(x, 2))
+    table = table.reset_index()
+    table.columns = ["spread", "total", "sum", "count", "perc"]
 
-    values.to_csv("backend/data/analytics/3_consecutive_scores.csv")
+    # Create pivot table for current season
+    df = df[df["Year"] == 2021]
+    current = df.groupby(["Spread", "Total"]).agg({"3_consecutive_scores": ["sum", "count"]})
+    current["perc"] = current[("3_consecutive_scores", "sum")] / current[("3_consecutive_scores", "count")]
+    current["perc"] = current["perc"].apply(lambda x: 100 * round(x, 2))
+    current = current.reset_index()
+    current.columns = ["spread", "total", "sum", "count", "perc"]
+
+    with pd.ExcelWriter("backend/data/analytics/3_consecutive_scores.xlsx") as writer:
+        perc_table = pd.pivot_table(table, values="perc", index="spread", columns="total")
+        perc_table = perc_table.fillna(0)
+        perc_table.to_excel(writer, sheet_name="Percentages")
+
+        count_table = pd.pivot_table(table, values="count", index="spread", columns="total")
+        count_table = count_table.fillna(0)
+        count_table.to_excel(writer, sheet_name="Counts")
+
+        current_perc = pd.pivot_table(current, values="perc", index="spread", columns="total")
+        current_perc = current_perc.fillna(0)
+        current_perc.to_excel(writer, sheet_name="Current Season Percentages")
+
+        current_count = pd.pivot_table(current, values="count", index="spread", columns="total")
+        current_count = current_count.fillna(0)
+        current_count.to_excel(writer, sheet_name="Current Season Counts")
 
 
 def main():

@@ -118,6 +118,7 @@ def scrape_vegas(current_week):
 
     totals = [float(game[4][1:]) for game in week]
 
+    # Create dataframe
     df = pd.DataFrame({"Home": home_teams, "Away": away_teams,
                        "ML_h": home_odds, "ML_a": away_odds,
                        "Spread": spreads,
