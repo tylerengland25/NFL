@@ -53,16 +53,28 @@ def scrape_excel_files():
 
 
 def scrape_vegas(current_week):
-    url = "https://www.lines.com/betting/nfl/odds/moneyline"
+    ml_url = "https://www.lines.com/betting/nfl/odds/moneyline"
+    spread_url = "https://www.lines.com/betting/nfl/odds"
+    total_url = "https://www.lines.com/betting/nfl/odds/over-under"
+
     hdr = {
         'User-Agent': """Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 
         Chrome/92.0.4515.159 Safari/537.36""",
         'Connection': 'close'}
-    req = Request(url, headers=hdr)
-    page = urlopen(req)
-    soup = BeautifulSoup(page, "html.parser")
+    ml_req = Request(ml_url, headers=hdr)
+    ml_page = urlopen(ml_req)
+    ml_soup = BeautifulSoup(ml_page, "html.parser")
 
-    tags = soup.find_all("div", attrs={"class": "odds-list-panel"})
+    spread_req = Request(spread_url, headers=hdr)
+    spread_page = urlopen(spread_req)
+    spread_soup = BeautifulSoup(spread_page, "html.parser")
+
+    total_req = Request(total_url, headers=hdr)
+    total_page = urlopen(total_req)
+    total_soup = BeautifulSoup(total_page, "html.parser")
+
+    # Money line scraper
+    tags = ml_soup.find_all("div", attrs={"class": "odds-list-panel"})
     tags = [tag.text for tag in tags]
     tags = [game.split("\n") for game in tags]
     week = []
@@ -75,17 +87,50 @@ def scrape_vegas(current_week):
 
     home_teams = [game[2] for game in week]
     away_teams = [game[1] for game in week]
-    home_odds = [game[4] for game in week]
-    away_odds = [game[3] for game in week]
-    df = pd.DataFrame({"Home": home_teams, "Away": away_teams, "ML_h": home_odds, "ML_a": away_odds})
+    home_odds = [int(game[4]) for game in week]
+    away_odds = [int(game[3]) for game in week]
+
+    # Spread scraper
+    tags = spread_soup.find_all("div", attrs={"class": "odds-list-panel"})
+    tags = [tag.text for tag in tags]
+    tags = [game.split("\n") for game in tags]
+    week = []
+    for game in tags:
+        important_info = []
+        for info in game:
+            if len(info) > 0:
+                important_info.append(info)
+        week.append(important_info)
+
+    spreads = [float(game[4][1:]) for game in week]
+
+    # Totals scraper
+    tags = total_soup.find_all("div", attrs={"class": "odds-list-panel"})
+    tags = [tag.text for tag in tags]
+    tags = [game.split("\n") for game in tags]
+    week = []
+    for game in tags:
+        important_info = []
+        for info in game:
+            if len(info) > 0:
+                important_info.append(info)
+        week.append(important_info)
+
+    totals = [float(game[4][1:]) for game in week]
+
+    df = pd.DataFrame({"Home": home_teams, "Away": away_teams,
+                       "ML_h": home_odds, "ML_a": away_odds,
+                       "Spread": spreads,
+                       "Total": totals})
     df["Week"] = current_week
     df["Year"] = 2021
 
-    odds = pd.read_csv("backend/data/odds/nfl odds 2021-22.xlsx")
+    odds = pd.read_excel("backend/data/odds/nfl odds 2021-22.xlsx")
+    odds = odds.drop(["Unnamed: 0"], axis=1)
     odds = odds.append(df, ignore_index=True)
-
+    odds = odds.drop_duplicates()
     odds.to_excel("backend/data/odds/nfl odds 2021-22.xlsx")
 
 
 if __name__ == '__main__':
-    scrape_vegas(12)
+    scrape_vegas(16)
