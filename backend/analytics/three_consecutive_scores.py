@@ -83,8 +83,23 @@ def spread_totals():
     return odds_df
 
 
-def round_by_base(number, base):
+def round_totals(number, base):
     return base * round(number/base)
+
+
+def round_spreads(number):
+    if number <= 1.5:
+        return 0
+    elif number < 5:
+        return 3
+    elif number < 8:
+        return 7
+    elif number < 12:
+        return 10
+    elif number < 17:
+        return 14
+    else:
+        return 17
 
 
 def pivot_table():
@@ -97,8 +112,8 @@ def pivot_table():
     df = pd.merge(df, odds, left_on=["home", "away", "week", "year"], right_on=["Home", "Away", "Week", "Year"])
 
     # Round spreads and totals
-    df["Spread"] = df["Spread"].apply(lambda x: round_by_base(x, 2))
-    df["Total"] = df["Total"].apply(lambda x: round_by_base(x, 4))
+    df["Spread"] = df["Spread"].apply(lambda x: round_spreads(x))
+    df["Total"] = df["Total"].apply(lambda x: round_totals(x, 2))
 
     # Create pivot table for all games
     table = df.groupby(["Spread", "Total"]).agg({"3_consecutive_scores": ["sum", "count"]})
@@ -107,30 +122,46 @@ def pivot_table():
     table = table.reset_index()
     table.columns = ["spread", "total", "sum", "count", "perc"]
 
+    # Create pivot table for last 5 years of games
+    five_years = df[df["Year"] > 2015]
+    last_five = five_years.groupby(["Spread", "Total"]).agg({"3_consecutive_scores": ["sum", "count"]})
+    last_five["perc"] = last_five[("3_consecutive_scores", "sum")] / last_five[("3_consecutive_scores", "count")]
+    last_five["perc"] = last_five["perc"].apply(lambda x: 100 * round(x, 2))
+    last_five = last_five.reset_index()
+    last_five.columns = ["spread", "total", "sum", "count", "perc"]
+
     # Create pivot table for current season
-    df = df[df["Year"] == 2021]
-    current = df.groupby(["Spread", "Total"]).agg({"3_consecutive_scores": ["sum", "count"]})
+    current_season = df[df["Year"] == 2021]
+    current = current_season.groupby(["Spread", "Total"]).agg({"3_consecutive_scores": ["sum", "count"]})
     current["perc"] = current[("3_consecutive_scores", "sum")] / current[("3_consecutive_scores", "count")]
     current["perc"] = current["perc"].apply(lambda x: 100 * round(x, 2))
     current = current.reset_index()
     current.columns = ["spread", "total", "sum", "count", "perc"]
 
     with pd.ExcelWriter("backend/data/analytics/3_consecutive_scores.xlsx") as writer:
-        perc_table = pd.pivot_table(table, values="perc", index="spread", columns="total")
+        perc_table = pd.pivot_table(table, values="perc", index="total", columns="spread")
         perc_table = perc_table.fillna(0)
-        perc_table.to_excel(writer, sheet_name="Percentages")
+        perc_table.to_excel(writer, sheet_name="10 Year Percentages")
 
-        count_table = pd.pivot_table(table, values="count", index="spread", columns="total")
+        count_table = pd.pivot_table(table, values="count", index="total", columns="spread")
         count_table = count_table.fillna(0)
-        count_table.to_excel(writer, sheet_name="Counts")
+        count_table.to_excel(writer, sheet_name="10 Year Counts")
 
-        current_perc = pd.pivot_table(current, values="perc", index="spread", columns="total")
-        current_perc = current_perc.fillna(0)
-        current_perc.to_excel(writer, sheet_name="Current Season Percentages")
+        perc_table = pd.pivot_table(last_five, values="perc", index="total", columns="spread")
+        perc_table = perc_table.fillna(0)
+        perc_table.to_excel(writer, sheet_name="5 Year Percentages")
 
-        current_count = pd.pivot_table(current, values="count", index="spread", columns="total")
-        current_count = current_count.fillna(0)
-        current_count.to_excel(writer, sheet_name="Current Season Counts")
+        count_table = pd.pivot_table(last_five, values="count", index="total", columns="spread")
+        count_table = count_table.fillna(0)
+        count_table.to_excel(writer, sheet_name="5 Year Counts")
+
+        perc_table = pd.pivot_table(current, values="perc", index="total", columns="spread")
+        perc_table = perc_table.fillna(0)
+        perc_table.to_excel(writer, sheet_name="Current Season Percentages")
+
+        count_table = pd.pivot_table(current, values="count", index="total", columns="spread")
+        count_table = count_table.fillna(0)
+        count_table.to_excel(writer, sheet_name="Current Season Counts")
 
 
 def main():

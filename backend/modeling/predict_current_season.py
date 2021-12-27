@@ -110,12 +110,13 @@ def load_data_classifier():
 
 def current_week(cw, unit):
     # Load data
-    odds = pd.read_excel("backend/data/odds/2021/Week_" + str(cw) + ".xlsx")
+    odds = pd.read_excel("backend/data/odds/nfl odds 2021-22.xlsx")
     X, y = load_data_classifier()
     svm = pickle.load(open("backend/modeling/models/svm.pkl", "rb"))
     # Filter data
     X = X.reset_index()
     X = X[(X["Year"] == 2021) & (X["Week"] == cw)]
+    odds = odds[odds["Week"] == cw]
 
     # Predict
     predictions = pd.DataFrame(svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1)),

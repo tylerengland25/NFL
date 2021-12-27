@@ -77,10 +77,28 @@ def scrape_season(year):
     return consecutive_games
 
 
-def update_scoring():
+def update_scoring(year, w):
+    url = "https://www.footballdb.com/games/index.html?lg=NFL&yr=" + year
+    hdr = {
+        'User-Agent': """Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 
+            Chrome/92.0.4515.159 Safari/537.36""",
+        'Connection': 'close'}
+    req = Request(url, headers=hdr)
+    page = urlopen(req)
+    soup = BeautifulSoup(page, "html.parser")
+
+    scoring_df = pd.DataFrame()
+
+    games = soup.find_all("tbody")[w - 1].find_all("tr")
+    for game in games:
+        link = game.find_all("td")[6].a["href"]
+        scores = scrape_game(link)
+        scores["year"] = int(year)
+        scores["week"] = w
+        scoring_df = scoring_df.append(scores, ignore_index=True)
+
     df = pd.read_csv("backend/data/scoring.csv")
     df = df.drop(["Unnamed: 0"], axis=1)
-    scoring_df = scrape_season(str(2021))
     df = df.append(scoring_df, ignore_index=True)
     df = df.drop_duplicates()
     df.to_csv("backend/data/scoring.csv")
@@ -97,4 +115,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    update_scoring(2021, 16)

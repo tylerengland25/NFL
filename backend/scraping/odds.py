@@ -126,10 +126,25 @@ def scrape_vegas(current_week):
     df["Week"] = current_week
     df["Year"] = 2021
 
+    # Change team names
+    team_names = {"Saints": "new-orleans-saints", "Dolphins": "miami-dolphins", "Cowboys": "dallas-cowboys",
+                  "Washington": "washington-football-team", "Raiders": "las-vegas-raiders", "Broncos": "denver-broncos",
+                  "Chiefs": "kansas-city-chiefs", "Steelers": "pittsburgh-steelers", "Seahawks": "seattle-seahawks",
+                  "Bears": "chicago-bears", "Texans": "houston-texans", 'Chargers': 'los-angeles-chargers',
+                  'Panthers': 'carolina-panthers', 'Buccaneers': 'tampa-bay-buccaneers',
+                  'Eagles': 'philadelphia-eagles', 'Giants': 'new-york-giants', "Jets": "new-york-jets",
+                  'Jaguars': 'jacksonville-jaguars', "Patriots": 'new-england-patriots', 'Bills': 'buffalo-bills',
+                  'Vikings': 'minnesota-vikings', 'Rams': 'los-angeles-rams', 'Bengals': 'cincinnati-bengals',
+                  'Ravens': 'baltimore-ravens', 'Falcons': 'atlanta-falcons', 'Lions': 'detroit-lions',
+                  "Cardinals": 'arizona-cardinals', "Colts": 'indianapolis-colts', 'Packers': 'green-bay-packers',
+                  'Browns': 'cleveland-browns', "Titans": 'tennessee-titans', '49ers': 'san-francisco-49ers'}
+    df["Home"] = df["Home"].apply(lambda x: team_names[x])
+    df["Away"] = df["Away"].apply(lambda x: team_names[x])
+
     odds = pd.read_excel("backend/data/odds/nfl odds 2021-22.xlsx")
     odds = odds.drop(["Unnamed: 0"], axis=1)
+    odds = odds[odds["Week"] != current_week]
     odds = odds.append(df, ignore_index=True)
-    odds = odds.drop_duplicates()
     odds.to_excel("backend/data/odds/nfl odds 2021-22.xlsx")
 
 
