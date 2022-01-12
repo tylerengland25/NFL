@@ -165,6 +165,7 @@ def pivot_table():
 
 
 def main():
+    update_scoring(2021, 18)
     pivot_table()
 
 

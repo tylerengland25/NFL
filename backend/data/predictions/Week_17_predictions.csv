@@ -1,0 +1,17 @@
+,Home,home_predicted_prob,home_vegas_prob,ML_h,Away,away_predicted_prob,away_vegas_prob,ML_a,bet,potential_units,hold
+0,buffalo-bills,62%,90%,-900,atlanta-falcons,38%,14%,600,buffalo-bills,0.1111111111111111,4.29%
+1,chicago-bears,56%,71%,-250,new-york-giants,44%,33%,200,chicago-bears,0.4,4.76%
+2,cincinnati-bengals,44%,35%,185,kansas-city-chiefs,56%,69%,-225,cincinnati-bengals,1.85,4.32%
+3,tennessee-titans,72%,64%,-180,miami-dolphins,28%,39%,155,miami-dolphins,1.55,3.5%
+4,indianapolis-colts,65%,74%,-280,las-vegas-raiders,35%,31%,225,las-vegas-raiders,2.25,4.45%
+5,new-england-patriots,37%,92%,-1125,jacksonville-jaguars,63%,12%,700,new-england-patriots,0.08888888888888889,4.34%
+6,new-york-jets,59%,17%,500,tampa-bay-buccaneers,41%,88%,-720,tampa-bay-buccaneers,0.1388888888888889,4.47%
+7,washington-football-team,37%,39%,155,philadelphia-eagles,63%,64%,-180,washington-football-team,1.55,3.5%
+8,baltimore-ravens,52%,38%,165,los-angeles-rams,48%,66%,-195,los-angeles-rams,0.5128205128205129,3.84%
+9,los-angeles-chargers,67%,72%,-255,denver-broncos,33%,33%,205,denver-broncos,2.05,4.62%
+10,san-francisco-49ers,64%,88%,-720,houston-texans,36%,17%,500,san-francisco-49ers,0.1388888888888889,4.47%
+11,dallas-cowboys,51%,70%,-235,arizona-cardinals,49%,34%,190,dallas-cowboys,0.425531914893617,4.63%
+12,new-orleans-saints,52%,74%,-280,carolina-panthers,48%,31%,225,new-orleans-saints,0.35714285714285715,4.45%
+13,seattle-seahawks,50%,76%,-310,detroit-lions,50%,29%,245,seattle-seahawks,0.3225806451612903,4.6%
+14,green-bay-packers,67%,72%,-260,minnesota-vikings,33%,32%,210,minnesota-vikings,2.1,4.48%
+15,pittsburgh-steelers,41%,40%,150,cleveland-browns,59%,63%,-170,pittsburgh-steelers,1.5,2.96%

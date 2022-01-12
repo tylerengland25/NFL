@@ -149,4 +149,4 @@ def scrape_vegas(current_week):
 
 
 if __name__ == '__main__':
-    scrape_vegas(16)
+    scrape_vegas(18)

@@ -78,7 +78,7 @@ def scrape_season(year):
 
 
 def update_scoring(year, w):
-    url = "https://www.footballdb.com/games/index.html?lg=NFL&yr=" + year
+    url = "https://www.footballdb.com/games/index.html?lg=NFL&yr=" + str(year)
     hdr = {
         'User-Agent': """Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 
             Chrome/92.0.4515.159 Safari/537.36""",
@@ -89,7 +89,7 @@ def update_scoring(year, w):
 
     scoring_df = pd.DataFrame()
 
-    games = soup.find_all("tbody")[w - 1].find_all("tr")
+    games = soup.find_all("tbody")[w - 2].find_all("tr")
     for game in games:
         link = game.find_all("td")[6].a["href"]
         scores = scrape_game(link)

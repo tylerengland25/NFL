@@ -2,6 +2,8 @@ import pandas as pd
 import pickle
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+
+import backend.scraping.Game_Stats
 from backend.scraping.Game_Stats import convert_poss
 from backend.scraping.odds import scrape_vegas
 from backend.modeling.last_five_model import performance, print_performance, exploratory_analysis, predict
@@ -116,14 +118,13 @@ def current_week(cw, unit):
     # Filter data
     X = X.reset_index()
     X = X[(X["Year"] == 2021) & (X["Week"] == cw)]
-    odds = odds[odds["Week"] == cw]
+    odds = odds[odds["Week"] == cw].drop(["Unnamed: 0"], axis=1).reset_index(drop=True)
 
     # Predict
     predictions = pd.DataFrame(svm.predict_proba(X.drop(["Home", "Away", "Week", "Year"], axis=1)),
                                columns=["away_predict_prob", "home_predict_prob"])
     # Join vegas odds
     odds = pd.merge(odds, predictions, how="left", left_index=True, right_index=True)
-    odds = odds.drop(["Unnamed: 0"], axis=1)
 
     # Feature engineer probabilities, potential payouts, and divergences
     odds["away_actual_prob"] = odds["ML_a"].apply(lambda x: convert_odds(x))
@@ -210,7 +211,7 @@ def current_season(cw, unit):
 
 
 if __name__ == '__main__':
-    week = 16
+    week = 18
     stake = 100
     testing_by_week = performance(stake)
     scrape_vegas(week)
