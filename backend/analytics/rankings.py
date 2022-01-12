@@ -164,7 +164,7 @@ def week_matchups(week):
 
 def main():
     season = 2021
-    week = 18
+    week = 19
     last_number_games = 8
 
     sheet_names = {"1st": "1st Downs", "3rd_Att": "3rd Down Attempts", "3rd_Cmp": "3rd Down Completions",
