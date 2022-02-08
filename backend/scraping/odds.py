@@ -116,7 +116,7 @@ def scrape_vegas(current_week):
                 important_info.append(info)
         week.append(important_info)
 
-    totals = [float(game[4][1:]) for game in week]
+    totals = [float(game[6][1:]) for game in week]
 
     # Create dataframe
     df = pd.DataFrame({"Home": home_teams, "Away": away_teams,
@@ -149,4 +149,4 @@ def scrape_vegas(current_week):
 
 
 if __name__ == '__main__':
-    scrape_vegas(18)
+    scrape_vegas(20)

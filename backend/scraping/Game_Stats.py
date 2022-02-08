@@ -225,4 +225,4 @@ def current_season(current):
 
 
 if __name__ == '__main__':
-    current_season(19)
+    current_season(22)
