@@ -41,7 +41,7 @@ def scrape_home_away_tag(tag, game_info, type, drives=False):
             df['season'].append(game_info['season'])
             df['team'].append(team)
             df['opponent'].append(opponent)
-            df['home'].append(home)
+            df['home_field'].append(home)
             for td in tr.find_all(['th', 'td']):
                 if td['data-stat'] != 'team':
                     df[td['data-stat']].append(td.text)
@@ -56,7 +56,7 @@ def scrape_home_away_tag(tag, game_info, type, drives=False):
             df['season'].append(game_info['season'])
             df['team'].append(team)
             df['opponent'].append(opponent)
-            df['home'].append(home)
+            df['home_field'].append(home)
             for td in tr.find_all(['th', 'td']):
                 if td['data-stat'] != 'team':
                     df[td['data-stat']].append(td.text)
@@ -104,7 +104,7 @@ def scrape_tag(tag, game_info):
             df['season'].append(game_info['season'])
             df['team'].append(team)
             df['opponent'].append(opponent)
-            df['home'].append(home)
+            df['home_field'].append(home)
             for td in tr.find_all(['th', 'td']):
                 if td['data-stat'] != 'team':
                     df[td['data-stat']].append(td.text) 
@@ -142,7 +142,7 @@ def scrape_team_stats(team_stats, game_info, dfs):
         'season': [game_info['season'], game_info['season']],
         'team': [game_info['away'], game_info['home']],
         'opponent': [game_info['home'], game_info['away']],
-        'home': [False, True]
+        'home_field': [False, True]
     }
 
     rows = team_stats.find('tbody').find_all('tr')

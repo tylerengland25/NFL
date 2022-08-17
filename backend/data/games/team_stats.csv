@@ -1,4 +1,4 @@
-date,week,season,team,opponent,home,1st,rush_att,rush_yds,rush_tds,cmp,att,pass_yds,pass_tds,ints,sacks,sack_yds,net_pass_yds,total_yds,fum,fum_lost,to,pen,pen_yds,3rd_att,3rd_cmp,4th_att,4th_cmp,poss
+date,week,season,team,opponent,home_field,1st,rush_att,rush_yds,rush_tds,cmp,att,pass_yds,pass_tds,ints,sacks,sack_yds,net_pass_yds,total_yds,fum,fum_lost,to,pen,pen_yds,3rd_att,3rd_cmp,4th_att,4th_cmp,poss
 "Jan 8, 2011",18,2010,New Orleans Saints,Seattle Seahawks,False,32,22,77,2,39,60,404,2,0,1,7,397,474,2,1,1,7,39,6,13,0,1,32:01
 "Jan 8, 2011",18,2010,Seattle Seahawks,New Orleans Saints,True,19,24,150,1,22,35,272,4,1,2,7,265,415,0,0,1,6,39,6,14,0,0,27:59
 "Jan 8, 2011",18,2010,New York Jets,Indianapolis Colts,False,23,38,169,2,18,31,189,0,1,1,5,184,353,1,0,1,3,15,8,15,0,0,33:07
