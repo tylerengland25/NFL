@@ -1,5 +1,5 @@
 import pandas as pd
-from backend.scraping.scores import update_scoring
+from backend.scraping.weekly.scores import update_scoring
 from backend.scraping.odds import scrape_vegas
 
 

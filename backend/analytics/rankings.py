@@ -1,5 +1,5 @@
 import pandas as pd
-from backend.scraping.Game_Stats import convert_poss
+from backend.scraping.weekly.weekly import convert_poss
 
 
 def team_ranks_offense(week, season, last_num=5):

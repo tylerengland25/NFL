@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
-from backend.scraping.Game_Stats import convert_poss
+from backend.scraping.weekly.weekly import convert_poss
 
 
 def convert_odds(odds):

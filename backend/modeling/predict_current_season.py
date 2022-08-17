@@ -3,8 +3,8 @@ import pickle
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-import backend.scraping.Game_Stats
-from backend.scraping.Game_Stats import convert_poss
+import backend.scraping.weekly.weekly
+from backend.scraping.weekly.weekly import convert_poss
 from backend.scraping.odds import scrape_vegas
 from backend.modeling.last_five_model import performance, print_performance, exploratory_analysis, predict
 
