@@ -377,6 +377,44 @@ def merge_special_teams(returns, kicking):
     return df
 
 
+def merge_squads(offensive_df, defensive_df, special_teams):
+    """
+    Function:
+        Merges a team's offensive, defensive and special teams stats.
+        Returns a DataFrame with each entry being a team's performance in a game.
+    
+    Input:
+        offensive_df: DataFrame
+        defensive_df: DataFrame
+        special_teams: DataFrame
+
+    Output:
+        df: DataFrame
+    """
+    # Add team to index
+    offensive_df.set_index(['team'], append=True, inplace=True)
+    defensive_df.set_index(['team'], append=True, inplace=True)
+    special_teams.set_index(['team'], append=True, inplace=True)
+
+    # Merge
+    df = pd.merge(
+        offensive_df,
+        defensive_df,
+        left_index=True,
+        right_index=True,
+        how='left'
+    )
+    df = pd.merge(
+        df,
+        special_teams,
+        left_index=True, 
+        right_index=True,
+        how='left'
+    )
+
+    return df
+
+
 @timeis
 def load_data():
     """
