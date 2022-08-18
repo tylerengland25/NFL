@@ -1,3 +1,4 @@
+from turtle import left
 import pandas as pd
 import time
 import numpy as np
@@ -53,7 +54,6 @@ def load_team_stats():
         inplace=True, 
         drop=True
     )
-    print(df.shape)
 
     return df
 
@@ -309,7 +309,7 @@ def merge_defensive(team_stats, defense, offense):
             [
                 'team', 'pass_cmp', 'pass_att', 'pass_yds', 'pass_td', 'pass_long', 'pass_rating', 
                 'rush_att', 'rush_yds', 'rush_td', 'rush_long', 
-                'rec_yds', 'rec_td', 'rec_long'
+                'rec', 'rec_yds', 'rec_td', 'rec_long'
             ]
         ],
         left_index=True,
@@ -393,20 +393,24 @@ def merge_squads(offensive_df, defensive_df, special_teams):
     """
     # Add team to index
     offensive_df.set_index(['team'], append=True, inplace=True)
+    offensive_df.drop(['home_field', 'week', 'season'], axis=1, inplace=True)
     defensive_df.set_index(['team'], append=True, inplace=True)
+    defensive_df.drop(['home_field', 'week', 'season'], axis=1, inplace=True)
     special_teams.set_index(['team'], append=True, inplace=True)
+    special_teams.drop(['home_field', 'week', 'season'], axis=1, inplace=True)
 
     # Merge
     df = pd.merge(
         offensive_df,
-        defensive_df,
+        defensive_df.drop(['opponent'], axis=1),
         left_index=True,
         right_index=True,
-        how='left'
+        how='left',
+        suffixes=('_off', '_def')
     )
     df = pd.merge(
         df,
-        special_teams,
+        special_teams.drop(['opponent'], axis=1),
         left_index=True, 
         right_index=True,
         how='left'
@@ -451,9 +455,274 @@ def load_data():
     defensive_df = merge_defensive(team_stats, defense, offense)
     special_teams = merge_special_teams(returns, kicking)
 
-    
+    # Merge data
+    df = merge_squads(offensive_df, defensive_df, special_teams)
 
-    return pd.DataFrame()
+    return df
+
+
+def sma(df, bin):
+    """
+    Function: 
+        Simple moving average.
+        
+    Input:
+        df: DataFrame
+        bin: int
+
+    Output:
+        df: DataFrame
+    """
+    # Index
+    sorted_index = df.sort_index(level=['team', 'date']).index
+
+    df = df.sort_index(
+        level=['team', 'date']
+    ).groupby(
+        ['team']
+    ).rolling(
+        window=bin, 
+        min_period=bin,
+        closed='left'
+    ).mean()
+    df.index = sorted_index
+
+    return df
+
+
+def cma(df, bin):
+    """
+    Function: 
+        Cumulative moving average.
+        
+    Input:
+        df: DataFrame
+        bin: int
+
+    Output:
+        df: DataFrame
+    """
+    # Index
+    sorted_index = df.sort_index(level=['team', 'date']).index
+
+    df = df.sort_index(
+        level=['team', 'date']
+    ).groupby(
+        ['team']
+    ).shift(
+        periods=1
+    ).groupby(
+        ['team']
+    ).expanding( 
+        min_periods=bin
+    ).mean()
+    df.index = sorted_index
+
+    return df
+
+
+def ema(df, bin):
+    """
+    Function: 
+        Exponential moving average.
+        
+    Input:
+        df: DataFrame
+        bin: int
+
+    Output:
+        df: DataFrame
+    """
+    # Index
+    sorted_index = df.sort_index(level=['team', 'date']).index
+
+    df = df.sort_index(
+        level=['team', 'date']
+    ).groupby(
+        ['team']
+    ).shift(
+        periods=1
+    ).groupby(
+        ['team']
+    ).ewm(
+        span=bin,
+        min_periods=bin,
+    ).mean()
+    df.index = sorted_index
+
+    return df
+
+
+def merge_averages(sma, ema, cma):
+    """
+    Function: 
+        Merge together each moving average
+
+        Retrurn DataFrame so that each entry contains a sma, ema, and cma for each stat.
+        
+    Input:
+        sma: DataFrame
+        ema: DataFrame
+        cma: DataFrame
+
+    Output:
+        df: DataFrame
+    """
+    df = pd.merge(
+        sma,
+        ema, 
+        left_index=True,
+        right_index=True,
+        suffixes=('_sma', '_ema')
+    )
+
+    cma.columns = [f'{col}_cma' for col in cma.columns]
+    df = pd.merge(
+        df,
+        cma, 
+        left_index=True,
+        right_index=True
+    )
+
+    return df
+
+
+def feature_engineer(df):
+    """
+    Function: 
+        Feature engineer following stats:
+            ~ cmp_perc_off (sma, ema, cma)
+            ~ cmp_perc_def (sma, ema, cma)
+            ~ pass_yds_per_att_off (sma, ema, cma)
+            ~ pass_yds_per_att_def (sma, ema, cma)
+            ~ rush_yds_per_att_off (sma, ema, cma)
+            ~ rush_yds_per_att_def (sma, ema, cma)
+            ~ rec_yds_per_rec_off (sma, ema, cma)
+            ~ rec_yds_per_rec_def (sma, ema, cma)
+            ~ punt_yds_per_ret (sma, ema, cma)
+            ~ kick_yds_per_ret (sma, ema, cma)
+            ~ punt_yds_per_ret_fielding (sma, ema, cma)
+            ~ kick_yds_per_ret_fielding (sma, ema, cma)
+            ~ punt_yds_per_punt (sma, ema, cma)
+            ~ xp_perc (sma, ema, cma)
+            ~ xp_perc_block (sma, ema, cma)
+            ~ fg_perc (sma, ema, cma)
+            ~ fg_perc_block (sma, ema, cma)
+
+    Input:
+        df: DataFrame
+
+    Output:
+        df: DataFrame
+    """
+    for ma in ['sma', 'ema', 'cma']:
+        
+        for team in ['off', 'def']:
+            df[f'cmp_perc_{team}_{ma}'] = df[f'pass_cmp_{team}_{ma}'] / df[f'pass_att_{team}_{ma}']
+            df[f'pass_yds_per_att_{team}_{ma}'] = df[f'pass_yds_{team}_{ma}'] / df[f'pass_att_{team}_{ma}']
+            df[f'rush_yds_per_att_{team}_{ma}'] = df[f'rush_yds_{team}_{ma}'] / df[f'rush_att_{team}_{ma}']
+            df[f'rec_yds_per_rec_{team}_{ma}'] = df[f'rec_yds_{team}_{ma}'] / df[f'rec_{team}_{ma}']
+        
+        df[f'punt_yds_per_ret_{ma}'] = df[f'punt_ret_yds_{ma}'] / df[f'punt_ret_{ma}']
+        df[f'kick_yds_per_ret_{ma}'] = df[f'kick_ret_yds_{ma}'] / df[f'kick_ret_{ma}']
+        df[f'punt_yds_per_ret_fielding_{ma}'] = df[f'punt_ret_yds_fielding_{ma}'] / df[f'punt_ret_fielding_{ma}']
+        df[f'kick_yds_per_ret_{ma}'] = df[f'kick_ret_yds_fielding_{ma}'] / df[f'kick_ret_fielding_{ma}']
+        df[f'punt_yds_per_punt_{ma}'] = df[f'punt_yds_{ma}'] / df[f'punt_{ma}']
+        df[f'xp_perc_{ma}'] = df[f'xpm_{ma}'] / df[f'xpa_{ma}']
+        df[f'xp_perc_block_{ma}'] = df[f'xpm_block_{ma}'] / df[f'xpa_block_{ma}']
+        df[f'fg_perc_{ma}'] = df[f'fgm_{ma}'] / df[f'fga_{ma}']
+        df[f'fg_perc_block_{ma}'] = df[f'fgm_block_{ma}'] / df[f'fga_block_{ma}']
+
+            
+    return df
+
+
+def merge_matchup(df):
+    """
+    Function: 
+        Retrurn DataFrame so that each entry contains both home and away stats. 
+        
+    Input:
+        df: DataFrame
+
+    Output:
+        df: DataFrame
+    """
+    # Remove team from index
+    df.reset_index('team', inplace=True)
+
+    # Home field advantage
+    df['home_field'] = np.where(df.index.get_level_values(1) == df['team'], 1, 0)
+
+    # Merge
+    df = pd.merge(df,df, left_index=True, right_index=True)
+    df = df[df['team_x'] != df['team_y']].drop(['team_x', 'team_y'], axis=1)
+    df = df.groupby(df.index).first()
+    
+    return df
+
+
+@timeis
+def preprocess(X_df):
+    """
+    Function: 
+        Preprocess each game so that each entry consists of a team's 5 game sma, 5 game ema,
+        and season average.
+
+        Retrurn DataFrame so that each entry contains both home and away stats. 
+        
+    Input:
+        X_df: DataFrame
+
+    Output:
+        df: DataFrame
+    """
+    # 5 game SMA
+    sma_df = sma(X_df, 5)
+
+    # Season CMA
+    cma_df = cma(X_df, 5)
+
+    # 5 game EMA
+    ema_df = ema(X_df, 5)
+
+    # Merge SMA, EMA, CMA
+    df = merge_averages(sma_df, ema_df, cma_df)
+
+    # Feature Engineeer
+    df = feature_engineer(df)
+
+    # Merge matchup
+    df = merge_matchup(df)
+
+    # Deal with nan's
+    df.dropna(axis=0, inplace=True)
+
+    return df
+
+    
+@timeis
+def load_target_data():
+    """
+    Function: 
+        Preprocess each game so that each entry consists of a team's 5 game sma, 5 game ema,
+        and season average.
+
+        Retrurn DataFrame so that each entry contains winner represented as a binary:
+            home_win: 1
+            away_win: 2
+        
+    Input:
+        None
+
+    Output:
+        df: DataFrame
+    """
+
+
+@timeis
+def merge_x_y(X_df, y_df):
+    print('merge_y_x')
 
 
 def main():
@@ -468,9 +737,21 @@ def main():
     Output:
         df: DataFrame
     """
-    # Load data
-    df = load_data()
+    # Load X data
+    X_df = load_data()
 
+    # Preprocess data
+    X_df = preprocess(X_df)
+
+    # Load y data
+    y_df = load_target_data()
+
+    # Merge X and y
+    df = merge_x_y(X_df, y_df)
+
+    # Feature selection
+
+    return df
     
 
 
