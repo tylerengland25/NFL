@@ -23,7 +23,7 @@ def scrape_home_away_tag(tag, game_info, type, drives=False):
         df: DataFrame
     """
     labels = [th['data-stat'] for th in tag.find('thead').find_all('tr')[-1].find_all('th')]
-    labels = ['date', 'week', 'season', 'team', 'opponent', 'home'] + labels
+    labels = ['date', 'week', 'season', 'team', 'opponent', 'home_field'] + labels
     df = {label: [] for label in labels}
     if drives:
         df['pass'] = []
@@ -91,7 +91,7 @@ def scrape_tag(tag, game_info):
         return pd.DataFrame()
         
     labels = [th['data-stat'] for th in tag.find('thead').find_all('tr')[-1].find_all('th')]
-    labels = ['date', 'week', 'season', 'team', 'opponent', 'home'] + labels
+    labels = ['date', 'week', 'season', 'team', 'opponent', 'home_field'] + labels
     df = {label: [] for label in labels}
 
     team = game_info['away']
@@ -114,6 +114,43 @@ def scrape_tag(tag, game_info):
             home = True
 
     return pd.DataFrame(df)
+
+
+def scrape_scores(scores, game_info, dfs):
+    """
+    Function: 
+        Scrape scores
+
+    Input:
+        team_stats: tag
+        game_info: dict(
+            str: str, 
+            str: str, 
+            str: str, 
+            str: str,
+            str: str,
+            str: str
+        )
+        dfs: dict(str: DataFrame)
+
+    Output:
+        None
+    """
+    df = {
+        'date': [game_info['date'], game_info['date']],
+        'week': [game_info['week'], game_info['week']],
+        'season': [game_info['season'], game_info['season']],
+        'team': [game_info['away'], game_info['home']],
+        'opponent': [game_info['home'], game_info['away']],
+        'home_field': [False, True]
+    }
+    for quarter in scores.find_all('th')[2:]:
+        df[quarter.text] = []
+    for row in scores.find('tbody').find_all('tr'):
+        for score in zip(scores.find_all('th')[2:], row.find_all('td')[2:]):
+            df[score[0].text].append(score[1].text)
+    
+    dfs['scores'] = dfs['scores'].append(pd.DataFrame(df), ignore_index=True)
 
 
 def scrape_team_stats(team_stats, game_info, dfs):
@@ -340,6 +377,7 @@ def scrape_game(game_info, dfs):
     Function: 
         Scrape game. Data includes team and player stats.
         Following DataFrames:
+            ~ scores
             ~ team_stats
             ~ player_offense
             ~ player_defense
@@ -371,6 +409,7 @@ def scrape_game(game_info, dfs):
     soup = BeautifulSoup(html, features="lxml")
 
     # Set tables
+    scores = soup.find('table', attrs={'class': 'linescore nohover stats_table no_freeze'})
     team_stats = soup.find('table', attrs={'id': 'team_stats'})
     player_offense = soup.find('table', attrs={'id': 'player_offense'})
     player_defense = soup.find('table', attrs={'id': 'player_defense'})
@@ -384,6 +423,8 @@ def scrape_game(game_info, dfs):
     # Look at comments as well
     for comment in soup.find_all(text=lambda text: isinstance(text, Comment)):
         comment_soup = BeautifulSoup(comment, 'html.parser')
+        if scores is None: # Scores
+            scores = comment_soup.find('table', attrs={'class': 'linescore nohover stats_table no_freeze'})
         if team_stats is None: # Team stats
             team_stats = comment_soup.find('table', attrs={'id': 'team_stats'})
         if player_offense is None: # Player offense
@@ -404,6 +445,7 @@ def scrape_game(game_info, dfs):
             away_drives = comment_soup.find('table', attrs={'id': 'vis_drives'})
     
     # Scrape data for each table
+    scrape_scores(scores, game_info, dfs)
     scrape_team_stats(team_stats, game_info, dfs)
     scrape_player_offense(player_offense, game_info, dfs)
     scrape_player_defense(player_defense, game_info, dfs)
@@ -418,6 +460,7 @@ def scrape_week(href, season, dfs):
     Function: 
         Scrapes games in week. Data includes team and player stats.
         Following DataFrames:
+            ~ scores
             ~ team_stats
             ~ player_offense
             ~ player_defense
@@ -483,6 +526,7 @@ def scrape_season(season, dfs):
     Function: 
         Scrapes games in season. Data includes team and player stats.
         Following DataFrames:
+            ~ scores
             ~ team_stats
             ~ player_offense
             ~ player_defense
@@ -519,6 +563,7 @@ def main():
     Function:
         Scrapes game data since 2010. Data includes team and player stats.
         Writes following DataFrames to CSV files:
+            ~ scores
             ~ team_stats
             ~ player_offense
             ~ player_defense
@@ -535,6 +580,7 @@ def main():
     """
     # Initialize DataFrames
     dfs = {
+        'scores': pd.DataFrame(),
         'team_stats': pd.DataFrame(),
         'player_offense': pd.DataFrame(), 
         'player_defense': pd.DataFrame(),
