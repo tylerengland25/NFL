@@ -176,15 +176,18 @@ def svm():
     pipe = Pipeline(
         [
             ('scaler', StandardScaler()),
-            ('feature_selection', SelectPercentile(score_func=f_classif, percentile=20)),
+            ('feature_selection', SelectPercentile(score_func=f_classif, percentile=30)),
             ('svm', SVC(random_state=1, probability=True))
         ]
     )
 
     # Fit and Score
     pipe.fit(X_train, y_train)
-    print([X_train.columns[int(col.strip('x'))] for col in pipe['feature_selection'].get_feature_names_out()])
+    features_out = [X_train.columns[int(col.strip('x'))] for col in pipe['feature_selection'].get_feature_names_out()]
+    print(features_out)
     print(len(pipe['feature_selection'].get_feature_names_out()))
+    print(f"\tTeam X: {len([col for col in features_out if col.split('_')[-1] == 'x'])}")
+    print(f"\tTeam Y: {len([col for col in features_out if col.split('_')[-1] == 'y'])}")
     y_pred = pipe.predict(X_test)
     print(f'Accuracy: {round(accuracy_score(y_test, y_pred) * 100)}%')
 

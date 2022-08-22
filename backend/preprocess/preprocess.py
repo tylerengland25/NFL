@@ -554,37 +554,20 @@ def ema(df, bin):
     return df
 
 
-def merge_averages(sma, ema, cma):
+def merge_averages(ema, cma):
     """
     Function: 
         Merge together each moving average
 
-        Retrurn DataFrame so that each entry contains a sma, ema, and cma for each stat.
+        Retrurn DataFrame so that each entry contains a ema and cma for each stat.
         
     Input:
-        sma: DataFrame
         ema: DataFrame
         cma: DataFrame
 
     Output:
         df: DataFrame
     """
-    df = pd.merge(
-        sma,
-        ema, 
-        left_index=True,
-        right_index=True,
-        suffixes=('_sma', '_ema')
-    )
-
-    cma.columns = [f'{col}_cma' for col in cma.columns]
-    df = pd.merge(
-        df,
-        cma, 
-        left_index=True,
-        right_index=True
-    )
-
     df = pd.merge(
         ema,
         cma, 
@@ -600,23 +583,29 @@ def feature_engineer(df):
     """
     Function: 
         Feature engineer following stats:
-            ~ cmp_perc_off (sma, ema, cma)
-            ~ cmp_perc_def (sma, ema, cma)
-            ~ pass_yds_per_att_off (sma, ema, cma)
-            ~ pass_yds_per_att_def (sma, ema, cma)
-            ~ rush_yds_per_att_off (sma, ema, cma)
-            ~ rush_yds_per_att_def (sma, ema, cma)
-            ~ rec_yds_per_rec_off (sma, ema, cma)
-            ~ rec_yds_per_rec_def (sma, ema, cma)
-            ~ punt_yds_per_ret (sma, ema, cma)
-            ~ kick_yds_per_ret (sma, ema, cma)
-            ~ punt_yds_per_ret_fielding (sma, ema, cma)
-            ~ kick_yds_per_ret_fielding (sma, ema, cma)
-            ~ punt_yds_per_punt (sma, ema, cma)
-            ~ xp_perc (sma, ema, cma)
-            ~ xp_perc_block (sma, ema, cma)
-            ~ fg_perc (sma, ema, cma)
-            ~ fg_perc_block (sma, ema, cma)
+            ~ cmp_perc_off (ema, cma)
+            ~ cmp_perc_def (ema, cma)
+            ~ pass_yds_per_att_off (ema, cma)
+            ~ pass_yds_per_att_def (ema, cma)
+            ~ rush_yds_per_att_off (ema, cma)
+            ~ rush_yds_per_att_def (ema, cma)
+            ~ rec_yds_per_rec_off (ema, cma)
+            ~ rec_yds_per_rec_def (ema, cma)
+            ~ punt_yds_per_ret (ema, cma)
+            ~ kick_yds_per_ret (ema, cma)
+            ~ punt_yds_per_ret_fielding (ema, cma)
+            ~ kick_yds_per_ret_fielding (ema, cma)
+            ~ punt_yds_per_punt (ema, cma)
+            ~ xp_perc (ema, cma)
+            ~ xp_perc_block (ema, cma)
+            ~ fg_perc (ema, cma)
+            ~ fg_perc_block (ema, cma)
+            ~ 3rd_perc_off (ema, cma)
+            ~ 3rd_perc_def (ema, cma) 
+            ~ 4th_perc_off (ema, cma)
+            ~ 4th_perc_def (ema, cma)
+            ~ qb_hit_perc_off (ema, cma)
+            ~ qb_hit_perc_def (ema, cma)
 
     Input:
         df: DataFrame
@@ -624,13 +613,16 @@ def feature_engineer(df):
     Output:
         df: DataFrame
     """
-    for ma in ['sma', 'ema', 'cma']:
+    for ma in ['ema', 'cma']:
         
         for team in ['off', 'def']:
             df[f'cmp_perc_{team}_{ma}'] = df[f'pass_cmp_{team}_{ma}'] / df[f'pass_att_{team}_{ma}']
             df[f'pass_yds_per_att_{team}_{ma}'] = df[f'pass_yds_{team}_{ma}'] / df[f'pass_att_{team}_{ma}']
             df[f'rush_yds_per_att_{team}_{ma}'] = df[f'rush_yds_{team}_{ma}'] / df[f'rush_att_{team}_{ma}']
             df[f'rec_yds_per_rec_{team}_{ma}'] = df[f'rec_yds_{team}_{ma}'] / df[f'rec_{team}_{ma}']
+            df[f'3rd_perc_{team}_{ma}'] = np.where(df[f'3rd_att_{team}_{ma}'] > 0, df[f'3rd_cmp_{team}_{ma}'] / df[f'3rd_att_{team}_{ma}'], 0)
+            df[f'4th_perc_{team}_{ma}'] = np.where(df[f'4th_att_{team}_{ma}'] > 0, df[f'4th_cmp_{team}_{ma}'] / df[f'4th_att_{team}_{ma}'], 0)
+            df[f'qb_hit_perc_{team}_{ma}'] = df[f'qb_hits_{team}_{ma}'] / df[f'pass_att_{team}_{ma}']
         
         df[f'punt_yds_per_ret_{ma}'] = df[f'punt_ret_yds_{ma}'] / df[f'punt_ret_{ma}']
         df[f'kick_yds_per_ret_{ma}'] = df[f'kick_ret_yds_{ma}'] / df[f'kick_ret_{ma}']
@@ -664,7 +656,7 @@ def merge_matchup(df):
     df['home_field'] = np.where(df.index.get_level_values(1) == df['team'], 1, 0)
 
     # Merge
-    df = pd.merge(df,df, left_index=True, right_index=True)
+    df = pd.merge(df, df, left_index=True, right_index=True)
     df = df[df['team_x'] != df['team_y']].drop(['team_x', 'team_y'], axis=1)
     df = df.groupby(df.index).first()
     
@@ -675,7 +667,7 @@ def merge_matchup(df):
 def preprocess(X_df):
     """
     Function: 
-        Preprocess each game so that each entry consists of a team's 5 game sma, 5 game ema,
+        Preprocess each game so that each entry consists of a team's 5 game ema,
         and season average.
 
         Retrurn DataFrame so that each entry contains both home and away stats. 
@@ -686,9 +678,6 @@ def preprocess(X_df):
     Output:
         df: DataFrame
     """
-    # 5 game SMA
-    sma_df = sma(X_df, 5)
-
     # Season CMA
     cma_df = cma(X_df, 5)
 
@@ -696,7 +685,7 @@ def preprocess(X_df):
     ema_df = ema(X_df, 5)
 
     # Merge SMA, EMA, CMA
-    df = merge_averages(sma_df, ema_df, cma_df)
+    df = merge_averages(ema_df, cma_df)
 
     # Feature Engineeer
     df = feature_engineer(df)
@@ -706,6 +695,7 @@ def preprocess(X_df):
 
     # Deal with nan's
     df.dropna(axis=0, inplace=True)
+
 
     return df
 
@@ -717,6 +707,8 @@ def load_target_data():
         Retrurn DataFrame so that each entry contains winner represented as a binary:
             home_win: 1
             away_win: 2
+
+        Include home field advantage for each team
         
     Input:
         None
@@ -745,7 +737,15 @@ def load_target_data():
 
     # Outcome
     df['y'] = (df['final_h'] > df['final_a']).apply(int)
-    return df[['y']]
+
+    # Home field advantage
+    df['month'] = df.index.get_level_values(0).month
+    home_field = df.groupby(['team_h', 'month'])['y'].agg(['sum', 'count'])
+    home_field['home_field_perc'] = home_field['sum'] / home_field['count']
+    df = pd.merge(df.reset_index(), home_field, on=['team_h', 'month'])
+    df.set_index(['date', 'home', 'away'], inplace=True, drop=True)
+
+    return df[['y', 'home_field_perc']]
 
 
 @timeis

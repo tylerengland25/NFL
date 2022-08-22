@@ -6,7 +6,7 @@ from backend.preprocess.preprocess import main as load_data
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectPercentile, mutual_info_classif
+from sklearn.feature_selection import SelectPercentile, mutual_info_classif, f_classif
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.exceptions import DataConversionWarning, ConvergenceWarning
@@ -209,7 +209,7 @@ def nn():
     pipe = Pipeline(
         [
             ('scaler', StandardScaler()),
-            ('feature_selection', SelectPercentile(score_func=mutual_info_classif, percentile=100)),
+            ('feature_selection', SelectPercentile(score_func=f_classif, percentile=100)),
             ('nn', MLPClassifier(random_state=1, hidden_layer_sizes=(200, )))
         ]
     )
