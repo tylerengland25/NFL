@@ -1,3 +1,4 @@
+from re import X
 from turtle import left
 import pandas as pd
 import time
@@ -584,6 +585,14 @@ def merge_averages(sma, ema, cma):
         right_index=True
     )
 
+    df = pd.merge(
+        ema,
+        cma, 
+        left_index=True,
+        right_index=True,
+        suffixes=('_ema', '_cma')
+    )
+
     return df
 
 
@@ -705,9 +714,6 @@ def preprocess(X_df):
 def load_target_data():
     """
     Function: 
-        Preprocess each game so that each entry consists of a team's 5 game sma, 5 game ema,
-        and season average.
-
         Retrurn DataFrame so that each entry contains winner represented as a binary:
             home_win: 1
             away_win: 2
@@ -718,18 +724,62 @@ def load_target_data():
     Output:
         df: DataFrame
     """
+    # Load scores
+    df = pd.read_csv('backend/data/games/scores.csv')
+    df.columns = [col.lower() for col in df.columns]
+
+    # Clean data
+    df['date'] = pd.to_datetime(df['date'])
+    df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
+    df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
+    df.set_index(['date', 'home', 'away'], inplace=True, drop=True)
+    
+    # Merge home and away scores
+    df = pd.merge(
+        df[df['home_field'] == 1],
+        df[df['home_field'] == 0],
+        left_index=True,
+        right_index=True,
+        suffixes=('_h', '_a')
+    )
+
+    # Outcome
+    df['y'] = (df['final_h'] > df['final_a']).apply(int)
+    return df[['y']]
 
 
 @timeis
 def merge_x_y(X_df, y_df):
-    print('merge_y_x')
+    """
+    Function: 
+        Retrurn DataFrame so that each entry contains input variables and target variables
+        
+    Input:
+        X_df: DataFrame
+        y_df: DataFrame
+
+    Output:
+        df: DataFrame
+    """
+    y_df.index = [(index[0].date(), index[1], index[2]) for index in y_df.index]
+    X_df.index = [(index[0].date(), index[1], index[2]) for index in X_df.index]
+    
+    df = pd.merge(
+        X_df,
+        y_df,
+        left_index=True,
+        right_index=True,
+        how='left'
+    )
+
+    return df
 
 
 def main():
     """
     Function: 
         Preprocess a team's stats. 
-        Focuses on last 5 performances weighted and seasonal average.
+        Focuses on last 5 performances weighted/unweighted and seasonal average.
 
     Input:
         None
@@ -749,11 +799,8 @@ def main():
     # Merge X and y
     df = merge_x_y(X_df, y_df)
 
-    # Feature selection
-
     return df
     
-
 
 if __name__ == '__main__':
     main()

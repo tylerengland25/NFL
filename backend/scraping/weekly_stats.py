@@ -373,6 +373,7 @@ def scrape_drives(home_drives, away_drives, game_info, dfs):
 
 
 def scrape_game(game_info, dfs):
+    
     """
     Function: 
         Scrape game. Data includes team and player stats.
