@@ -6,7 +6,7 @@ from backend.preprocess.preprocess import main as load_data
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectPercentile, mutual_info_classif, f_classif
+from sklearn.feature_selection import SelectPercentile, mutual_info_classif
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.exceptions import DataConversionWarning
@@ -62,32 +62,28 @@ def risk_management(diff, odds):
     """
     if odds > 0:
         if diff <= .05:
-            return abs(odds / 200)
+            return .25
         elif .05 < diff <= .10:
-            return abs(odds / 150)
-        elif .10 < diff <= .15:
-            return abs(odds / 100)
-        elif .15 < diff <= .20:
-            return abs(odds / 50)
-        elif .20 < diff <= .25:
-            return abs(odds / 25)
-        elif .25 < diff:
             return .5
-        else: 
-            return None
+        elif .10 < diff <= .15:
+            return 1
+        elif .15 < diff <= .20:
+            return 2
+        elif .20 < diff <= .25:
+            return 2.5
+        elif .25 < diff:
+            return 3
     elif odds < 0:
         if diff <= .05:
-            return abs(odds / 200)
+            return .25 * abs(odds / 100)
         elif .05 < diff <= .10:
-            return abs(odds / 100)
+            return .5 * abs(odds / 100)
         elif .10 < diff <= .15:
-            return abs(odds / 50)
+            return 1 * abs(odds / 100)
         elif .15 < diff <= .20:
-            return abs(odds / 25)
-        elif .20 < diff <= .25:
-            return abs(odds / 10)
-        else:
-            return None
+            return 2 * abs(odds / 100)
+        elif .20 < diff:
+            return 2.5 * abs(odds / 100)
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -192,9 +188,6 @@ def svm():
     # Calculate profit
     y_prob = pipe.predict_proba(X_test)
     calculate_profit(y_test, y_pred, y_prob)
-    print()
-
-
 
 
 if __name__ == '__main__':

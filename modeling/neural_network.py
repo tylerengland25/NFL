@@ -6,7 +6,6 @@ from backend.preprocess.preprocess import main as load_data
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectPercentile, mutual_info_classif, f_classif
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.exceptions import DataConversionWarning, ConvergenceWarning
@@ -62,65 +61,28 @@ def risk_management(diff, odds):
     """
     if odds > 0:
         if diff <= .05:
-            return 100 / abs(odds)
+            return .25
         elif .05 < diff <= .10:
-            return 125 / abs(odds)
+            return .5
         elif .10 < diff <= .15:
-            return 150 / abs(odds)
+            return 1
         elif .15 < diff <= .20:
-            return 175 / abs(odds)
+            return 2
         elif .20 < diff <= .25:
-            return 200 / abs(odds)
-        elif .25 < diff <= .30:
-            return 225 / abs(odds)
-        elif .30 < diff <= .35:
-            return 250 / abs(odds)
-        elif .35 < diff <= .40:
-            return 275 / abs(odds)
-        elif .40 < diff <= .45:
-            return 300 / abs(odds)
-        elif .45 < diff <= .50:
-            return 275 / abs(odds)
-        elif .50 < diff <= .55:
-            return 250 / abs(odds)
-        elif .55 < diff <= .60:
-            return 225 / abs(odds)
-        elif .60 < diff <= .65:
-            return 200 / abs(odds)
-        elif .65 < diff <= .70:
-            return 175 / abs(odds)
-        elif .70 < diff <= .75:
-            return 150 / abs(odds)
-        elif .75 < diff <= .80:
-            return 125 / abs(odds)
-        elif .80 < diff <= .85:
-            return 100 / abs(odds)
-        elif .85 < diff <= .90:
-            return 50 / abs(odds)
-        elif .90 < diff:
-            return 25 / abs(odds)
-        
-    elif  -450 < odds < 0:
+            return 2.5
+        elif .25 < diff:
+            return 3
+    elif odds < 0:
         if diff <= .05:
-            return abs(odds) * .5 / 100
+            return .25 * abs(odds / 100)
         elif .05 < diff <= .10:
-            return abs(odds) * .75 / 100
+            return .5 * abs(odds / 100)
         elif .10 < diff <= .15:
-            return abs(odds) * 1 / 100
+            return 1 * abs(odds / 100)
         elif .15 < diff <= .20:
-            return abs(odds) * 2 / 100
-        elif .20 < diff <= .25:
-            return abs(odds) * 2.5 / 100
-        elif .25 < diff <= .30:
-            return abs(odds) * 2 / 100
-        elif .30 < diff <= .35:
-            return abs(odds) * 1 / 100
-        elif .35 < diff <= .40:
-            return abs(odds) * .75 / 100
-        elif .40 < diff <= .45:
-            return abs(odds) * .5 / 100
-        elif .45 < diff:
-            return abs(odds) * .25 / 100
+            return 2 * abs(odds / 100)
+        elif .20 < diff:
+            return 2.5 * abs(odds / 100)
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -209,8 +171,17 @@ def nn():
     pipe = Pipeline(
         [
             ('scaler', StandardScaler()),
-            ('feature_selection', SelectPercentile(score_func=f_classif, percentile=100)),
-            ('nn', MLPClassifier(random_state=1, hidden_layer_sizes=(200, )))
+            (
+                'nn', 
+                MLPClassifier(
+                    random_state=1, 
+                    hidden_layer_sizes=(100, ), 
+                    learning_rate='invscaling', 
+                    learning_rate_init=.01,
+                    batch_size=100,
+                    alpha=.001
+                )
+            )
         ]
     )
 
@@ -222,8 +193,6 @@ def nn():
     # Calculate profit
     y_prob = pipe.predict_proba(X_test)
     calculate_profit(y_test, y_pred, y_prob)
-
-
 
 
 if __name__ == '__main__':

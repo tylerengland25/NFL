@@ -62,32 +62,28 @@ def risk_management(diff, odds):
     """
     if odds > 0:
         if diff <= .05:
-            return abs(odds / 200)
+            return .25
         elif .05 < diff <= .10:
-            return abs(odds / 150)
-        elif .10 < diff <= .15:
-            return abs(odds / 100)
-        elif .15 < diff <= .20:
-            return abs(odds / 50)
-        elif .20 < diff <= .25:
-            return abs(odds / 25)
-        elif .25 < diff:
             return .5
-        else: 
-            return None
+        elif .10 < diff <= .15:
+            return 1
+        elif .15 < diff <= .20:
+            return 2
+        elif .20 < diff <= .25:
+            return 2.5
+        elif .25 < diff:
+            return 3
     elif odds < 0:
         if diff <= .05:
-            return abs(odds / 200)
+            return .25 * abs(odds / 100)
         elif .05 < diff <= .10:
-            return abs(odds / 100)
+            return .5 * abs(odds / 100)
         elif .10 < diff <= .15:
-            return abs(odds / 50)
+            return 1 * abs(odds / 100)
         elif .15 < diff <= .20:
-            return abs(odds / 25)
-        elif .20 < diff <= .25:
-            return abs(odds / 10)
-        else:
-            return None
+            return 2 * abs(odds / 100)
+        elif .20 < diff:
+            return 2.5 * abs(odds / 100)
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -123,8 +119,8 @@ def calculate_profit(y_test, y_pred, y_prob):
     correct = df[df['y'] == df['y_pred']]['y_pred'].count()
     wrong = df[df['y'] != df['y_pred']]['y_pred'].count()
 
-    print(f'Accuracy: {round(correct / (correct + wrong), 2) * 100}%')
-    print(f'Profit: {profit} Units')
+    print(f'Accuracy: {round(correct / (correct + wrong) * 100, 2)}%')
+    print(f'Profit: {round(profit)} Units')
 
     # Calculate profit for risk management
     df['h_fav'] = np.where(df['ml_h'] < 0, 1, 0)
@@ -147,8 +143,8 @@ def calculate_profit(y_test, y_pred, y_prob):
     risk_df = df.groupby(['pick_fav', 'pick_diff', 'pick_odds']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     risk_df.to_csv('backend/data/risk_management.csv')
-    print(f"Risk Profit: {risk_df[('risk_profit', 'sum')].sum()} Units")
-    print(f"Risk Accuracy: {risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100}%")
+    print(f"Risk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
+    print(f"Risk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100)}%")
 
 
 def rf():
