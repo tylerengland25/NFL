@@ -46,7 +46,7 @@ def load_odds():
     return odds[['ml_h', 'ml_a']]
 
 
-def risk_management(diff, odds):
+def risk_management(diff):
     """
     Function:
         Manage risk
@@ -59,30 +59,18 @@ def risk_management(diff, odds):
     Output:
         unit: float
     """
-    if odds > 0:
-        if diff <= .05:
-            return .25
-        elif .05 < diff <= .10:
-            return .5
-        elif .10 < diff <= .15:
-            return 1
-        elif .15 < diff <= .20:
-            return 2
-        elif .20 < diff <= .25:
-            return 2.5
-        elif .25 < diff:
-            return 3
-    elif odds < 0:
-        if diff <= .05:
-            return .25 * abs(odds / 100)
-        elif .05 < diff <= .10:
-            return .5 * abs(odds / 100)
-        elif .10 < diff <= .15:
-            return 1 * abs(odds / 100)
-        elif .15 < diff <= .20:
-            return 2 * abs(odds / 100)
-        elif .20 < diff:
-            return 2.5 * abs(odds / 100)
+    if diff <= .05:
+        return .25
+    elif .05 < diff <= .10:
+        return .5
+    elif .10 < diff <= .15:
+        return 1
+    elif .15 < diff <= .20:
+        return 1.5
+    elif .20 < diff <= .25:
+        return 2
+    elif .25 < diff:
+        return 2.5
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -118,8 +106,8 @@ def calculate_profit(y_test, y_pred, y_prob):
     correct = df[df['y'] == df['y_pred']]['y_pred'].count()
     wrong = df[df['y'] != df['y_pred']]['y_pred'].count()
 
-    print(f'Accuracy: {round(correct / (correct + wrong) * 100, 2)}%')
-    print(f'Profit: {round(profit)} Units')
+    print(f'\tAccuracy: {round(correct / (correct + wrong) * 100, 2)}%')
+    print(f'\tProfit: {round(profit)} Units')
 
     # Calculate profit for risk management
     df['h_fav'] = np.where(df['ml_h'] < 0, 1, 0)
@@ -133,17 +121,17 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['pick_fav'] = np.where(df['y_pred'], df['h_fav'], df['a_fav'])
     df['pick_odds'] = np.where(df['y_pred'], df['ml_h'], df['ml_a'])
     df['pick_odds'] = df['pick_odds'].apply(lambda x: 50 * round(x / 50))
-    df['pick_diff'] = df['pick_diff'].apply(lambda x: .10 * round(x / .10))
+    df['pick_diff'] = df['pick_diff'].apply(lambda x: .05 * round(x / .05))
     df['risk_correct'] = np.where(df['y_pred'] == df['y'], 1, 0)
-    df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff, x.pick_odds), axis=1)
+    df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
     
 
     risk_df = df.groupby(['pick_fav', 'pick_diff', 'pick_odds']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     risk_df.to_csv('backend/data/risk_management.csv')
-    print(f"Risk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
-    print(f"Risk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100,)}%")
+    print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
+    print(f"\tRisk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100, 2)}%")
 
 
 def nn():
@@ -161,6 +149,9 @@ def nn():
     """
     # Load data
     df = load_data()
+    
+    last_season = df[[index[0].year >= 2021 for index in df.index]]
+    df = df[[index[0].year < 2021 for index in df.index]]
     X = df.drop(['y'], axis=1)
     y = df[['y']]
 
@@ -175,11 +166,7 @@ def nn():
                 'nn', 
                 MLPClassifier(
                     random_state=1, 
-                    hidden_layer_sizes=(100, ), 
-                    learning_rate='invscaling', 
-                    learning_rate_init=.01,
-                    batch_size=100,
-                    alpha=.001
+                    hidden_layer_sizes=(100, )
                 )
             )
         ]
@@ -188,11 +175,16 @@ def nn():
     # Fit and Score
     pipe.fit(X_train, y_train)
     y_pred = pipe.predict(X_test)
-    print(f'Accuracy: {round(accuracy_score(y_test, y_pred) * 100)}%')
 
     # Calculate profit
     y_prob = pipe.predict_proba(X_test)
+    print(f'\nSVM Model: ')
     calculate_profit(y_test, y_pred, y_prob)
+
+    # Calculate season profit
+    print(f'\nSeason 2021: ')
+    calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
+
 
 
 if __name__ == '__main__':

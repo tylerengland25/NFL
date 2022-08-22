@@ -7,7 +7,7 @@ from backend.preprocess.preprocess import main as load_data
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectPercentile, mutual_info_classif
+from sklearn.feature_selection import SelectPercentile, mutual_info_classif, f_classif
 from sklearn.svm import SVC
 from sklearn.exceptions import DataConversionWarning
 import pickle
@@ -49,7 +49,7 @@ def load_odds():
     return odds[['ml_h', 'ml_a']]
 
 
-def risk_management(diff, odds):
+def risk_management(diff):
     """
     Function:
         Manage risk
@@ -62,30 +62,18 @@ def risk_management(diff, odds):
     Output:
         unit: float
     """
-    if odds > 0:
-        if diff <= .05:
-            return .25
-        elif .05 < diff <= .10:
-            return .5
-        elif .10 < diff <= .15:
-            return 1
-        elif .15 < diff <= .20:
-            return 2
-        elif .20 < diff <= .25:
-            return 2.5
-        elif .25 < diff:
-            return 3
-    elif odds < 0:
-        if diff <= .05:
-            return .25 * abs(odds / 100)
-        elif .05 < diff <= .10:
-            return .5 * abs(odds / 100)
-        elif .10 < diff <= .15:
-            return 1 * abs(odds / 100)
-        elif .15 < diff <= .20:
-            return 2 * abs(odds / 100)
-        elif .20 < diff:
-            return 2.5 * abs(odds / 100)
+    if diff <= .05:
+        return .25
+    elif .05 < diff <= .10:
+        return .5
+    elif .10 < diff <= .15:
+        return 1
+    elif .15 < diff <= .20:
+        return 1.5
+    elif .20 < diff <= .25:
+        return 2
+    elif .25 < diff:
+        return 2.5
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -138,7 +126,7 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['pick_odds'] = df['pick_odds'].apply(lambda x: 50 * round(x / 50))
     df['pick_diff'] = df['pick_diff'].apply(lambda x: .05 * round(x / .05))
     df['risk_correct'] = np.where(df['y_pred'] == df['y'], 1, 0)
-    df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff, x.pick_odds), axis=1)
+    df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
     
 
@@ -164,6 +152,9 @@ def svm():
     """
     # Load data
     df = load_data()
+
+    last_season = df[[index[0].year >= 2021 for index in df.index]]
+    df = df[[index[0].year < 2021 for index in df.index]]
     X = df.drop(['y'], axis=1)
     y = df[['y']]
 
@@ -174,7 +165,7 @@ def svm():
     pipe = Pipeline(
         [
             ('scaler', StandardScaler()),
-            ('feature_selection', SelectPercentile(score_func=mutual_info_classif, percentile=10)),
+            ('feature_selection', SelectPercentile(score_func=mutual_info_classif, percentile=20)),
             ('svm', SVC(random_state=1, probability=True))
         ]
     )
@@ -187,6 +178,10 @@ def svm():
     y_prob = pipe.predict_proba(X_test)
     print(f'\nSVM Model: ')
     calculate_profit(y_test, y_pred, y_prob)
+
+    # Calculate season profit
+    print(f'\nSeason 2021: ')
+    calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
 
     # Save model
     with open('modeling/models/svm.pkl','wb') as f:
