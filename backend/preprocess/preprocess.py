@@ -641,7 +641,7 @@ def feature_engineer(df):
 def merge_matchup(df):
     """
     Function: 
-        Retrurn DataFrame so that each entry contains both home and away stats. 
+        Retrurn DataFrame so that each entry contains difference of home to away stats. 
         
     Input:
         df: DataFrame
@@ -654,11 +654,12 @@ def merge_matchup(df):
 
     # Home field advantage
     df['home_field'] = np.where(df.index.get_level_values(1) == df['team'], 1, 0)
+    df.drop(['team'], axis=1, inplace=True)
 
     # Merge
-    df = pd.merge(df, df, left_index=True, right_index=True)
-    df = df[df['team_x'] != df['team_y']].drop(['team_x', 'team_y'], axis=1)
-    df = df.groupby(df.index).first()
+    home_df = df[df['home_field'] == 1]
+    away_df = df[df['home_field'] == 0]
+    df = (home_df - away_df).drop(['home_field'], axis=1)
     
     return df
 
