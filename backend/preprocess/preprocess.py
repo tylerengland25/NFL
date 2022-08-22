@@ -1,5 +1,3 @@
-from re import X
-from turtle import left
 import pandas as pd
 import time
 import numpy as np
@@ -740,13 +738,50 @@ def load_target_data():
     df['y'] = (df['final_h'] > df['final_a']).apply(int)
 
     # Home field advantage
-    df['month'] = df.index.get_level_values(0).month
-    home_field = df.groupby(['team_h', 'month'])['y'].agg(['sum', 'count'])
+    home_field = df.sort_index(
+        level=['home', 'date']
+    ).groupby(
+        ['home']
+    ).shift(
+        periods=1
+    ).groupby(
+        ['home']
+    ).expanding(
+        min_periods=1
+    )['y'].agg(
+        ['sum', 'count']
+    )
     home_field['home_field_perc'] = home_field['sum'] / home_field['count']
-    df = pd.merge(df.reset_index(), home_field, on=['team_h', 'month'])
-    df.set_index(['date', 'home', 'away'], inplace=True, drop=True)
+    home_field.index = df.sort_index(level=['home', 'date']).index
+    home_field.fillna(0, inplace=True)
 
-    return df[['y', 'home_field_perc']]
+    # Monthly home field
+    df['month'] = df.index.get_level_values(0).month
+    df.set_index(keys=['month'], append=True, inplace=True)
+    home_field_month = df.sort_index(
+        level=['home', 'date']
+    ).groupby(
+        ['home', 'month'],
+    ).shift(
+        periods=1
+    ).groupby(
+        ['home', 'month'],
+    ).expanding(
+        min_periods=1
+    )['y'].agg(
+        ['sum', 'count']
+    )
+    home_field_month['home_field_month_perc'] = home_field_month['sum'] / home_field_month['count']
+    home_field_month.index = df.sort_index(level=['home', 'month', 'date']).index
+    home_field_month.fillna(0, inplace=True)
+    home_field_month.reset_index(level=['month'], drop=True, inplace=True)
+
+    df.reset_index(level=['month'], drop=True, inplace=True)
+
+    df = pd.merge(df, home_field[['home_field_perc']], left_index=True, right_index=True)
+    df = pd.merge(df, home_field_month[['home_field_month_perc']], left_index=True, right_index=True)
+
+    return df[['y', 'home_field_perc', 'home_field_month_perc']]
 
 
 @timeis
