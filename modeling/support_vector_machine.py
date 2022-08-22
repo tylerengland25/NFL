@@ -1,15 +1,17 @@
 import sys
+sys.path.append('c:\\Users\\tyler\\OneDrive\\Documents\\Python\\NFL')
+
 import pandas as pd
 import numpy as np
-sys.path.append('c:\\Users\\tyler\\OneDrive\\Documents\\Python\\NFL')
 from backend.preprocess.preprocess import main as load_data
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectPercentile, mutual_info_classif
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
 from sklearn.exceptions import DataConversionWarning
+import pickle
+
 import warnings
 
 
@@ -119,8 +121,8 @@ def calculate_profit(y_test, y_pred, y_prob):
     correct = df[df['y'] == df['y_pred']]['y_pred'].count()
     wrong = df[df['y'] != df['y_pred']]['y_pred'].count()
 
-    print(f'Accuracy: {round(correct / (correct + wrong) * 100, 2)}%')
-    print(f'Profit: {round(profit)} Units')
+    print(f'\tAccuracy: {round(correct / (correct + wrong) * 100, 2)}%')
+    print(f'\tProfit: {round(profit)} Units')
 
     # Calculate profit for risk management
     df['h_fav'] = np.where(df['ml_h'] < 0, 1, 0)
@@ -143,8 +145,8 @@ def calculate_profit(y_test, y_pred, y_prob):
     risk_df = df.groupby(['pick_fav', 'pick_diff', 'pick_odds']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     risk_df.to_csv('backend/data/risk_management.csv')
-    print(f"Risk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
-    print(f"Risk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100, 2)}%")
+    print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
+    print(f"\tRisk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100, 2)}%")
 
 
 def svm():
@@ -179,15 +181,16 @@ def svm():
 
     # Fit and Score
     pipe.fit(X_train, y_train)
-    features_out = [X_train.columns[int(col.strip('x'))] for col in pipe['feature_selection'].get_feature_names_out()]
-    print(features_out)
-    print(len(pipe['feature_selection'].get_feature_names_out()))
     y_pred = pipe.predict(X_test)
-    print(f'Accuracy: {round(accuracy_score(y_test, y_pred) * 100)}%')
 
     # Calculate profit
     y_prob = pipe.predict_proba(X_test)
+    print(f'\nSVM Model: ')
     calculate_profit(y_test, y_pred, y_prob)
+
+    # Save model
+    with open('modeling/models/svm.pkl','wb') as f:
+        pickle.dump(pipe, f)
 
 
 if __name__ == '__main__':
