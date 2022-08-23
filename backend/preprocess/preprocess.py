@@ -698,45 +698,21 @@ def preprocess(X_df):
 
     return df
 
-    
-@timeis
-def load_target_data():
+
+def home_field_advantage(df):
     """
     Function: 
-        Retrurn DataFrame so that each entry contains winner represented as a binary:
-            home_win: 1
-            away_win: 2
-
-        Include home field advantage for each team
+        Retrurn DataFrame with home field advantage for each team's stadiumn over the course of time.
+        Return DataFrame with home field advantage for each team's stadiumn within a given month
+        over the course of time.
         
     Input:
-        None
+        df: DataFrame
 
     Output:
-        df: DataFrame
+        home_field: DataFrame
+        home_field_month: DataFrame
     """
-    # Load scores
-    df = pd.read_csv('backend/data/games/scores.csv')
-    df.columns = [col.lower() for col in df.columns]
-
-    # Clean data
-    df['date'] = pd.to_datetime(df['date'])
-    df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
-    df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
-    df.set_index(['date', 'home', 'away'], inplace=True, drop=True)
-    
-    # Merge home and away scores
-    df = pd.merge(
-        df[df['home_field'] == 1],
-        df[df['home_field'] == 0],
-        left_index=True,
-        right_index=True,
-        suffixes=('_h', '_a')
-    )
-
-    # Outcome
-    df['y'] = (df['final_h'] > df['final_a']).apply(int)
-
     # Home field advantage
     home_field = df.sort_index(
         level=['home', 'date']
@@ -778,10 +754,115 @@ def load_target_data():
 
     df.reset_index(level=['month'], drop=True, inplace=True)
 
+    return home_field, home_field_month
+
+
+def away_percentage(df):
+    """
+    Function: 
+        Retrurn DataFrame with away winning percentage for each team over the course of a time.
+        Return DataFrame with away winning percentage for each team within a given month
+        over the course of time.
+        
+    Input:
+        df: DataFrame
+
+    Output:
+        away_perc: DataFrame
+        away_perc_month: DataFrame
+    """
+    # Away winning percentage
+    away_perc = df.sort_index(
+        level=['away', 'date']
+    ).groupby(
+        ['away']
+    ).shift(
+        periods=1
+    ).groupby(
+        ['away']
+    ).expanding(
+        min_periods=1
+    )['y'].agg(
+        ['sum', 'count']
+    )
+    away_perc['away_winning_perc'] = away_perc['sum'] / away_perc['count']
+    away_perc.index = df.sort_index(level=['away', 'date']).index
+    away_perc.fillna(.44, inplace=True)
+
+    # Away winning percentage per month
+    df['month'] = df.index.get_level_values(0).month
+    df.set_index(keys=['month'], append=True, inplace=True)
+    away_perc_month = df.sort_index(
+        level=['away', 'date']
+    ).groupby(
+        ['away', 'month'],
+    ).shift(
+        periods=1
+    ).groupby(
+        ['away', 'month'],
+    ).expanding(
+        min_periods=1
+    )['y'].agg(
+        ['sum', 'count']
+    )
+    away_perc_month['away_winning_perc_month'] = (away_perc_month['sum'] / away_perc_month['count'])
+    away_perc_month.index = df.sort_index(level=['away', 'month', 'date']).index
+    away_perc_month.fillna(.44, inplace=True)
+    away_perc_month.reset_index(level=['month'], drop=True, inplace=True)
+
+    df.reset_index(level=['month'], drop=True, inplace=True)
+
+    return away_perc, away_perc_month
+
+    
+@timeis
+def load_target_data():
+    """
+    Function: 
+        Retrurn DataFrame so that each entry contains winner represented as a binary:
+            home_win: 1
+            away_win: 2
+
+        Include home field advantage for each team.
+        Include away winning percentage for each team.
+        
+    Input:
+        None
+
+    Output:
+        df: DataFrame
+    """
+    # Load scores
+    df = pd.read_csv('backend/data/games/scores.csv')
+    df.columns = [col.lower() for col in df.columns]
+
+    # Clean data
+    df['date'] = pd.to_datetime(df['date'])
+    df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
+    df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
+    df.set_index(['date', 'home', 'away'], inplace=True, drop=True)
+    
+    # Merge home and away scores
+    df = pd.merge(
+        df[df['home_field'] == 1],
+        df[df['home_field'] == 0],
+        left_index=True,
+        right_index=True,
+        suffixes=('_h', '_a')
+    )
+
+    # Outcome
+    df['y'] = (df['final_h'] > df['final_a']).apply(int)
+
+    home_field, home_field_month = home_field_advantage(df)
+    away_perc, away_perc_month = away_percentage(df)
+
     df = pd.merge(df, home_field[['home_field_perc']], left_index=True, right_index=True)
     df = pd.merge(df, home_field_month[['home_field_month_perc']], left_index=True, right_index=True)
+    df = pd.merge(df, away_perc[['away_winning_perc']], left_index=True, right_index=True)
+    df = pd.merge(df, away_perc_month[['away_winning_perc_month']], left_index=True, right_index=True)
 
-    return df[['y', 'home_field_perc', 'home_field_month_perc']]
+    return df[['y', 'home_field_perc', 'home_field_month_perc', 'away_winning_perc', 'away_winning_perc_month']]
 
 
 @timeis

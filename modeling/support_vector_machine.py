@@ -109,8 +109,9 @@ def calculate_profit(y_test, y_pred, y_prob):
     correct = df[df['y'] == df['y_pred']]['y_pred'].count()
     wrong = df[df['y'] != df['y_pred']]['y_pred'].count()
 
-    print(f'\tAccuracy: {round(correct / (correct + wrong) * 100, 2)}%')
     print(f'\tProfit: {round(profit)} Units')
+    print(f'\tAccuracy: {round(correct / (correct + wrong) * 100, 2)}%')
+    print(f'\tCount: {correct + wrong}')
 
     # Calculate profit for risk management
     df['h_fav'] = np.where(df['ml_h'] < 0, 1, 0)
@@ -130,12 +131,13 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
     
 
-    risk_df = df.groupby(['pick_fav', 'pick_diff']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
+    risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     risk_df.to_csv('backend/data/risk_management.csv')
     print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
     print(f"\tRisk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100, 2)}%")
-    print(f'Breakdown: {risk_df}')
+    print(f"\tRisk Count: {risk_df[('risk_correct', 'count')].sum()}")
+    print(f'\tBreakdown: \n{risk_df}')
 
 
 def svm():
@@ -166,7 +168,7 @@ def svm():
     pipe = Pipeline(
         [
             ('scaler', StandardScaler()),
-            ('feature_selection', SelectPercentile(score_func=mutual_info_classif, percentile=20)),
+            ('feature_selection', SelectPercentile(score_func=f_classif, percentile=100)),
             ('svm', SVC(random_state=1, probability=True))
         ]
     )
