@@ -7,7 +7,6 @@ from backend.preprocess.preprocess import main as load_data
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectPercentile, mutual_info_classif, f_classif
 from sklearn.svm import SVC
 from sklearn.exceptions import DataConversionWarning
 import pickle
@@ -62,7 +61,9 @@ def risk_management(diff):
     Output:
         unit: float
     """
-    if diff <= .05:
+    if diff < 0:
+        return None
+    elif 0 < diff <= .05:
         return .25
     elif .05 < diff <= .10:
         return .5
@@ -121,7 +122,6 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['h_diff'] = df['y_prob_h'] - df['prob_h']
     df['a_diff'] = df['y_prob_a'] - df['prob_a']
     df['pick_diff'] = np.where(df['y_pred'], df['h_diff'], df['a_diff'])
-    df = df[df['pick_diff'] > 0]
     df['pick_fav'] = np.where(df['y_pred'], df['h_fav'], df['a_fav'])
     df['pick_odds'] = np.where(df['y_pred'], df['ml_h'], df['ml_a'])
     df['pick_odds'] = df['pick_odds'].apply(lambda x: 50 * round(x / 50))
@@ -130,15 +130,14 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
     
-
+    df = df[df['pick_diff'] > 0]
     risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
-    risk_df.to_csv('backend/data/risk_management.csv')
     print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
     print(f"\tRisk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100, 2)}%")
     print(f"\tRisk Count: {risk_df[('risk_correct', 'count')].sum()}")
     print(f'\tBreakdown: \n{risk_df}')
-
+    
 
 def svm():
     """
@@ -156,13 +155,11 @@ def svm():
     # Load data
     df = load_data()
 
-    last_season = df[[index[0].year >= 2021 for index in df.index]]
-    df = df[[index[0].year < 2021 for index in df.index]]
     X = df.drop(['y'], axis=1)
     y = df[['y']]
 
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=2)
 
     # Pipeline
     pipe = Pipeline(
@@ -175,15 +172,11 @@ def svm():
     # Fit and Score
     pipe.fit(X_train, y_train)
     y_pred = pipe.predict(X_test)
+    y_prob = pipe.predict_proba(X_test)
 
     # Calculate profit
-    y_prob = pipe.predict_proba(X_test)
     print(f'\nSVM Model: ')
     calculate_profit(y_test, y_pred, y_prob)
-
-    # Calculate season profit
-    print(f'\nSeason 2021: ')
-    calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
 
     # Save model
     with open('modeling/models/svm.pkl','wb') as f:
