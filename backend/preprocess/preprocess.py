@@ -771,7 +771,7 @@ def load_target_data():
     )['y'].agg(
         ['sum', 'count']
     )
-    home_field_month['home_field_month_perc'] = (home_field_month['sum'] / home_field_month['count']) - (1 / home_field_month['count'])
+    home_field_month['home_field_month_perc'] = (home_field_month['sum'] / home_field_month['count'])
     home_field_month.index = df.sort_index(level=['home', 'month', 'date']).index
     home_field_month.fillna(.56, inplace=True)
     home_field_month.reset_index(level=['month'], drop=True, inplace=True)
