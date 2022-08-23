@@ -814,6 +814,53 @@ def away_percentage(df):
 
     return away_perc, away_perc_month
 
+
+def team_percentage(df):
+    """
+    Function: 
+        Retrurn DataFrame with winning percentage for each team over the course of a season.
+        
+    Input:
+        df: DataFrame
+
+    Output:
+        team_perc: DataFrame
+    """
+    home_wins = df[['team_h', 'season_h', 'y']].rename({'team_h': 'team', 'season_h': 'season'}, axis=1)
+    away_wins = df[['team_a', 'season_a']].rename({'team_a': 'team', 'season_a': 'season'}, axis=1)
+    away_wins['y'] = np.where(df['y'], 0, 1)
+
+    wins = pd.concat(objs=[home_wins, away_wins], axis=0)
+    wins.set_index(['team', 'season'], append=True, inplace=True)
+    team_wins = wins.sort_index(
+        level=['team', 'date']
+    ).groupby(
+        ['team', 'season']
+    ).shift(
+        periods=1
+    ).groupby(
+        ['team', 'season']
+    ).expanding(
+        min_periods=1
+    )['y'].agg(
+        ['sum', 'count']
+    )
+    team_wins['win_perc'] = np.where(team_wins['count'] != 0, team_wins['sum'] / team_wins['count'], .5)
+
+    team_wins.index = wins.sort_index(level=['team', 'date']).index
+    team_wins['home'] = team_wins.index.get_level_values(1) == team_wins.index.get_level_values(3)
+    team_wins.reset_index(['team', 'season'], drop=True, inplace=True)
+
+    team_wins = pd.merge(
+        team_wins[team_wins['home']],
+        team_wins[~team_wins['home']],
+        left_index=True, 
+        right_index=True,
+        suffixes=('_h', '_a')
+    )
+
+    return team_wins[['win_perc_h', 'win_perc_a']]
+    
     
 @timeis
 def load_target_data():
@@ -856,13 +903,22 @@ def load_target_data():
 
     home_field, home_field_month = home_field_advantage(df)
     away_perc, away_perc_month = away_percentage(df)
+    team_perc = team_percentage(df)
 
     df = pd.merge(df, home_field[['home_field_perc']], left_index=True, right_index=True)
     df = pd.merge(df, home_field_month[['home_field_month_perc']], left_index=True, right_index=True)
     df = pd.merge(df, away_perc[['away_winning_perc']], left_index=True, right_index=True)
     df = pd.merge(df, away_perc_month[['away_winning_perc_month']], left_index=True, right_index=True)
+    df = pd.merge(df, team_perc, left_index=True, right_index=True)
 
-    return df[['y', 'home_field_perc', 'home_field_month_perc', 'away_winning_perc', 'away_winning_perc_month']]
+    cols = [
+        'y', 
+        'home_field_perc', 'home_field_month_perc', 
+        'away_winning_perc', 'away_winning_perc_month', 
+        'win_perc_h', 'win_perc_a'
+    ]
+
+    return df[cols]
 
 
 @timeis

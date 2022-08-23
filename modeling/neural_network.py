@@ -135,7 +135,7 @@ def calculate_profit(y_test, y_pred, y_prob):
     print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
     print(f"\tRisk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100, 2)}%")
     print(f"\tRisk Count: {risk_df[('risk_correct', 'count')].sum()}")
-    print(f'\tBreakdown: \n{risk_df}')
+    print(f'\tBreakdown: \n{risk_df.to_string()}')
 
 
 def nn():
@@ -170,7 +170,7 @@ def nn():
                 'nn', 
                 MLPClassifier(
                     random_state=1, 
-                    hidden_layer_sizes=(100, )
+                    hidden_layer_sizes=(300, 300, 300, )
                 )
             )
         ]

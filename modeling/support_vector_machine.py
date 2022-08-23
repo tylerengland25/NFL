@@ -168,8 +168,7 @@ def svm():
     pipe = Pipeline(
         [
             ('scaler', StandardScaler()),
-            ('feature_selection', SelectPercentile(score_func=f_classif, percentile=100)),
-            ('svm', SVC(random_state=1, probability=True))
+            ('svm', SVC(random_state=1, probability=True, C=1))
         ]
     )
 
