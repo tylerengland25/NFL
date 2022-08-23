@@ -144,7 +144,6 @@ def svm():
     Function:
         Create a SVC using preprocessed data to determine the winner of a game.
         Standardizes data using StandardScaler.
-        Selects features using ....
     
     Input:
         None
@@ -155,11 +154,13 @@ def svm():
     # Load data
     df = load_data()
 
+    # last_season = df[[index[0].year >= 2021 for index in df.index]]
+    # df = df[[index[0].year < 2021 for index in df.index]]
     X = df.drop(['y'], axis=1)
     y = df[['y']]
 
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=2)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=10)
 
     # Pipeline
     pipe = Pipeline(
@@ -177,6 +178,12 @@ def svm():
     # Calculate profit
     print(f'\nSVM Model: ')
     calculate_profit(y_test, y_pred, y_prob)
+
+    # # Calculate season profit
+    # y_pred_2021 = pipe.predict(last_season.drop(['y'], axis=1))
+    # y_prob_2021 = pipe.predict_proba(last_season.drop(['y'], axis=1))
+    # print(f'\nSeason 2021: ')
+    # calculate_profit(last_season[['y']], y_pred_2021, y_prob_2021)
 
     # Save model
     with open('modeling/models/svm.pkl','wb') as f:
