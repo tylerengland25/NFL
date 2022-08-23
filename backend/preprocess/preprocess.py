@@ -33,7 +33,7 @@ def load_team_stats():
         
         Returned DataFrame should have each entry be a team's performance.
             ~ opponent and home field advantage listed
-        Index is date, home, away.
+        Index is date, home, away, season.
 
     Input:
         None
@@ -49,7 +49,7 @@ def load_team_stats():
     df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
     df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
     df.set_index(
-        keys=['date', 'home', 'away'], 
+        keys=['date', 'home', 'away', 'season'], 
         inplace=True, 
         drop=True
     )
@@ -66,7 +66,7 @@ def load_player_offense():
         Groups by team and date.
         Returned DataFrame should have each entry be a team's performance.
             ~ opponent and home field advantage listed
-        Index is date, home, away.
+        Index is date, home, away, season.
 
     Input:
         None
@@ -101,7 +101,7 @@ def load_player_offense():
 
     df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
     df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
-    df.set_index(keys=['date', 'home', 'away'], inplace=True, drop=True)
+    df.set_index(keys=['date', 'home', 'away', 'season'], inplace=True, drop=True)
 
     return df
 
@@ -115,7 +115,7 @@ def load_player_defense():
         Groups by team and date.
         Returned DataFrame should have each entry be a team's performance.
             ~ opponent and home field advantage listed
-        Index is date, home, away.
+        Index is date, home, away, season.
 
     Input:
         None
@@ -147,7 +147,7 @@ def load_player_defense():
 
     df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
     df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
-    df.set_index(keys=['date', 'home', 'away'], inplace=True, drop=True)
+    df.set_index(keys=['date', 'home', 'away', 'season'], inplace=True, drop=True)
 
     return df
 
@@ -161,7 +161,7 @@ def load_returns():
         Groups by team and date.
         Returned DataFrame should have each entry be a team's performance.
             ~ opponent and home field advantage listed
-        Index is date, home, away.
+        Index is date, home, away, season.
 
     Input:
         None
@@ -189,7 +189,7 @@ def load_returns():
 
     df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
     df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
-    df.set_index(keys=['date', 'home', 'away'], inplace=True, drop=True)
+    df.set_index(keys=['date', 'home', 'away', 'season'], inplace=True, drop=True)
 
     return df
 
@@ -203,7 +203,7 @@ def load_kicking():
         Groups by team and date.
         Returned DataFrame should have each entry be a team's performance.
             ~ opponent and home field advantage listed
-        Index is date, home, away.
+        Index is date, home, away, season.
 
     Input:
         None
@@ -230,7 +230,7 @@ def load_kicking():
 
     df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
     df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
-    df.set_index(keys=['date', 'home', 'away'], inplace=True, drop=True)
+    df.set_index(keys=['date', 'home', 'away', 'season'], inplace=True, drop=True)
 
     return df
 
@@ -392,11 +392,11 @@ def merge_squads(offensive_df, defensive_df, special_teams):
     """
     # Add team to index
     offensive_df.set_index(['team'], append=True, inplace=True)
-    offensive_df.drop(['home_field', 'week', 'season'], axis=1, inplace=True)
+    offensive_df.drop(['home_field', 'week'], axis=1, inplace=True)
     defensive_df.set_index(['team'], append=True, inplace=True)
-    defensive_df.drop(['home_field', 'week', 'season'], axis=1, inplace=True)
+    defensive_df.drop(['home_field', 'week'], axis=1, inplace=True)
     special_teams.set_index(['team'], append=True, inplace=True)
-    special_teams.drop(['home_field', 'week', 'season'], axis=1, inplace=True)
+    special_teams.drop(['home_field', 'week'], axis=1, inplace=True)
 
     # Merge
     df = pd.merge(
@@ -489,7 +489,7 @@ def sma(df, bin):
     return df
 
 
-def cma(df, bin):
+def cma(df):
     """
     Function: 
         Cumulative moving average.
@@ -507,13 +507,13 @@ def cma(df, bin):
     df = df.sort_index(
         level=['team', 'date']
     ).groupby(
-        ['team']
+        ['team', 'season']
     ).shift(
         periods=1
     ).groupby(
-        ['team']
+        ['team', 'season']
     ).expanding( 
-        min_periods=bin
+        min_periods=1
     ).mean()
     df.index = sorted_index
 
@@ -538,14 +538,14 @@ def ema(df, bin):
     df = df.sort_index(
         level=['team', 'date']
     ).groupby(
-        ['team']
+        ['team', 'season']
     ).shift(
         periods=1
     ).groupby(
-        ['team']
+        ['team', 'season']
     ).ewm(
         span=bin,
-        min_periods=bin,
+        min_periods=1,
     ).mean()
     df.index = sorted_index
 
@@ -678,7 +678,7 @@ def preprocess(X_df):
         df: DataFrame
     """
     # Season CMA
-    cma_df = cma(X_df, 5)
+    cma_df = cma(X_df)
 
     # 5 game EMA
     ema_df = ema(X_df, 5)
@@ -693,8 +693,8 @@ def preprocess(X_df):
     df = merge_matchup(df)
 
     # Deal with nan's
-    df.dropna(axis=0, inplace=True)
-
+    df.dropna(axis=0, thresh=200, inplace=True)
+    df.fillna(0, inplace=True)
 
     return df
 
@@ -826,12 +826,12 @@ def team_percentage(df):
     Output:
         team_perc: DataFrame
     """
-    home_wins = df[['team_h', 'season_h', 'y']].rename({'team_h': 'team', 'season_h': 'season'}, axis=1)
-    away_wins = df[['team_a', 'season_a']].rename({'team_a': 'team', 'season_a': 'season'}, axis=1)
+    home_wins = df[['team_h', 'y']].rename({'team_h': 'team', }, axis=1)
+    away_wins = df[['team_a']].rename({'team_a': 'team'}, axis=1)
     away_wins['y'] = np.where(df['y'], 0, 1)
 
     wins = pd.concat(objs=[home_wins, away_wins], axis=0)
-    wins.set_index(['team', 'season'], append=True, inplace=True)
+    wins.set_index(['team'], append=True, inplace=True)
     team_wins = wins.sort_index(
         level=['team', 'date']
     ).groupby(
@@ -848,8 +848,8 @@ def team_percentage(df):
     team_wins['win_perc'] = np.where(team_wins['count'] != 0, team_wins['sum'] / team_wins['count'], .5)
 
     team_wins.index = wins.sort_index(level=['team', 'date']).index
-    team_wins['home'] = team_wins.index.get_level_values(1) == team_wins.index.get_level_values(3)
-    team_wins.reset_index(['team', 'season'], drop=True, inplace=True)
+    team_wins['home'] = team_wins.index.get_level_values(1) == team_wins.index.get_level_values(4)
+    team_wins.reset_index(['team'], drop=True, inplace=True)
 
     team_wins = pd.merge(
         team_wins[team_wins['home']],
@@ -887,7 +887,7 @@ def load_target_data():
     df['date'] = pd.to_datetime(df['date'])
     df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
     df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
-    df.set_index(['date', 'home', 'away'], inplace=True, drop=True)
+    df.set_index(['date', 'home', 'away', 'season'], inplace=True, drop=True)
     
     # Merge home and away scores
     df = pd.merge(
