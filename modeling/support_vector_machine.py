@@ -42,7 +42,7 @@ def load_odds():
     # Merge odds and date
     odds = pd.merge(odds, scores[['date']], left_index=True, right_index=True)
     odds.reset_index(inplace=True, drop=False)
-    odds.set_index(['date', 'home', 'away'], inplace=True, drop=True)
+    odds.set_index(['date', 'home', 'away', 'week', 'season'], inplace=True, drop=True)
     odds = odds.groupby(odds.index).first()
     
     return odds[['ml_h', 'ml_a']]
@@ -94,7 +94,7 @@ def calculate_profit(y_test, y_pred, y_prob):
     odds = load_odds()
 
     # Merge y_test
-    odds.index = [(index[0].date(), index[1], index[2]) for index in odds.index]
+    odds.index = [(index[0].date(), index[1], index[2], index[3], index[4]) for index in odds.index]
     df = pd.merge(y_test, odds, left_index=True, right_index=True, how='left')
     df['y_pred'] = y_pred
     df['y_prob_a'] = [prob[0] for prob in y_prob]
