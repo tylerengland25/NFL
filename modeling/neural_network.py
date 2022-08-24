@@ -183,7 +183,8 @@ def nn():
                 'nn', 
                 MLPClassifier(
                     random_state=1, 
-                    hidden_layer_sizes=(300, 300, 300, )
+                    hidden_layer_sizes=(100, ),
+                    activation='identity'
                 )
             )
         ]
