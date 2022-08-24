@@ -120,7 +120,6 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['h_diff'] = df['y_prob_h'] - df['prob_h']
     df['a_diff'] = df['y_prob_a'] - df['prob_a']
     df['pick_diff'] = np.where(df['y_pred'], df['h_diff'], df['a_diff'])
-    df = df[df['pick_diff'] > 0]
     df['pick_fav'] = np.where(df['y_pred'], df['h_fav'], df['a_fav'])
     df['pick_odds'] = np.where(df['y_pred'], df['ml_h'], df['ml_a'])
     df['pick_odds'] = df['pick_odds'].apply(lambda x: 50 * round(x / 50))
@@ -129,7 +128,20 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
     
+    # Save 2021 to csv
+    df_2021 = df[['ml_h', 'ml_a', 'y', 'y_pred', 'risk_unit', 'risk_profit']].copy()
+    df_2021.rename({'y': 'outcome', 'y_pred': 'prediction', 'risk_profit': 'profit'}, axis=1, inplace=True)
+    df_2021['date'] = [index[0] for index in df_2021.index]
+    df_2021['home'] = [index[1] for index in df_2021.index]
+    df_2021['away'] = [index[2] for index in df_2021.index]
+    df_2021['week'] = [index[3] for index in df_2021.index]
+    df_2021['season'] = [index[4] for index in df_2021.index]
+    df_2021['outcome'] = np.where(df_2021['outcome'], df_2021['home'], df_2021['away'])
+    df_2021['prediction'] = np.where(df_2021['prediction'], df_2021['home'], df_2021['away'])
+    df_2021 = df_2021[['date', 'home', 'ml_h', 'away', 'ml_a', 'outcome', 'prediction', 'risk_unit', 'profit', 'week', 'season']]
+    df_2021.to_csv('backend/data/predictions/2021_svm.csv', index=False)
 
+    df = df[df['pick_diff'] > 0]
     risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     risk_df.to_csv('backend/data/risk_management.csv')
