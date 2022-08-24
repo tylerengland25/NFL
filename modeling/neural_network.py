@@ -7,7 +7,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
 from sklearn.exceptions import DataConversionWarning, ConvergenceWarning
 import warnings
 
@@ -59,18 +58,26 @@ def risk_management(diff):
     Output:
         unit: float
     """
-    if diff <= .05:
+    if diff <= 0:
+        return None
+    elif 0 < diff <= .05:
         return .25
     elif .05 < diff <= .10:
         return .5
     elif .10 < diff <= .15:
-        return 1
+        return .75
     elif .15 < diff <= .20:
-        return 1.5
+        return 1
     elif .20 < diff <= .25:
+        return 1.5
+    elif .25 < diff <= .3:
         return 2
-    elif .25 < diff:
+    elif .3 < diff <= .35:
         return 2.5
+    elif .35 < diff <= .4:
+        return 3
+    else: 
+        return 3.5
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -119,6 +126,9 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['h_diff'] = df['y_prob_h'] - df['prob_h']
     df['a_diff'] = df['y_prob_a'] - df['prob_a']
     df['pick_diff'] = np.where(df['y_pred'], df['h_diff'], df['a_diff'])
+
+    
+
     df = df[df['pick_diff'] > 0]
     df['pick_fav'] = np.where(df['y_pred'], df['h_fav'], df['a_fav'])
     df['pick_odds'] = np.where(df['y_pred'], df['ml_h'], df['ml_a'])
@@ -129,7 +139,7 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
     
 
-    risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
+    risk_df = df.groupby(['pick_fav', 'pick_diff']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     risk_df.to_csv('backend/data/risk_management.csv')
     print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
@@ -170,7 +180,7 @@ def nn():
                 'nn', 
                 MLPClassifier(
                     random_state=1, 
-                    hidden_layer_sizes=(100, )
+                    hidden_layer_sizes=(250, 250, 250, )
                 )
             )
         ]
