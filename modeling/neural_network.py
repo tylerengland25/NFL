@@ -139,7 +139,7 @@ def calculate_profit(y_test, y_pred, y_prob):
     df_2021['outcome'] = np.where(df_2021['outcome'], df_2021['home'], df_2021['away'])
     df_2021['prediction'] = np.where(df_2021['prediction'], df_2021['home'], df_2021['away'])
     df_2021 = df_2021[['date', 'home', 'ml_h', 'away', 'ml_a', 'outcome', 'prediction', 'risk_unit', 'profit', 'week', 'season']]
-    df_2021.to_csv('backend/data/predictions/2021_svm.csv', index=False)
+    df_2021.to_csv('backend/data/predictions/2021_nn.csv', index=False)
 
     df = df[df['pick_diff'] > 0]
     risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
