@@ -10,6 +10,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.exceptions import DataConversionWarning, ConvergenceWarning
 import warnings
+import pickle
 
 
 def load_odds():
@@ -179,9 +180,9 @@ def nn():
     # Fit and Score
     pipe.fit(X_train, y_train)
     y_pred = pipe.predict(X_test)
+    y_prob = pipe.predict_proba(X_test)
 
     # Calculate profit
-    y_prob = pipe.predict_proba(X_test)
     print(f'\nNN Model: ')
     calculate_profit(y_test, y_pred, y_prob)
 
@@ -189,7 +190,9 @@ def nn():
     print(f'\nSeason 2021: ')
     calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
 
-
+    # Save model
+    with open('modeling/models/nn.pkl','wb') as f:
+        pickle.dump(pipe, f)
 
 if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=DataConversionWarning)

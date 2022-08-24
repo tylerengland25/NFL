@@ -68,13 +68,17 @@ def risk_management(diff):
     elif .05 < diff <= .10:
         return .5
     elif .10 < diff <= .15:
-        return 1
+        return .75
     elif .15 < diff <= .20:
-        return 1.5
+        return 1
     elif .20 < diff <= .25:
+        return 1.25
+    elif .25 < diff <= .30:
+        return 1.5
+    elif .30 < diff <= .35:
+        return 1.75
+    elif .35 < diff:
         return 2
-    elif .25 < diff:
-        return 2.5
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -155,6 +159,8 @@ def svm():
     # Load data
     df = load_data()
 
+    last_season = df[[index[0].year >= 2021 for index in df.index]]
+    df = df[[index[0].year < 2021 for index in df.index]]
     X = df.drop(['y'], axis=1)
     y = df[['y']]
 
@@ -177,6 +183,10 @@ def svm():
     # Calculate profit
     print(f'\nSVM Model: ')
     calculate_profit(y_test, y_pred, y_prob)
+
+    # Calculate season profit
+    print(f'\nSeason 2021: ')
+    calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
 
     # Save model
     with open('modeling/models/svm.pkl','wb') as f:
