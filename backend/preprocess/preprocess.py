@@ -713,13 +713,15 @@ def home_field_advantage(df):
     home_field = df.sort_index(
         level=['home', 'date']
     ).groupby(
-        ['home', 'season']
+        ['home']
     ).shift(
         periods=1
     ).groupby(
-        ['home', 'season']
-    ).expanding(
-        min_periods=1
+        ['home']
+    ).rolling(
+        window=10, 
+        min_period=1,
+        closed='left'
     )['y'].agg(
         ['sum', 'count']
     )
@@ -738,8 +740,10 @@ def home_field_advantage(df):
         periods=1
     ).groupby(
         ['home', 'month'],
-    ).expanding(
-        min_periods=1
+    ).rolling(
+        window=10, 
+        min_period=1,
+        closed='left'
     )['y'].agg(
         ['sum', 'count']
     )
@@ -771,13 +775,15 @@ def away_percentage(df):
     away_perc = df.sort_index(
         level=['away', 'date']
     ).groupby(
-        ['away', 'season']
+        ['away']
     ).shift(
         periods=1
     ).groupby(
-        ['away', 'season']
-    ).expanding(
-        min_periods=1
+        ['away']
+    ).rolling(
+        window=10, 
+        min_period=1,
+        closed='left'
     )['y'].agg(
         ['sum', 'count']
     )
@@ -796,8 +802,10 @@ def away_percentage(df):
         periods=1
     ).groupby(
         ['away', 'month'],
-    ).expanding(
-        min_periods=1
+    ).rolling(
+        window=10, 
+        min_period=1,
+        closed='left'
     )['y'].agg(
         ['sum', 'count']
     )
