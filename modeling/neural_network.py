@@ -60,7 +60,9 @@ def risk_management(diff):
     Output:
         unit: float
     """
-    if diff <= .05:
+    if diff <= 0:
+        return None
+    elif 0 < diff <= .05:
         return .25
     elif .05 < diff <= .10:
         return .5
@@ -70,8 +72,12 @@ def risk_management(diff):
         return 1.5
     elif .20 < diff <= .25:
         return 2
-    elif .25 < diff:
+    elif .25 < diff <= .30:
         return 2.5
+    elif .35 < diff <= .40:
+        return 3
+    elif .40 < diff:
+        return 3.5
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -183,7 +189,7 @@ def nn():
                 'nn', 
                 MLPClassifier(
                     random_state=1, 
-                    hidden_layer_sizes=(100, ),
+                    hidden_layer_sizes=(100, 100, 100, 100, 100, ),
                     activation='identity'
                 )
             )
