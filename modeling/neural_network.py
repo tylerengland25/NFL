@@ -208,7 +208,9 @@ def nn():
 
     # Calculate season profit
     print(f'\nSeason 2021: ')
-    calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
+    y_pred_2021 = pipe.predict(last_season.drop(['y'], axis=1))
+    y_prob_2021 = pipe.predict_proba(last_season.drop(['y'], axis=1))
+    calculate_profit(last_season[['y']], y_pred_2021, y_prob_2021)
 
     # Save model
     with open('modeling/models/nn.pkl','wb') as f:
