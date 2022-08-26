@@ -65,19 +65,19 @@ def risk_management(diff):
     elif 0 < diff <= .05:
         return .25
     elif .05 < diff <= .10:
-        return .5
-    elif .10 < diff <= .15:
-        return 1
+        return .5 
+    elif .10 < diff <= .15: 
+        return 1 
     elif .15 < diff <= .20:
-        return 1.5
+        return 1.5 
     elif .20 < diff <= .25:
-        return 2
+        return 2 
     elif .25 < diff <= .30:
-        return 2.5
+        return 2.5 
     elif .35 < diff <= .40:
-        return 3
+        return 3 
     elif .40 < diff:
-        return 3.5
+        return 3.5 
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -173,8 +173,8 @@ def nn():
     # Load data
     df = load_data()
     
-    last_season = df[[index[0].year >= 2021 for index in df.index]]
-    df = df[[index[0].year < 2021 for index in df.index]]
+    last_season = df[[index[4] >= 2021 for index in df.index]]
+    df = df[[index[4] < 2021 for index in df.index]]
     X = df.drop(['y'], axis=1)
     y = df[['y']]
 
@@ -193,6 +193,7 @@ def nn():
                     activation='identity'
                 )
             )
+            
         ]
     )
 

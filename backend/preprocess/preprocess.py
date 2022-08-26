@@ -485,7 +485,7 @@ def sma(df, bin):
     return df
 
 
-def cma(df, bin):
+def cma(df):
     """
     Function: 
         Cumulative moving average.
@@ -503,13 +503,13 @@ def cma(df, bin):
     df = df.sort_index(
         level=['team', 'date']
     ).groupby(
-        ['team']
+        ['team', 'season']
     ).shift(
         periods=1
     ).groupby(
-        ['team']
+        ['team', 'season']
     ).expanding( 
-        min_periods=bin
+        min_periods=3
     ).mean()
     df.index = sorted_index
 
@@ -534,14 +534,14 @@ def ema(df, bin):
     df = df.sort_index(
         level=['team', 'date']
     ).groupby(
-        ['team']
+        ['team', 'season']
     ).shift(
         periods=1
     ).groupby(
-        ['team']
+        ['team', 'season']
     ).ewm(
         span=bin,
-        min_periods=bin,
+        min_periods=3,
     ).mean()
     df.index = sorted_index
 
@@ -674,7 +674,7 @@ def preprocess(X_df):
         df: DataFrame
     """
     # Season CMA
-    cma_df = cma(X_df, 5)
+    cma_df = cma(X_df)
 
     # 5 game EMA
     ema_df = ema(X_df, 5)
@@ -689,8 +689,8 @@ def preprocess(X_df):
     df = merge_matchup(df)
 
     # Deal with nan's
-    df.dropna(axis=0, inplace=True)
-
+    df.dropna(axis=0, thresh=200, inplace=True)
+    df.fillna(0, inplace=True)
 
     return df
 
