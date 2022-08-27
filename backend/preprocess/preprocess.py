@@ -718,8 +718,10 @@ def home_field_advantage(df):
         periods=1
     ).groupby(
         ['home']
-    ).expanding(
-        min_periods=1
+    ).rolling(
+        window=10,
+        min_periods=1,
+        closed='left'
     )['y'].agg(
         ['sum', 'count']
     )
@@ -738,8 +740,10 @@ def home_field_advantage(df):
         periods=1
     ).groupby(
         ['home', 'month'],
-    ).expanding(
-        min_periods=1
+    ).rolling(
+        window=10,
+        min_periods=1,
+        closed='left'
     )['y'].agg(
         ['sum', 'count']
     )
@@ -776,8 +780,10 @@ def away_percentage(df):
         periods=1
     ).groupby(
         ['away']
-    ).expanding(
-        min_periods=1
+    ).rolling(
+        window=10,
+        min_periods=1,
+        closed='left'
     )['y'].agg(
         ['sum', 'count']
     )
@@ -796,8 +802,10 @@ def away_percentage(df):
         periods=1
     ).groupby(
         ['away', 'month'],
-    ).expanding(
-        min_periods=1
+    ).rolling(
+        window=10,
+        min_periods=1,
+        closed='left'
     )['y'].agg(
         ['sum', 'count']
     )
@@ -934,6 +942,17 @@ def merge_x_y(X_df, y_df):
     X_df.index = [(index[0].date(), index[1], index[2], index[3], index[4]) for index in X_df.index]
     
     df = pd.merge(X_df, y_df, left_index=True, right_index=True, how='left')
+
+    df.index = pd.MultiIndex.from_arrays(
+        [
+            [index[0] for index in df.index],
+            [index[1] for index in df.index],
+            [index[2] for index in df.index],
+            [index[3] for index in df.index],
+            [index[4] for index in df.index]
+        ],
+        names=['date', 'home', 'away', 'week', 'season']
+    )
 
     return df
 
