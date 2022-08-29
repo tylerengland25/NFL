@@ -29,7 +29,8 @@ def load_odds():
     odds = pd.read_csv('backend/data/odds/odds.csv')
     odds['home'] = odds['home'].apply(lambda x: ' '.join([word.capitalize() for word in x.split('-')]))
     odds['away'] = odds['away'].apply(lambda x: ' '.join([word.capitalize() for word in x.split('-')]))
-    odds.set_index(['home', 'away', 'week', 'year'], inplace=True, drop=True)
+    odds.rename({'year': 'season'}, axis=1, inplace=True)
+    odds.set_index(['home', 'away', 'week', 'season'], inplace=True, drop=True)
     
     # Load scores to merge date
     scores = pd.read_csv('backend/data/games/scores.csv')
@@ -41,8 +42,8 @@ def load_odds():
     # Merge odds and date
     odds = pd.merge(odds, scores[['date']], left_index=True, right_index=True)
     odds.reset_index(inplace=True, drop=False)
+    odds.drop_duplicates(['date', 'home', 'away', 'week', 'season'], inplace=True)
     odds.set_index(['date', 'home', 'away', 'week', 'season'], inplace=True, drop=True)
-    odds = odds.groupby(odds.index).first()
     odds.index = pd.MultiIndex.from_arrays(
         [
             [index[0] for index in odds.index],
@@ -198,7 +199,7 @@ def nn():
                 'nn', 
                 MLPClassifier(
                     random_state=1, 
-                    hidden_layer_sizes=(300, 300, 300, 300, ),
+                    hidden_layer_sizes=(300, ),
                     activation='identity'
                 )
             )
