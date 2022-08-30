@@ -30,7 +30,8 @@ def load_odds():
     odds = pd.read_csv('backend/data/odds/odds.csv')
     odds['home'] = odds['home'].apply(lambda x: ' '.join([word.capitalize() for word in x.split('-')]))
     odds['away'] = odds['away'].apply(lambda x: ' '.join([word.capitalize() for word in x.split('-')]))
-    odds.set_index(['home', 'away', 'week', 'year'], inplace=True, drop=True)
+    odds.rename({'year': 'season'}, axis=1, inplace=True)
+    odds.set_index(['home', 'away', 'week', 'season'], inplace=True, drop=True)
     
     # Load scores to merge date
     scores = pd.read_csv('backend/data/games/scores.csv')
@@ -42,8 +43,18 @@ def load_odds():
     # Merge odds and date
     odds = pd.merge(odds, scores[['date']], left_index=True, right_index=True)
     odds.reset_index(inplace=True, drop=False)
+    odds.drop_duplicates(['date', 'home', 'away', 'week', 'season'], inplace=True)
     odds.set_index(['date', 'home', 'away', 'week', 'season'], inplace=True, drop=True)
-    odds = odds.groupby(odds.index).first()
+    odds.index = pd.MultiIndex.from_arrays(
+        [
+            [index[0] for index in odds.index],
+            [index[1] for index in odds.index],
+            [index[2] for index in odds.index],
+            [index[3] for index in odds.index],
+            [index[4] for index in odds.index]
+        ],
+        names=['date', 'home', 'away', 'week', 'season']
+    )
     
     return odds[['ml_h', 'ml_a']]
 
@@ -98,7 +109,6 @@ def calculate_profit(y_test, y_pred, y_prob):
     odds = load_odds()
 
     # Merge y_test
-    odds.index = [(index[0].date(), index[1], index[2], index[3], index[4]) for index in odds.index]
     df = pd.merge(y_test, odds, left_index=True, right_index=True, how='left')
     df['y_pred'] = y_pred
     df['y_prob_a'] = [prob[0] for prob in y_prob]
@@ -118,6 +128,7 @@ def calculate_profit(y_test, y_pred, y_prob):
     print(f'\tAccuracy: {round(correct / (correct + wrong) * 100, 2)}%')
     print(f'\tCount: {correct + wrong}')
 
+
     # Calculate profit for risk management
     df['h_fav'] = np.where(df['ml_h'] < 0, 1, 0)
     df['a_fav'] = np.where(df['ml_a'] < 0, 1, 0)
@@ -134,26 +145,27 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
     
-    # Save 2021 to csv
-    df_2021 = df[['ml_h', 'ml_a', 'y', 'y_pred', 'risk_unit', 'risk_profit']].copy()
-    df_2021.rename({'y': 'outcome', 'y_pred': 'prediction', 'risk_profit': 'profit'}, axis=1, inplace=True)
-    df_2021['date'] = [index[0] for index in df_2021.index]
-    df_2021['home'] = [index[1] for index in df_2021.index]
-    df_2021['away'] = [index[2] for index in df_2021.index]
-    df_2021['week'] = [index[3] for index in df_2021.index]
-    df_2021['season'] = [index[4] for index in df_2021.index]
-    df_2021['outcome'] = np.where(df_2021['outcome'], df_2021['home'], df_2021['away'])
-    df_2021['prediction'] = np.where(df_2021['prediction'], df_2021['home'], df_2021['away'])
-    df_2021 = df_2021[['date', 'home', 'ml_h', 'away', 'ml_a', 'outcome', 'prediction', 'risk_unit', 'profit', 'week', 'season']]
-    df_2021.to_csv('backend/data/predictions/2021_svm.csv', index=False)
+    # # Save 2021 to csv
+    # df_2021 = df[['ml_h', 'ml_a', 'y', 'y_pred', 'risk_unit', 'risk_profit']].copy()
+    # df_2021.rename({'y': 'outcome', 'y_pred': 'prediction', 'risk_profit': 'profit'}, axis=1, inplace=True)
+    # df_2021['date'] = [index[0] for index in df_2021.index]
+    # df_2021['home'] = [index[1] for index in df_2021.index]
+    # df_2021['away'] = [index[2] for index in df_2021.index]
+    # df_2021['week'] = [index[3] for index in df_2021.index]
+    # df_2021['season'] = [index[4] for index in df_2021.index]
+    # df_2021['outcome'] = np.where(df_2021['outcome'], df_2021['home'], df_2021['away'])
+    # df_2021['prediction'] = np.where(df_2021['prediction'], df_2021['home'], df_2021['away'])
+    # df_2021 = df_2021[['date', 'home', 'ml_h', 'away', 'ml_a', 'outcome', 'prediction', 'risk_unit', 'profit', 'week', 'season']]
+    # df_2021.to_csv('backend/data/predictions/2021_nn.csv', index=False)
 
     df = df[df['pick_diff'] > 0]
+    df.to_csv('backend/data/risk.csv')
     risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
     print(f"\tRisk Accuracy: {round(risk_df[('risk_correct', 'sum')].sum() / risk_df[('risk_correct', 'count')].sum() * 100, 2)}%")
     print(f"\tRisk Count: {risk_df[('risk_correct', 'count')].sum()}")
-    print(f'\tBreakdown: \n{risk_df}')
+    print(f'\tBreakdown: \n{risk_df.to_string()}')
     
 
 def svm():
@@ -172,8 +184,8 @@ def svm():
     # Load data
     df = load_data()
 
-    last_season = df[[index[0].year >= 2021 for index in df.index]]
-    df = df[[index[0].year < 2021 for index in df.index]]
+    # last_season = df[df.index.get_level_values(4) == 2021]
+    # df = df[df.index.get_level_values(4) != 2021]
     X = df.drop(['y'], axis=1)
     y = df[['y']]
 
@@ -197,9 +209,9 @@ def svm():
     print(f'\nSVM Model: ')
     calculate_profit(y_test, y_pred, y_prob)
 
-    # Calculate season profit
-    print(f'\nSeason 2021: ')
-    calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
+    # # Calculate season profit
+    # print(f'\nSeason 2021: ')
+    # calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
 
     # Save model
     with open('modeling/models/svm.pkl','wb') as f:
