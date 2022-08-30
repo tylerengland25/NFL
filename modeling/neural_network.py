@@ -71,7 +71,7 @@ def risk_management(diff):
     Output:
         unit: float
     """
-    if diff <= 0:
+    if diff <= 0 or diff > .50:
         return None
     elif 0 < diff <= .05:
         return .25
@@ -81,14 +81,14 @@ def risk_management(diff):
         return 1 
     elif .15 < diff <= .20:
         return 1.5 
-    elif .20 < diff <= .25:
+    elif .20 < diff:
         return 2 
-    elif .25 < diff <= .30:
-        return 2.5 
-    elif .35 < diff <= .40:
-        return 3 
-    elif .40 < diff:
-        return 3.5 
+    # elif .25 < diff <= .30:
+    #     return 2.5 
+    # elif .35 < diff <= .40:
+    #     return 3 
+    # elif .40 < diff:
+    #     return 3.5 
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -110,8 +110,8 @@ def calculate_profit(y_test, y_pred, y_prob):
     # Merge y_test
     df = pd.merge(y_test, odds, left_index=True, right_index=True, how='left')
     df['y_pred'] = y_pred
-    df['y_prob_a'] = [prob[0] for prob in y_prob]
-    df['y_prob_h'] = [prob[1] for prob in y_prob]
+    df['y_prob_a'] = [prob[0] - .06 for prob in y_prob]
+    df['y_prob_h'] = [prob[1] + .06 for prob in y_prob]
     df.dropna(axis=0, inplace=True)
 
     # Calculate profit for every pick
@@ -139,7 +139,6 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['pick_fav'] = np.where(df['y_pred'], df['h_fav'], df['a_fav'])
     df['pick_odds'] = np.where(df['y_pred'], df['ml_h'], df['ml_a'])
     df['pick_odds'] = df['pick_odds'].apply(lambda x: 50 * round(x / 50))
-    df['pick_diff'] = df['pick_diff'].apply(lambda x: .05 * round(x / .05))
     df['risk_correct'] = np.where(df['y_pred'] == df['y'], 1, 0)
     df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
@@ -157,7 +156,7 @@ def calculate_profit(y_test, y_pred, y_prob):
     # df_2021 = df_2021[['date', 'home', 'ml_h', 'away', 'ml_a', 'outcome', 'prediction', 'risk_unit', 'profit', 'week', 'season']]
     # df_2021.to_csv('backend/data/predictions/2021_nn.csv', index=False)
 
-    df = df[df['pick_diff'] > 0]
+    df.dropna(subset=['risk_unit'], axis=0, inplace=True)
     df.to_csv('backend/data/risk.csv')
     risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
@@ -200,7 +199,7 @@ def nn():
                 MLPClassifier(
                     random_state=1, 
                     hidden_layer_sizes=(200, ),
-                    activation='identity'
+                    activation='tanh'
                 )
             )
             
