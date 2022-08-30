@@ -7,6 +7,7 @@ from backend.preprocess.preprocess import main as load_data
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectPercentile, f_classif, mutual_info_classif
 from sklearn.svm import SVC
 from sklearn.exceptions import DataConversionWarning
 import pickle
@@ -196,6 +197,7 @@ def svm():
     pipe = Pipeline(
         [
             ('scaler', StandardScaler()),
+            ('feature_selection', SelectPercentile(score_func=f_classif, percentile=.20)),
             ('svm', SVC(random_state=1, probability=True, C=1))
         ]
     )
