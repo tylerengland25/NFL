@@ -58,7 +58,7 @@ def load_odds():
     return odds[['ml_h', 'ml_a']]
 
 
-def risk_management(diff):
+def risk_management(diff, odds):
     """
     Function:
         Manage risk
@@ -69,13 +69,19 @@ def risk_management(diff):
     Output:
         unit: float
     """
-    if 0 < diff <= .05:
-        return .5
-    elif .05 < diff <= .10:
+    if 0 < diff < .05:
         return 1
-    elif .10 < diff <= .15:
+    elif .05 <= diff < .10:
+        return .5
+    elif .10 <= diff < .15:
+        return .75
+    elif .15 <= diff < .20:
+        return 1
+    elif .20 <= diff < .25:
+        return 1.25
+    elif .25 <= diff < .30:
         return 1.5
-    elif .15 < diff <= .20:
+    elif .30 <= diff:
         return 2
     else:
         return None
@@ -128,13 +134,12 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['pick_diff'] = np.where(df['y_pred'], df['h_diff'], df['a_diff'])
     df['pick_fav'] = np.where(df['y_pred'], df['h_fav'], df['a_fav'])
     df['pick_odds'] = np.where(df['y_pred'], df['ml_h'], df['ml_a'])
-    df['pick_odds'] = df['pick_odds'].apply(lambda x: 50 * round(x / 50))
     df['risk_correct'] = np.where(df['y_pred'] == df['y'], 1, 0)
-    df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
+    df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff, x.pick_odds), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
 
     df.dropna(subset=['risk_unit'], axis=0, inplace=True)
-    df.to_csv('backend/data/predictions/2021_nn.csv')
+    df.to_csv('backend/data/predictions/risk.csv')
     risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
@@ -163,11 +168,11 @@ def nn():
     y = df[['y']]
 
     # Split data
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=1)
-    X_train = X[X.index.get_level_values(4) < 2021]
-    X_test = X[X.index.get_level_values(4) >= 2021]
-    y_train = y[y.index.get_level_values(4) < 2021]
-    y_test = y[y.index.get_level_values(4) >= 2021]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=1)
+    # X_train = X[X.index.get_level_values(4) < 2021]
+    # X_test = X[X.index.get_level_values(4) >= 2021]
+    # y_train = y[y.index.get_level_values(4) < 2021]
+    # y_test = y[y.index.get_level_values(4) >= 2021]
 
     # Pipeline
     pipe = Pipeline(
@@ -177,8 +182,10 @@ def nn():
                 'nn', 
                 MLPClassifier(
                     random_state=1, 
-                    hidden_layer_sizes=(200, ),
-                    activation='tanh'
+                    hidden_layer_sizes=(200, 200, 100),
+                    activation='tanh',
+                    learning_rate='constant',
+                    learning_rate_init=.00001	
                 )
             )
             
