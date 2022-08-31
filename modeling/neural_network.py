@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score, KFold
 from sklearn.exceptions import DataConversionWarning, ConvergenceWarning
 import warnings
 import pickle
@@ -199,11 +199,14 @@ def nn():
 
     # Calculate profit
     print(f'\nNN Model: ')
+    scores = cross_val_score(pipe, X_test, y_test, cv=KFold(n_splits=5, shuffle=True, random_state=1))
+    print(f'\tAccuracy:\n\t\tMean: {scores.mean()} Std: {scores.std()}')
     calculate_profit(y_test, y_pred, y_prob)
 
     # Save model
     with open('modeling/models/nn.pkl','wb') as f:
         pickle.dump(pipe, f)
+
 
 if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=DataConversionWarning)
