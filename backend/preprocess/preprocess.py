@@ -983,7 +983,7 @@ def main():
     # Merge X and y
     df = merge_x_y(X_df, y_df)
 
-    return df
+    df.to_csv('backend/preprocess/preprocess.csv')
     
 
 if __name__ == '__main__':
