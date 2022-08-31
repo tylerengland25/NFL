@@ -65,30 +65,20 @@ def risk_management(diff):
     
     Input:
         diff: float
-        fav: boolean
-        odds: int
         
     Output:
         unit: float
     """
-    if diff <= 0 or diff > .50:
-        return None
-    elif 0 < diff <= .05:
-        return .25
+    if 0 < diff <= .05:
+        return .5
     elif .05 < diff <= .10:
-        return .5 
-    elif .10 < diff <= .15: 
-        return 1 
+        return 1
+    elif .10 < diff <= .15:
+        return 1.5
     elif .15 < diff <= .20:
-        return 1.5 
-    elif .20 < diff:
-        return 2 
-    # elif .25 < diff <= .30:
-    #     return 2.5 
-    # elif .35 < diff <= .40:
-    #     return 3 
-    # elif .40 < diff:
-    #     return 3.5 
+        return 2
+    else:
+        return None
 
 
 def calculate_profit(y_test, y_pred, y_prob):
@@ -110,8 +100,8 @@ def calculate_profit(y_test, y_pred, y_prob):
     # Merge y_test
     df = pd.merge(y_test, odds, left_index=True, right_index=True, how='left')
     df['y_pred'] = y_pred
-    df['y_prob_a'] = [prob[0] - .06 for prob in y_prob]
-    df['y_prob_h'] = [prob[1] + .06 for prob in y_prob]
+    df['y_prob_a'] = [prob[0] for prob in y_prob]
+    df['y_prob_h'] = [prob[1] for prob in y_prob]
     df.dropna(axis=0, inplace=True)
 
     # Calculate profit for every pick
@@ -142,22 +132,9 @@ def calculate_profit(y_test, y_pred, y_prob):
     df['risk_correct'] = np.where(df['y_pred'] == df['y'], 1, 0)
     df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
-    
-    # # Save 2021 to csv
-    # df_2021 = df[['ml_h', 'ml_a', 'y', 'y_pred', 'risk_unit', 'risk_profit']].copy()
-    # df_2021.rename({'y': 'outcome', 'y_pred': 'prediction', 'risk_profit': 'profit'}, axis=1, inplace=True)
-    # df_2021['date'] = [index[0] for index in df_2021.index]
-    # df_2021['home'] = [index[1] for index in df_2021.index]
-    # df_2021['away'] = [index[2] for index in df_2021.index]
-    # df_2021['week'] = [index[3] for index in df_2021.index]
-    # df_2021['season'] = [index[4] for index in df_2021.index]
-    # df_2021['outcome'] = np.where(df_2021['outcome'], df_2021['home'], df_2021['away'])
-    # df_2021['prediction'] = np.where(df_2021['prediction'], df_2021['home'], df_2021['away'])
-    # df_2021 = df_2021[['date', 'home', 'ml_h', 'away', 'ml_a', 'outcome', 'prediction', 'risk_unit', 'profit', 'week', 'season']]
-    # df_2021.to_csv('backend/data/predictions/2021_nn.csv', index=False)
 
     df.dropna(subset=['risk_unit'], axis=0, inplace=True)
-    df.to_csv('backend/data/risk.csv')
+    df.to_csv('backend/data/predictions/2021_nn.csv')
     risk_df = df.groupby(['pick_fav']).aggregate({'risk_profit': 'sum', 'risk_correct': ['sum', 'count']})
     risk_df['accuracy'] = risk_df[('risk_correct', 'sum')] / risk_df[('risk_correct', 'count')]
     print(f"\tRisk Profit: {round(risk_df[('risk_profit', 'sum')].sum())} Units")
@@ -182,13 +159,15 @@ def nn():
     # Load data
     df = load_data()
     
-    # last_season = df[df.index.get_level_values(4) == 2021]
-    # df = df[df.index.get_level_values(4) != 2021]
     X = df.drop(['y'], axis=1)
     y = df[['y']]
 
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=1)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=1)
+    X_train = X[X.index.get_level_values(4) < 2021]
+    X_test = X[X.index.get_level_values(4) >= 2021]
+    y_train = y[y.index.get_level_values(4) < 2021]
+    y_test = y[y.index.get_level_values(4) >= 2021]
 
     # Pipeline
     pipe = Pipeline(
@@ -214,10 +193,6 @@ def nn():
     # Calculate profit
     print(f'\nNN Model: ')
     calculate_profit(y_test, y_pred, y_prob)
-
-    # # Calculate season profit
-    # print(f'\nSeason 2021: ')
-    # calculate_profit(last_season[['y']], pipe.predict(last_season.drop(['y'], axis=1)), pipe.predict_proba(last_season.drop(['y'], axis=1)))
 
     # Save model
     with open('modeling/models/nn.pkl','wb') as f:
