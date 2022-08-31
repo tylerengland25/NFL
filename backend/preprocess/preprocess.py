@@ -845,7 +845,7 @@ def team_percentage(df):
     ).groupby(
         ['team', 'season']
     ).rolling(
-        window=5,
+        window=10,
         min_periods=1,
         closed='left'
     )['y'].agg(
