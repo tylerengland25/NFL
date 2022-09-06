@@ -60,8 +60,21 @@ def risk_management(diff, odds):
     Output:
         unit: float
     """
-    if -.20 < diff <= .20 :
-        return abs(diff) * abs(odds) / 100
+    if -.20 <= diff <= .20 :
+        if abs(diff) <= .03:
+            return 2
+        elif .03 < abs(diff) <= .06:
+            return 1.5
+        elif .06 < abs(diff) <= .09:
+            return 1.25
+        elif .09 < abs(diff) <= .12:
+            return 1
+        elif .12 < abs(diff) <= .15:
+            return .75
+        elif .15 < abs(diff) <= .18:
+            return .5
+        elif .18 < abs(diff) <= .20:
+            return .25
     else:
         return None
 
