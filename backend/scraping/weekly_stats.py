@@ -116,13 +116,14 @@ def scrape_tag(tag, game_info):
     return pd.DataFrame(df)
 
 
-def scrape_scores(scores, game_info, dfs):
+def scrape_scores(scores, three_straight, game_info, dfs):
     """
     Function: 
         Scrape scores
 
     Input:
-        team_stats: tag
+        scores: tag
+        three_straight: tag
         game_info: dict(
             str: str, 
             str: str, 
@@ -149,6 +150,22 @@ def scrape_scores(scores, game_info, dfs):
     for row in scores.find('tbody').find_all('tr'):
         for score in zip(scores.find_all('th')[2:], row.find_all('td')[2:]):
             df[score[0].text].append(score[1].text)
+
+    # Three straight scores
+    three_straight_scores = False
+    last_score = three_straight.find('tbody').find_all('td', attrs={'data-stat': 'team'})[0].text
+    count = 1
+    for team in three_straight.find('tbody').find_all('td', attrs={'data-stat': 'team'})[1:]:
+        if team.text == last_score:
+            count += 1
+            last_score = team.text
+            if count >= 3:
+                three_straight_scores = True
+        else:
+            count = 1
+            last_score = team.text
+    
+    df['3_straight'] = [three_straight_scores, three_straight_scores]
     
     dfs['scores'] = dfs['scores'].append(pd.DataFrame(df), ignore_index=True)
 
@@ -411,6 +428,7 @@ def scrape_game(game_info, dfs):
 
     # Set tables
     scores = soup.find('table', attrs={'class': 'linescore nohover stats_table no_freeze'})
+    three_straight = soup.find('table', attrs={'class': 'stats_table', 'id': 'scoring'})
     team_stats = soup.find('table', attrs={'id': 'team_stats'})
     player_offense = soup.find('table', attrs={'id': 'player_offense'})
     player_defense = soup.find('table', attrs={'id': 'player_defense'})
@@ -426,6 +444,8 @@ def scrape_game(game_info, dfs):
         comment_soup = BeautifulSoup(comment, 'html.parser')
         if scores is None: # Scores
             scores = comment_soup.find('table', attrs={'class': 'linescore nohover stats_table no_freeze'})
+        if three_straight is None: # Three Consectutive Scores
+            three_straight = comment_soup.find('table', attrs={'class': 'stats_table', 'id': 'scoring'})
         if team_stats is None: # Team stats
             team_stats = comment_soup.find('table', attrs={'id': 'team_stats'})
         if player_offense is None: # Player offense
@@ -446,7 +466,7 @@ def scrape_game(game_info, dfs):
             away_drives = comment_soup.find('table', attrs={'id': 'vis_drives'})
     
     # Scrape data for each table
-    scrape_scores(scores, game_info, dfs)
+    scrape_scores(scores, three_straight, game_info, dfs)
     scrape_team_stats(team_stats, game_info, dfs)
     scrape_player_offense(player_offense, game_info, dfs)
     scrape_player_defense(player_defense, game_info, dfs)
