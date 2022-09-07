@@ -572,7 +572,7 @@ def scrape_season(season, dfs):
     soup = BeautifulSoup(html, features="lxml")
     
     # Week links
-    week_hrefs = {a['href'] for a in soup.find_all('a') if '/week_' in a['href']}
+    week_hrefs = [a['href'] for a in soup.find_all('a') if '/week_' in a['href']]
 
     # Iterate of each week
     for href in week_hrefs:
