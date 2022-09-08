@@ -155,6 +155,9 @@ def scrape_scores(scores, three_straight, game_info, dfs):
     # Three straight scores
     three_straight_scores = False
     last_score = three_straight.find('tbody').find_all('td', attrs={'data-stat': 'team'})[0].text
+    first_score_team = three_straight.find('tbody').find_all('td', attrs={'data-stat': 'team'})[0].text
+    first_score_quarter = three_straight.find('tbody').find_all('th', attrs={'data-stat': 'quarter'})[0].text
+    first_score_time = three_straight.find('tbody').find_all('td', attrs={'data-stat': 'time'})[0].text
     count = 1
     for team in three_straight.find('tbody').find_all('td', attrs={'data-stat': 'team'})[1:]:
         if team.text == last_score:
@@ -167,6 +170,9 @@ def scrape_scores(scores, three_straight, game_info, dfs):
             last_score = team.text
     
     df['3_straight'] = [three_straight_scores, three_straight_scores]
+    df['first_score_team'] = [first_score_team, first_score_team]
+    df['first_score_quarter'] = [first_score_quarter, first_score_quarter]
+    df['first_score_time'] = [first_score_time, first_score_time]
     
     dfs['scores'] = dfs['scores'].append(pd.DataFrame(df), ignore_index=True)
 
