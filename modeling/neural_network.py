@@ -1,9 +1,5 @@
-import sys
 import pandas as pd
 import numpy as np
-from datetime import date
-sys.path.append('c:\\Users\\tyler\\OneDrive\\Documents\\Python\\NFL')
-from backend.preprocess.preprocess import main as load_data
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -28,8 +24,6 @@ def load_odds():
     """
     # Load and clean odds
     odds = pd.read_csv('backend/data/odds/odds.csv')
-    odds['home'] = odds['home'].apply(lambda x: ' '.join([word.capitalize() for word in x.split('-')]))
-    odds['away'] = odds['away'].apply(lambda x: ' '.join([word.capitalize() for word in x.split('-')]))
     odds.rename({'year': 'season'}, axis=1, inplace=True)
     odds.set_index(['home', 'away', 'week', 'season'], inplace=True, drop=True)
     
@@ -60,21 +54,17 @@ def risk_management(diff, odds):
     Output:
         unit: float
     """
-    if -.20 <= diff <= .20 :
-        if abs(diff) <= .03:
-            return 2
-        elif .03 < abs(diff) <= .06:
-            return 1.5
-        elif .06 < abs(diff) <= .09:
-            return 1.25
-        elif .09 < abs(diff) <= .12:
+    if 0 <= diff <= .25:
+        if 0 <= diff < .05:
             return 1
-        elif .12 < abs(diff) <= .15:
-            return .75
-        elif .15 < abs(diff) <= .18:
-            return .5
-        elif .18 < abs(diff) <= .20:
-            return .25
+        elif .05 <= diff < .10:
+            return 1.25
+        elif .10 <= diff < .15:
+            return 1.5
+        elif .15 <= diff < .20:
+            return 1.75
+        elif .20 <= diff <= .25:
+            return 2
     else:
         return None
 
@@ -152,11 +142,11 @@ def nn():
     y = df[['y']]
 
     # Split data
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=1)
-    X_train = X[X.index.get_level_values(4) < 2021]
-    X_test = X[X.index.get_level_values(4) >= 2021]
-    y_train = y[y.index.get_level_values(4) < 2021]
-    y_test = y[y.index.get_level_values(4) >= 2021]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=1)
+    # X_train = X[X.index.get_level_values(4) < 2021]
+    # X_test = X[X.index.get_level_values(4) >= 2021]
+    # y_train = y[y.index.get_level_values(4) < 2021]
+    # y_test = y[y.index.get_level_values(4) >= 2021]
 
     # Pipeline
     pipe = Pipeline(
