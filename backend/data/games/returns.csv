@@ -11280,3 +11280,139 @@ date,week,season,team,opponent,home_field,player,kick_ret,kick_ret_yds,kick_ret_
 "Jan 23, 2022",20,2021,Kansas City Chiefs,Buffalo Bills,True,Tyreek Hill,0,0.0,,0,0,1,45.0,45.0,0,45
 "Jan 23, 2022",20,2021,Kansas City Chiefs,Buffalo Bills,True,Mike Hughes,0,0.0,,0,0,1,15.0,15.0,0,15
 "Jan 23, 2022",20,2021,Kansas City Chiefs,Buffalo Bills,True,Byron Pringle,1,26.0,26.0,0,26,0,0.0,,0,0
+"Sep 8, 2022",1,2022,Buffalo Bills,Los Angeles Rams,False,Jamison Crowder,0,0.0,,0,0,1,21.0,21.0,0,21
+"Sep 8, 2022",1,2022,Los Angeles Rams,Buffalo Bills,True,Brandon Powell,4,67.0,16.8,0,21,0,0.0,,0,0
+"Sep 11, 2022",1,2022,New Orleans Saints,Atlanta Falcons,False,Deonte Harty,0,0.0,,0,0,1,12.0,12.0,0,12
+"Sep 11, 2022",1,2022,Atlanta Falcons,New Orleans Saints,True,Avery Williams,0,0.0,,0,0,3,42.0,14.0,0,18
+"Sep 11, 2022",1,2022,Cleveland Browns,Carolina Panthers,False,Demetric Felton,0,0.0,,0,0,5,29.0,5.8,0,15
+"Sep 11, 2022",1,2022,Cleveland Browns,Carolina Panthers,False,Jerome Ford,1,29.0,29.0,0,29,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Carolina Panthers,Cleveland Browns,True,Andre Roberts,2,35.0,17.5,0,18,1,10.0,10.0,0,10
+"Sep 11, 2022",1,2022,San Francisco 49ers,Chicago Bears,False,Ray-Ray McCloud,2,42.0,21.0,0,21,2,23.0,11.5,0,16
+"Sep 11, 2022",1,2022,Chicago Bears,San Francisco 49ers,True,Dante Pettis,0,0.0,,0,0,1,0.0,0.0,0,0
+"Sep 11, 2022",1,2022,Chicago Bears,San Francisco 49ers,True,Trestan Ebner,2,48.0,24.0,0,30,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Pittsburgh Steelers,Cincinnati Bengals,False,Gunner Olszewski,1,1.0,1.0,0,1,1,20.0,20.0,0,20
+"Sep 11, 2022",1,2022,Cincinnati Bengals,Pittsburgh Steelers,True,Trent Taylor,0,0.0,,0,0,5,31.0,6.2,0,10
+"Sep 11, 2022",1,2022,Philadelphia Eagles,Detroit Lions,False,Britain Covey,0,0.0,,0,0,2,13.0,6.5,0,11
+"Sep 11, 2022",1,2022,Philadelphia Eagles,Detroit Lions,False,Quez Watkins,3,38.0,12.7,0,17,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Detroit Lions,Philadelphia Eagles,True,Kalif Raymond,0,0.0,,0,0,3,15.0,5.0,0,12
+"Sep 11, 2022",1,2022,Indianapolis Colts,Houston Texans,False,Nyheim Hines,0,0.0,,0,0,5,31.0,6.2,0,11
+"Sep 11, 2022",1,2022,New England Patriots,Miami Dolphins,False,Myles Bryant,0,0.0,,0,0,2,12.0,6.0,0,12
+"Sep 11, 2022",1,2022,New England Patriots,Miami Dolphins,False,Ty Montgomery,1,28.0,28.0,0,28,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Miami Dolphins,New England Patriots,True,Alec Ingold,1,12.0,12.0,0,12,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Miami Dolphins,New England Patriots,True,Raheem Mostert,1,16.0,16.0,0,16,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Baltimore Ravens,New York Jets,False,Devin Duvernay,0,0.0,,0,0,2,17.0,8.5,0,9
+"Sep 11, 2022",1,2022,New York Jets,Baltimore Ravens,True,Braxton Berrios,2,48.0,24.0,0,25,2,30.0,15.0,0,17
+"Sep 11, 2022",1,2022,Jacksonville Jaguars,Washington Commanders,False,Jamal Agnew,0,0.0,,0,0,1,2.0,2.0,0,2
+"Sep 11, 2022",1,2022,Washington Commanders,Jacksonville Jaguars,True,Dax Milne,2,44.0,22.0,0,24,2,22.0,11.0,0,13
+"Sep 11, 2022",1,2022,Kansas City Chiefs,Arizona Cardinals,False,Skyy Moore,1,23.0,23.0,0,23,4,41.0,10.3,0,15
+"Sep 11, 2022",1,2022,Kansas City Chiefs,Arizona Cardinals,False,Mecole Hardman,0,0.0,,0,0,1,3.0,3.0,0,3
+"Sep 11, 2022",1,2022,Kansas City Chiefs,Arizona Cardinals,False,Isiah Pacheco,1,22.0,22.0,0,22,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Arizona Cardinals,Kansas City Chiefs,True,Greg Dortch,0,0.0,,0,0,1,-1.0,-1.0,0,-1
+"Sep 11, 2022",1,2022,Arizona Cardinals,Kansas City Chiefs,True,Eno Benjamin,2,68.0,34.0,0,44,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Green Bay Packers,Minnesota Vikings,False,Amari Rodgers,1,14.0,14.0,0,14,1,12.0,12.0,0,12
+"Sep 11, 2022",1,2022,Minnesota Vikings,Green Bay Packers,True,Jalen Reagor,0,0.0,,0,0,1,7.0,7.0,0,7
+"Sep 11, 2022",1,2022,Minnesota Vikings,Green Bay Packers,True,Kene Nwangwu,1,25.0,25.0,0,25,0,0.0,,0,0
+"Sep 11, 2022",1,2022,New York Giants,Tennessee Titans,False,Richie James,0,0.0,,0,0,5,62.0,12.4,0,22
+"Sep 11, 2022",1,2022,New York Giants,Tennessee Titans,False,Gary Brightwell,2,41.0,20.5,0,24,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Tennessee Titans,New York Giants,True,Kyle Philips,0,0.0,,0,0,4,62.0,15.5,0,46
+"Sep 11, 2022",1,2022,Tennessee Titans,New York Giants,True,Trenton Cannon,2,33.0,16.5,0,19,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Las Vegas Raiders,Los Angeles Chargers,False,Hunter Renfrow,0,0.0,,0,0,2,4.0,2.0,0,4
+"Sep 11, 2022",1,2022,Los Angeles Chargers,Las Vegas Raiders,True,Joshua Kelley,1,15.0,15.0,0,15,0,0.0,,0,0
+"Sep 11, 2022",1,2022,Tampa Bay Buccaneers,Dallas Cowboys,False,Jaelon Darden,0,0.0,,0,0,3,28.0,9.3,0,10
+"Sep 11, 2022",1,2022,Dallas Cowboys,Tampa Bay Buccaneers,True,KaVontae Turpin,4,77.0,19.3,0,22,1,3.0,3.0,0,3
+"Sep 12, 2022",1,2022,Denver Broncos,Seattle Seahawks,False,Montrell Washington,3,51.0,17.0,0,21,1,3.0,3.0,0,3
+"Sep 12, 2022",1,2022,Seattle Seahawks,Denver Broncos,True,DeeJay Dallas,3,77.0,25.7,0,30,0,0.0,,0,0
+"Sep 15, 2022",2,2022,Los Angeles Chargers,Kansas City Chiefs,False,DeAndre Carter,2,43.0,21.5,0,30,2,17.0,8.5,0,12
+"Sep 15, 2022",2,2022,Kansas City Chiefs,Los Angeles Chargers,True,Skyy Moore,0,0.0,,0,0,2,6.0,3.0,0,6
+"Sep 18, 2022",2,2022,New York Jets,Cleveland Browns,False,Braxton Berrios,3,75.0,25.0,0,27,1,16.0,16.0,0,16
+"Sep 18, 2022",2,2022,Cleveland Browns,New York Jets,True,Demetric Felton,0,0.0,,0,0,2,13.0,6.5,0,13
+"Sep 18, 2022",2,2022,Cleveland Browns,New York Jets,True,Jerome Ford,2,67.0,33.5,0,44,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Washington Commanders,Detroit Lions,False,Dax Milne,6,128.0,21.3,0,33,3,33.0,11.0,0,19
+"Sep 18, 2022",2,2022,Detroit Lions,Washington Commanders,True,Kalif Raymond,1,52.0,52.0,0,52,1,8.0,8.0,0,8
+"Sep 18, 2022",2,2022,Detroit Lions,Washington Commanders,True,Justin Jackson,1,33.0,33.0,0,33,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Indianapolis Colts,Jacksonville Jaguars,False,Keke Coutee,0,0.0,,0,0,3,3.0,1.0,0,8
+"Sep 18, 2022",2,2022,Indianapolis Colts,Jacksonville Jaguars,False,Isaiah Rodgers,2,43.0,21.5,0,24,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Indianapolis Colts,Jacksonville Jaguars,False,Kylen Granson,1,15.0,15.0,0,15,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Jacksonville Jaguars,Indianapolis Colts,True,Jamal Agnew,0,0.0,,0,0,2,7.0,3.5,0,12
+"Sep 18, 2022",2,2022,Tampa Bay Buccaneers,New Orleans Saints,False,Jaelon Darden,0,0.0,,0,0,2,17.0,8.5,0,17
+"Sep 18, 2022",2,2022,Tampa Bay Buccaneers,New Orleans Saints,False,Giovani Bernard,1,14.0,14.0,0,14,0,0.0,,0,0
+"Sep 18, 2022",2,2022,New Orleans Saints,Tampa Bay Buccaneers,True,Deonte Harty,2,65.0,32.5,0,33,1,-6.0,-6.0,0,-6
+"Sep 18, 2022",2,2022,Carolina Panthers,New York Giants,False,Shi Smith,0,0.0,,0,0,2,17.0,8.5,0,9
+"Sep 18, 2022",2,2022,Carolina Panthers,New York Giants,False,Chuba Hubbard,3,75.0,25.0,0,36,0,0.0,,0,0
+"Sep 18, 2022",2,2022,New England Patriots,Pittsburgh Steelers,False,Myles Bryant,0,0.0,,0,0,3,22.0,7.3,0,16
+"Sep 18, 2022",2,2022,New England Patriots,Pittsburgh Steelers,False,Pierre Strong,2,48.0,24.0,0,26,0,0.0,,0,0
+"Sep 18, 2022",2,2022,New England Patriots,Pittsburgh Steelers,False,Kyle Dugger,1,37.0,37.0,0,37,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Pittsburgh Steelers,New England Patriots,True,Gunner Olszewski,0,0.0,,0,0,1,0.0,0.0,0,0
+"Sep 18, 2022",2,2022,Miami Dolphins,Baltimore Ravens,False,Jevon Holland,0,0.0,,0,0,1,8.0,8.0,0,8
+"Sep 18, 2022",2,2022,Miami Dolphins,Baltimore Ravens,False,Durham Smythe,1,18.0,18.0,0,18,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Baltimore Ravens,Miami Dolphins,True,Devin Duvernay,1,103.0,103.0,1,103,1,5.0,5.0,0,5
+"Sep 18, 2022",2,2022,Atlanta Falcons,Los Angeles Rams,False,Cordarrelle Patterson,1,27.0,27.0,0,27,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Los Angeles Rams,Atlanta Falcons,True,Brandon Powell,1,15.0,15.0,0,15,1,-1.0,-1.0,0,-1
+"Sep 18, 2022",2,2022,Seattle Seahawks,San Francisco 49ers,False,Xavier Crawford,0,0.0,,0,0,1,0.0,0.0,0,0
+"Sep 18, 2022",2,2022,Seattle Seahawks,San Francisco 49ers,False,DeeJay Dallas,3,46.0,15.3,0,16,0,0.0,,0,0
+"Sep 18, 2022",2,2022,San Francisco 49ers,Seattle Seahawks,True,Ray-Ray McCloud,0,0.0,,0,0,3,23.0,7.7,0,14
+"Sep 18, 2022",2,2022,Cincinnati Bengals,Dallas Cowboys,False,Trent Taylor,0,0.0,,0,0,1,20.0,20.0,0,20
+"Sep 18, 2022",2,2022,Dallas Cowboys,Cincinnati Bengals,True,KaVontae Turpin,0,0.0,,0,0,2,34.0,17.0,0,20
+"Sep 18, 2022",2,2022,Houston Texans,Denver Broncos,False,Desmond King,0,0.0,,0,0,1,7.0,7.0,0,7
+"Sep 18, 2022",2,2022,Houston Texans,Denver Broncos,False,Tremon Smith,1,22.0,22.0,0,22,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Denver Broncos,Houston Texans,True,Montrell Washington,1,17.0,17.0,0,17,4,59.0,14.8,0,19
+"Sep 18, 2022",2,2022,Arizona Cardinals,Las Vegas Raiders,False,Greg Dortch,0,0.0,,0,0,2,21.0,10.5,0,18
+"Sep 18, 2022",2,2022,Arizona Cardinals,Las Vegas Raiders,False,Eno Benjamin,2,40.0,20.0,0,22,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Chicago Bears,Green Bay Packers,False,Trestan Ebner,4,98.0,24.5,0,30,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Chicago Bears,Green Bay Packers,False,Ihmir Smith-Marsette,1,17.0,17.0,0,17,0,0.0,,0,0
+"Sep 18, 2022",2,2022,Green Bay Packers,Chicago Bears,True,Amari Rodgers,1,24.0,24.0,0,24,3,20.0,6.7,0,20
+"Sep 19, 2022",2,2022,Tennessee Titans,Buffalo Bills,False,Amani Hooker,0,0.0,,0,0,1,0.0,0.0,0,0
+"Sep 19, 2022",2,2022,Tennessee Titans,Buffalo Bills,False,Kyle Philips,0,0.0,,0,0,1,0.0,0.0,0,0
+"Sep 19, 2022",2,2022,Tennessee Titans,Buffalo Bills,False,Hassan Haskins,2,40.0,20.0,0,20,0,0.0,,0,0
+"Sep 19, 2022",2,2022,Buffalo Bills,Tennessee Titans,True,Jamison Crowder,0,0.0,,0,0,4,41.0,10.3,0,16
+"Sep 19, 2022",2,2022,Minnesota Vikings,Philadelphia Eagles,False,Jalen Reagor,0,0.0,,0,0,2,5.0,2.5,0,4
+"Sep 19, 2022",2,2022,Minnesota Vikings,Philadelphia Eagles,False,Kene Nwangwu,2,42.0,21.0,0,22,0,0.0,,0,0
+"Sep 19, 2022",2,2022,Philadelphia Eagles,Minnesota Vikings,True,Britain Covey,0,0.0,,0,0,3,14.0,4.7,0,8
+"Sep 19, 2022",2,2022,Philadelphia Eagles,Minnesota Vikings,True,Quez Watkins,2,13.0,6.5,0,9,0,0.0,,0,0
+"Sep 22, 2022",3,2022,Pittsburgh Steelers,Cleveland Browns,False,Gunner Olszewski,1,18,18.0,0,18,0,0,,0,0
+"Sep 22, 2022",3,2022,Cleveland Browns,Pittsburgh Steelers,True,Chester Rogers,0,0,,0,0,2,11,5.5,0,7
+"Sep 22, 2022",3,2022,Cleveland Browns,Pittsburgh Steelers,True,David Bell,1,12,12.0,0,12,0,0,,0,0
+"Sep 22, 2022",3,2022,Cleveland Browns,Pittsburgh Steelers,True,Jerome Ford,1,15,15.0,0,15,0,0,,0,0
+"Sep 25, 2022",3,2022,New Orleans Saints,Carolina Panthers,False,Jarvis Landry,0,0,,0,0,2,17,8.5,0,14
+"Sep 25, 2022",3,2022,New Orleans Saints,Carolina Panthers,False,Dwayne Washington,3,56,18.7,0,24,0,0,,0,0
+"Sep 25, 2022",3,2022,Carolina Panthers,New Orleans Saints,True,Shi Smith,0,0,,0,0,3,22,7.3,0,12
+"Sep 25, 2022",3,2022,Carolina Panthers,New Orleans Saints,True,Laviska Shenault Jr.,2,54,27.0,0,36,0,0,,0,0
+"Sep 25, 2022",3,2022,Houston Texans,Chicago Bears,False,Desmond King,0,0,,0,0,1,31,31.0,0,31
+"Sep 25, 2022",3,2022,Chicago Bears,Houston Texans,True,Dante Pettis,0,0,,0,0,2,1,0.5,0,1
+"Sep 25, 2022",3,2022,Chicago Bears,Houston Texans,True,Trestan Ebner,3,52,17.3,0,20,0,0,,0,0
+"Sep 25, 2022",3,2022,Kansas City Chiefs,Indianapolis Colts,False,Skyy Moore,0,0,,0,0,2,12,6.0,0,12
+"Sep 25, 2022",3,2022,Kansas City Chiefs,Indianapolis Colts,False,Isiah Pacheco,5,94,18.8,0,29,0,0,,0,0
+"Sep 25, 2022",3,2022,Indianapolis Colts,Kansas City Chiefs,True,Nyheim Hines,0,0,,0,0,1,10,10.0,0,10
+"Sep 25, 2022",3,2022,Indianapolis Colts,Kansas City Chiefs,True,Isaiah Rodgers,2,57,28.5,0,31,0,0,,0,0
+"Sep 25, 2022",3,2022,Buffalo Bills,Miami Dolphins,False,Jamison Crowder,1,17,17.0,0,17,3,32,10.7,0,14
+"Sep 25, 2022",3,2022,Miami Dolphins,Buffalo Bills,True,Raheem Mostert,3,54,18.0,0,23,0,0,,0,0
+"Sep 25, 2022",3,2022,Detroit Lions,Minnesota Vikings,False,Kalif Raymond,0,0,,0,0,2,23,11.5,0,12
+"Sep 25, 2022",3,2022,Detroit Lions,Minnesota Vikings,False,Justin Jackson,3,60,20.0,0,24,0,0,,0,0
+"Sep 25, 2022",3,2022,Minnesota Vikings,Detroit Lions,True,Jalen Reagor,0,0,,0,0,2,20,10.0,0,9
+"Sep 25, 2022",3,2022,Minnesota Vikings,Detroit Lions,True,Kene Nwangwu,5,115,23.0,0,29,0,0,,0,0
+"Sep 25, 2022",3,2022,Baltimore Ravens,New England Patriots,False,Devin Duvernay,1,25,25.0,0,25,2,55,27.5,0,43
+"Sep 25, 2022",3,2022,New England Patriots,Baltimore Ravens,True,Myles Bryant,0,0,,0,0,2,13,6.5,0,13
+"Sep 25, 2022",3,2022,New England Patriots,Baltimore Ravens,True,Marcus Jones,2,45,22.5,0,26,0,0,,0,0
+"Sep 25, 2022",3,2022,Cincinnati Bengals,New York Jets,False,Trent Taylor,0,0,,0,0,2,23,11.5,0,15
+"Sep 25, 2022",3,2022,New York Jets,Cincinnati Bengals,True,Braxton Berrios,1,20,20.0,0,20,1,10,10.0,0,10
+"Sep 25, 2022",3,2022,Las Vegas Raiders,Tennessee Titans,False,Keelan Cole,0,0,,0,0,1,13,13.0,0,13
+"Sep 25, 2022",3,2022,Las Vegas Raiders,Tennessee Titans,False,Ameer Abdullah,1,23,23.0,0,23,0,0,,0,0
+"Sep 25, 2022",3,2022,Tennessee Titans,Las Vegas Raiders,True,Robert Woods,0,0,,0,0,1,21,21.0,0,21
+"Sep 25, 2022",3,2022,Tennessee Titans,Las Vegas Raiders,True,Hassan Haskins,1,29,29.0,0,29,0,0,,0,0
+"Sep 25, 2022",3,2022,Philadelphia Eagles,Washington Commanders,False,Britain Covey,0,0,,0,0,5,34,6.8,0,12
+"Sep 25, 2022",3,2022,Philadelphia Eagles,Washington Commanders,False,DeVonta Smith,0,0,,0,0,1,12,12.0,0,12
+"Sep 25, 2022",3,2022,Washington Commanders,Philadelphia Eagles,True,Dax Milne,1,29,29.0,0,29,0,0,,0,0
+"Sep 25, 2022",3,2022,Jacksonville Jaguars,Los Angeles Chargers,False,Jamal Agnew,0,0,,0,0,3,18,6.0,0,13
+"Sep 25, 2022",3,2022,Los Angeles Chargers,Jacksonville Jaguars,True,DeAndre Carter,2,41,20.5,0,27,1,6,6.0,0,6
+"Sep 25, 2022",3,2022,Los Angeles Rams,Arizona Cardinals,False,Brandon Powell,1,31,31.0,0,31,3,43,14.3,0,22
+"Sep 25, 2022",3,2022,Los Angeles Rams,Arizona Cardinals,False,Jake Gervase,0,0,,0,0,1,1,1.0,0,1
+"Sep 25, 2022",3,2022,Arizona Cardinals,Los Angeles Rams,True,Greg Dortch,0,0,,0,0,3,12,4.0,0,10
+"Sep 25, 2022",3,2022,Atlanta Falcons,Seattle Seahawks,False,Avery Williams,0,0,,0,0,1,6,6.0,0,6
+"Sep 25, 2022",3,2022,Seattle Seahawks,Atlanta Falcons,True,DeeJay Dallas,2,52,26.0,0,30,0,0,,0,0
+"Sep 25, 2022",3,2022,Green Bay Packers,Tampa Bay Buccaneers,False,Amari Rodgers,0,0,,0,0,2,21,10.5,0,14
+"Sep 25, 2022",3,2022,Tampa Bay Buccaneers,Green Bay Packers,True,Jaelon Darden,0,0,,0,0,3,26,8.7,0,16
+"Sep 25, 2022",3,2022,Tampa Bay Buccaneers,Green Bay Packers,True,Rachaad White,1,20,20.0,0,20,0,0,,0,0
+"Sep 25, 2022",3,2022,San Francisco 49ers,Denver Broncos,False,Ray-Ray McCloud,2,23,11.5,0,15,5,40,8.0,0,18
+"Sep 25, 2022",3,2022,Denver Broncos,San Francisco 49ers,True,Montrell Washington,1,14,14.0,0,14,1,9,9.0,0,9
+"Sep 26, 2022",3,2022,Dallas Cowboys,New York Giants,False,KaVontae Turpin,1,24,24.0,0,24,1,28,28.0,0,28
+"Sep 26, 2022",3,2022,New York Giants,Dallas Cowboys,True,Richie James,0,0,,0,0,2,1,0.5,0,1

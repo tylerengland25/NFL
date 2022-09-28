@@ -6447,3 +6447,99 @@ date,week,season,team,opponent,home_field,1st,rush_att,rush_yds,rush_tds,cmp,att
 "Jan 23, 2022",20,2021,Tampa Bay Buccaneers,Los Angeles Rams,True,20,14,51.0,2,30,54,329,1,1,3,21,308,359,1,1,2,4,61,3,14,2,4,25:52
 "Jan 23, 2022",20,2021,Buffalo Bills,Kansas City Chiefs,False,23,24,109.0,1,27,37,329,4,0,2,16,313,422,1,0,0,3,15,6,14,4,4,27:37
 "Jan 23, 2022",20,2021,Kansas City Chiefs,Buffalo Bills,True,30,27,182.0,2,33,44,378,3,0,2,8,370,552,1,0,0,1,10,8,13,1,1,36:38
+"Sep 8, 2022",1,2022,Buffalo Bills,Los Angeles Rams,False,23,25,121.0,1,26,31,297,3,2,2,5,292,413,2,2,4,5,35,9,10,0,0,31:14
+"Sep 8, 2022",1,2022,Los Angeles Rams,Buffalo Bills,True,19,18,52.0,0,29,41,240,1,3,7,49,191,243,1,0,3,4,30,6,13,2,3,28:46
+"Sep 11, 2022",1,2022,New Orleans Saints,Atlanta Falcons,False,18,19,151.0,1,23,34,269,2,0,4,35,234,385,1,1,1,8,99,4,13,0,0,26:16
+"Sep 11, 2022",1,2022,Atlanta Falcons,New Orleans Saints,True,26,38,201.0,2,20,33,215,0,0,0,0,215,416,3,2,2,8,55,5,13,0,0,33:44
+"Sep 11, 2022",1,2022,Cleveland Browns,Carolina Panthers,False,23,39,217.0,1,18,34,147,1,0,1,9,138,355,1,0,0,9,71,8,18,1,2,38:26
+"Sep 11, 2022",1,2022,Carolina Panthers,Cleveland Browns,True,15,19,54.0,2,16,27,235,1,1,4,28,207,261,5,0,1,8,96,4,11,0,0,21:34
+"Sep 11, 2022",1,2022,San Francisco 49ers,Chicago Bears,False,17,37,176.0,1,13,28,164,0,1,2,9,155,331,2,1,2,12,99,8,17,0,2,33:28
+"Sep 11, 2022",1,2022,Chicago Bears,San Francisco 49ers,True,15,37,99.0,1,8,17,121,2,1,2,16,105,204,0,0,1,3,24,5,14,0,0,26:32
+"Sep 11, 2022",1,2022,Pittsburgh Steelers,Cincinnati Bengals,False,13,22,75.0,0,21,38,194,1,0,1,2,192,267,1,0,0,8,59,4,15,0,0,26:17
+"Sep 11, 2022",1,2022,Cincinnati Bengals,Pittsburgh Steelers,True,32,34,133.0,0,33,53,338,2,4,7,39,299,432,2,1,5,4,27,8,16,1,3,43:43
+"Sep 11, 2022",1,2022,Philadelphia Eagles,Detroit Lions,False,27,39,216.0,4,18,32,243,0,0,1,4,239,455,0,0,0,10,61,10,17,2,3,31:34
+"Sep 11, 2022",1,2022,Detroit Lions,Philadelphia Eagles,True,23,28,181.0,3,21,37,215,2,1,1,10,205,386,1,0,1,7,65,9,14,1,1,28:26
+"Sep 11, 2022",1,2022,Indianapolis Colts,Houston Texans,False,33,38,177.0,1,32,50,352,1,1,2,12,340,517,5,1,2,7,89,6,15,0,1,39:37
+"Sep 11, 2022",1,2022,Houston Texans,Indianapolis Colts,True,20,28,77.0,0,23,37,240,2,0,3,18,222,299,1,1,1,6,40,5,15,0,0,30:23
+"Sep 11, 2022",1,2022,New England Patriots,Miami Dolphins,False,17,22,78.0,0,21,30,213,1,1,2,20,193,271,2,2,3,3,15,4,9,0,1,27:30
+"Sep 11, 2022",1,2022,Miami Dolphins,New England Patriots,True,18,23,65.0,0,23,33,270,1,0,3,28,242,307,2,0,0,4,20,6,14,1,1,32:30
+"Sep 11, 2022",1,2022,Baltimore Ravens,New York Jets,False,13,21,63.0,0,17,30,213,3,1,2,2,211,274,1,0,1,5,29,5,13,0,0,27:30
+"Sep 11, 2022",1,2022,New York Jets,Baltimore Ravens,True,24,17,83.0,0,37,59,307,1,1,3,12,295,378,2,1,2,6,81,2,14,3,4,32:30
+"Sep 11, 2022",1,2022,Jacksonville Jaguars,Washington Commanders,False,24,18,123.0,1,24,42,275,1,1,2,15,260,383,1,0,1,13,90,3,12,0,1,26:27
+"Sep 11, 2022",1,2022,Washington Commanders,Jacksonville Jaguars,True,26,28,85.0,0,27,41,313,4,2,1,8,305,390,1,1,3,6,63,7,10,0,0,33:33
+"Sep 11, 2022",1,2022,Kansas City Chiefs,Arizona Cardinals,False,33,27,128.0,1,30,39,360,5,0,0,0,360,488,5,1,1,3,25,5,8,1,1,34:42
+"Sep 11, 2022",1,2022,Arizona Cardinals,Kansas City Chiefs,True,18,22,103.0,1,24,38,205,2,0,3,26,179,282,3,0,0,5,49,3,12,3,4,25:18
+"Sep 11, 2022",1,2022,Green Bay Packers,Minnesota Vikings,False,21,18,111.0,1,26,39,260,0,1,4,33,227,338,1,1,2,2,10,3,9,0,2,28:37
+"Sep 11, 2022",1,2022,Minnesota Vikings,Green Bay Packers,True,19,28,126.0,0,23,32,277,2,0,1,8,269,395,0,0,0,3,20,4,13,1,1,31:23
+"Sep 11, 2022",1,2022,New York Giants,Tennessee Titans,False,19,32,238.0,1,17,21,188,2,1,5,32,156,394,2,1,2,8,45,2,10,1,1,28:54
+"Sep 11, 2022",1,2022,Tennessee Titans,New York Giants,True,19,26,93.0,0,20,33,266,2,0,1,0,266,359,2,1,1,7,50,3,11,0,0,31:06
+"Sep 11, 2022",1,2022,Las Vegas Raiders,Los Angeles Chargers,False,18,13,64.0,0,22,37,295,2,3,6,39,256,320,3,0,3,3,11,5,11,1,2,27:28
+"Sep 11, 2022",1,2022,Los Angeles Chargers,Las Vegas Raiders,True,18,31,76.0,0,26,34,279,3,0,0,0,279,355,1,0,0,5,21,6,14,0,1,32:32
+"Sep 11, 2022",1,2022,Tampa Bay Buccaneers,Dallas Cowboys,False,18,33,152.0,0,18,27,212,1,1,2,17,195,347,0,0,1,5,25,5,14,0,0,32:42
+"Sep 11, 2022",1,2022,Dallas Cowboys,Tampa Bay Buccaneers,True,12,18,71.0,0,21,42,198,0,1,4,25,173,244,0,0,1,10,73,3,15,2,5,27:18
+"Sep 12, 2022",1,2022,Denver Broncos,Seattle Seahawks,False,20,20,103.0,0,29,42,340,1,0,2,10,330,433,2,2,2,12,106,8,15,0,1,33:39
+"Sep 12, 2022",1,2022,Seattle Seahawks,Denver Broncos,True,19,19,76.0,0,23,28,195,2,0,2,18,177,253,3,1,1,5,77,6,11,0,1,26:21
+"Sep 15, 2022",2,2022,Los Angeles Chargers,Kansas City Chiefs,False,21,24,75.0,0,33,48,334,3,1,2,8,326,401,0,0,1,3,25,5,16,4,4,33:37
+"Sep 15, 2022",2,2022,Kansas City Chiefs,Los Angeles Chargers,True,15,18,93.0,0,24,35,235,2,0,1,9,226,319,0,0,0,6,54,4,12,0,0,26:23
+"Sep 18, 2022",2,2022,New York Jets,Cleveland Browns,False,20,20,93.0,0,27,45,324,4,0,2,15,309,402,2,1,1,8,57,8,15,1,1,27:46
+"Sep 18, 2022",2,2022,Cleveland Browns,New York Jets,True,29,37,184.0,3,22,27,229,1,1,1,8,221,405,0,0,1,5,38,8,12,0,0,32:14
+"Sep 18, 2022",2,2022,Washington Commanders,Detroit Lions,False,21,21,88.0,1,30,46,337,3,1,5,29,308,396,1,0,1,2,17,7,15,1,2,32:03
+"Sep 18, 2022",2,2022,Detroit Lions,Washington Commanders,True,17,24,191.0,0,20,34,256,4,0,3,22,234,425,0,0,0,1,5,4,13,0,2,27:57
+"Sep 18, 2022",2,2022,Indianapolis Colts,Jacksonville Jaguars,False,9,13,54.0,0,16,30,195,0,3,5,31,164,218,2,0,3,5,30,2,10,0,2,21:45
+"Sep 18, 2022",2,2022,Jacksonville Jaguars,Indianapolis Colts,True,21,37,96.0,1,25,30,235,2,0,0,0,235,331,0,0,0,3,19,6,15,2,3,38:15
+"Sep 18, 2022",2,2022,Tampa Bay Buccaneers,New Orleans Saints,False,13,30,72.0,0,18,34,190,1,0,1,2,188,260,1,1,1,8,101,5,17,0,1,29:43
+"Sep 18, 2022",2,2022,New Orleans Saints,Tampa Bay Buccaneers,True,18,20,102.0,0,25,40,236,1,3,6,30,206,308,4,2,5,9,60,4,13,0,1,30:17
+"Sep 18, 2022",2,2022,Carolina Panthers,New York Giants,False,18,23,146.0,0,14,29,145,1,0,2,16,129,275,3,2,2,5,38,2,12,1,1,23:55
+"Sep 18, 2022",2,2022,New York Giants,Carolina Panthers,True,18,33,103.0,0,22,34,176,1,0,3,14,162,265,0,0,0,8,62,6,18,1,1,36:05
+"Sep 18, 2022",2,2022,New England Patriots,Pittsburgh Steelers,False,18,31,124.0,1,21,35,252,1,1,0,0,252,376,0,0,1,7,55,9,17,0,0,33:36
+"Sep 18, 2022",2,2022,Pittsburgh Steelers,New England Patriots,True,16,22,91.0,0,21,33,168,1,1,3,16,152,243,1,1,2,3,20,8,15,0,0,26:24
+"Sep 18, 2022",2,2022,Miami Dolphins,Baltimore Ravens,False,27,18,86.0,0,36,50,469,6,2,1,8,461,547,0,0,2,8,51,7,11,2,2,34:47
+"Sep 18, 2022",2,2022,Baltimore Ravens,Miami Dolphins,True,23,25,155.0,1,21,29,318,3,0,0,0,318,473,1,0,0,1,5,3,10,1,3,25:13
+"Sep 18, 2022",2,2022,Atlanta Falcons,Los Angeles Rams,False,17,27,90.0,0,17,26,196,2,2,3,25,171,261,2,1,3,5,29,3,10,1,2,29:36
+"Sep 18, 2022",2,2022,Los Angeles Rams,Atlanta Falcons,True,24,26,65.0,1,27,36,272,3,2,1,0,272,337,1,1,3,3,61,6,10,0,1,30:24
+"Sep 18, 2022",2,2022,Seattle Seahawks,San Francisco 49ers,False,14,14,36.0,0,24,31,197,0,2,2,17,180,216,1,1,3,10,106,2,7,0,0,21:40
+"Sep 18, 2022",2,2022,San Francisco 49ers,Seattle Seahawks,True,25,45,189.0,2,15,24,184,1,0,1,0,184,373,1,0,0,1,26,6,15,2,3,38:20
+"Sep 18, 2022",2,2022,Cincinnati Bengals,Dallas Cowboys,False,19,25,89.0,0,24,36,199,1,0,6,34,165,254,1,0,0,7,35,6,17,1,1,33:48
+"Sep 18, 2022",2,2022,Dallas Cowboys,Cincinnati Bengals,True,19,27,107.0,1,19,31,235,1,0,1,5,230,337,1,1,1,5,45,3,10,1,1,26:12
+"Sep 18, 2022",2,2022,Houston Texans,Denver Broncos,False,15,18,80.0,0,19,38,177,0,0,3,23,154,234,2,0,0,8,94,2,13,1,3,27:27
+"Sep 18, 2022",2,2022,Denver Broncos,Houston Texans,True,20,31,149.0,0,14,31,219,1,1,3,18,201,350,0,0,1,13,100,3,12,1,1,32:33
+"Sep 18, 2022",2,2022,Arizona Cardinals,Las Vegas Raiders,False,28,28,143.0,2,31,49,277,1,1,1,7,270,413,0,0,1,12,120,3,13,3,5,36:22
+"Sep 18, 2022",2,2022,Las Vegas Raiders,Arizona Cardinals,True,20,21,80.0,0,25,39,252,2,0,1,8,244,324,2,1,1,10,68,6,11,0,0,29:47
+"Sep 18, 2022",2,2022,Chicago Bears,Green Bay Packers,False,11,27,180.0,1,7,11,70,0,1,3,22,48,228,1,0,1,7,50,1,7,0,1,22:45
+"Sep 18, 2022",2,2022,Green Bay Packers,Chicago Bears,True,26,38,203.0,1,19,25,234,2,0,3,23,211,414,3,1,1,3,25,5,9,0,0,37:15
+"Sep 19, 2022",2,2022,Tennessee Titans,Buffalo Bills,False,12,27,80.0,1,12,24,123,0,2,2,16,107,187,3,2,4,9,87,4,12,1,1,28:26
+"Sep 19, 2022",2,2022,Buffalo Bills,Tennessee Titans,True,23,24,101.0,0,26,40,317,4,0,1,4,313,414,0,0,0,8,49,5,13,2,3,31:34
+"Sep 19, 2022",2,2022,Minnesota Vikings,Philadelphia Eagles,False,20,11,62.0,0,27,46,221,1,3,2,19,202,264,1,0,3,5,25,4,12,0,0,23:46
+"Sep 19, 2022",2,2022,Philadelphia Eagles,Minnesota Vikings,True,25,34,163.0,2,26,31,333,1,1,3,10,323,486,1,0,1,8,60,7,13,0,0,36:14
+"Sep 22, 2022",3,2022,Pittsburgh Steelers,Cleveland Browns,False,20,22,104,2,20,32,207,0,0,1,3,204,308,2,1,1,5,25,1,9,0,0,23:51
+"Sep 22, 2022",3,2022,Cleveland Browns,Pittsburgh Steelers,True,22,38,171,1,21,31,220,2,0,2,15,205,376,0,0,0,5,24,6,16,3,4,36:09
+"Sep 25, 2022",3,2022,New Orleans Saints,Carolina Panthers,False,19,22,84,1,25,41,353,1,2,1,11,342,426,4,1,3,7,58,5,13,0,0,29:50
+"Sep 25, 2022",3,2022,Carolina Panthers,New Orleans Saints,True,12,31,145,0,12,25,170,1,0,3,22,148,293,0,0,0,4,40,4,14,0,1,30:10
+"Sep 25, 2022",3,2022,Houston Texans,Chicago Bears,False,17,24,92,1,20,32,245,1,2,1,8,237,329,3,0,2,3,25,3,12,1,1,28:38
+"Sep 25, 2022",3,2022,Chicago Bears,Houston Texans,True,17,40,281,2,8,17,106,0,2,5,24,82,363,2,0,2,6,32,6,14,0,0,31:22
+"Sep 25, 2022",3,2022,Kansas City Chiefs,Indianapolis Colts,False,20,23,58,1,20,36,262,1,1,1,5,257,315,2,1,2,6,45,3,10,1,2,26:28
+"Sep 25, 2022",3,2022,Indianapolis Colts,Kansas City Chiefs,True,19,27,82,0,27,37,222,2,0,5,45,177,259,2,1,1,4,34,6,15,1,3,33:32
+"Sep 25, 2022",3,2022,Buffalo Bills,Miami Dolphins,False,31,23,115,0,42,63,400,2,0,4,18,382,497,4,1,1,7,52,11,18,2,3,40:40
+"Sep 25, 2022",3,2022,Miami Dolphins,Buffalo Bills,True,15,17,41,2,13,20,186,1,0,2,15,171,212,0,0,0,4,20,3,8,0,0,19:20
+"Sep 25, 2022",3,2022,Detroit Lions,Minnesota Vikings,False,23,35,139,2,25,41,277,1,1,0,0,277,416,0,0,1,7,59,3,16,4,6,34:04
+"Sep 25, 2022",3,2022,Minnesota Vikings,Detroit Lions,True,30,25,123,2,24,41,260,2,0,1,10,250,373,2,1,1,3,15,2,9,1,2,25:56
+"Sep 25, 2022",3,2022,Baltimore Ravens,New England Patriots,False,19,26,188,1,18,29,218,4,1,4,12,206,394,1,1,2,2,10,5,11,0,0,30:36
+"Sep 25, 2022",3,2022,New England Patriots,Baltimore Ravens,True,22,28,145,3,22,32,321,0,3,3,19,302,447,3,1,4,3,16,2,9,1,2,29:24
+"Sep 25, 2022",3,2022,Cincinnati Bengals,New York Jets,False,20,28,69,0,23,36,275,3,0,2,14,261,330,2,1,1,5,30,7,14,0,1,32:24
+"Sep 25, 2022",3,2022,New York Jets,Cincinnati Bengals,True,19,20,76,0,28,52,285,0,2,4,33,252,328,3,2,4,4,55,7,18,0,3,27:36
+"Sep 25, 2022",3,2022,Las Vegas Raiders,Tennessee Titans,False,24,19,96,0,27,45,307,2,1,1,7,300,396,2,0,1,6,44,1,12,3,3,30:45
+"Sep 25, 2022",3,2022,Tennessee Titans,Las Vegas Raiders,True,19,27,109,2,19,27,264,1,1,1,12,252,361,1,0,1,7,85,5,10,0,1,29:15
+"Sep 25, 2022",3,2022,Philadelphia Eagles,Washington Commanders,False,21,30,72,0,22,35,340,3,0,3,12,328,400,1,0,0,5,52,5,15,2,3,27:06
+"Sep 25, 2022",3,2022,Washington Commanders,Philadelphia Eagles,True,20,22,87,1,25,43,211,0,0,9,58,153,240,2,1,1,4,48,6,17,0,2,32:54
+"Sep 25, 2022",3,2022,Jacksonville Jaguars,Los Angeles Chargers,False,25,36,151,1,28,39,262,3,0,0,0,262,413,0,0,0,2,10,8,15,2,3,38:27
+"Sep 25, 2022",3,2022,Los Angeles Chargers,Jacksonville Jaguars,True,16,12,26,0,25,45,297,1,1,1,11,286,312,1,1,2,7,54,5,13,0,2,21:33
+"Sep 25, 2022",3,2022,Los Angeles Rams,Arizona Cardinals,False,15,20,100,2,18,25,249,0,0,1,10,239,339,1,1,1,6,35,3,8,0,0,26:04
+"Sep 25, 2022",3,2022,Arizona Cardinals,Los Angeles Rams,True,23,21,70,0,37,58,314,0,0,2,19,295,365,1,0,0,6,50,6,18,4,5,33:56
+"Sep 25, 2022",3,2022,Atlanta Falcons,Seattle Seahawks,False,24,31,179,2,13,20,229,1,1,3,22,207,386,2,1,2,2,15,4,7,0,0,28:14
+"Sep 25, 2022",3,2022,Seattle Seahawks,Atlanta Falcons,True,23,23,112,0,32,44,325,2,1,2,17,308,420,0,0,1,6,47,9,17,2,3,16:46
+"Sep 25, 2022",3,2022,Green Bay Packers,Tampa Bay Buccaneers,False,14,25,67,0,27,35,255,2,1,1,7,248,315,2,1,2,8,65,6,15,0,0,33:25
+"Sep 25, 2022",3,2022,Tampa Bay Buccaneers,Green Bay Packers,True,19,14,34,0,31,42,271,1,0,3,20,251,285,3,2,2,6,40,2,11,1,1,26:35
+"Sep 25, 2022",3,2022,San Francisco 49ers,Denver Broncos,False,13,19,88,0,18,29,211,1,1,4,32,179,267,3,2,3,7,40,1,10,0,0,25:31
+"Sep 25, 2022",3,2022,Denver Broncos,San Francisco 49ers,True,14,33,101,1,20,33,184,0,0,4,24,160,261,2,0,0,5,30,6,19,0,0,34:29
+"Sep 26, 2022",3,2022,Dallas Cowboys,New York Giants,False,23,30,176,1,21,31,215,1,0,0,0,215,391,0,0,0,8,70,5,13,1,1,32:42
+"Sep 26, 2022",3,2022,New York Giants,Dallas Cowboys,True,22,25,167,1,20,37,196,0,1,5,27,169,336,0,0,1,8,57,3,11,0,1,27:18
