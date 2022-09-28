@@ -231,6 +231,32 @@ def load_kicking():
     return df
 
 
+def load_schedule():
+    """
+    Function: 
+        Loads following files:
+            ~ schedule.csv
+
+    Input:
+        None
+
+    Output:
+        df: DataFrame
+    """
+    df = pd.read_csv('backend/data/games/schedule.csv')
+    df['date'] = pd.to_datetime(df['date'])
+
+    away_df = df.copy()
+    away_df['team'] = away_df['away']
+    home_df = df.copy()
+    home_df['team'] = home_df['home']
+    df = pd.concat([home_df, away_df], axis=0)
+
+    df.set_index(keys=['date', 'home', 'away', 'week', 'season', 'team'], inplace=True, drop=True)
+
+    return df
+
+
 def merge_offensive(team_stats, offense, defense):
     """
     Function:
@@ -452,6 +478,11 @@ def load_data():
 
     # Merge data
     df = merge_squads(offensive_df, defensive_df, special_teams)
+
+    # Merge schedule
+    schedule = load_schedule()
+    df = pd.merge(schedule, df, left_index=True, right_index=True, how='left')
+    df.drop(['href'], inplace=True, axis=1)
 
     return df
 

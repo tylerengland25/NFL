@@ -3,6 +3,43 @@ from bs4 import BeautifulSoup, Comment
 from urllib.request import urlopen
 
 
+def scrape_game(game_info, dfs):
+    """
+    Function: 
+        Scrapes schdeule
+        Writes following DataFrames to CSV files:
+            ~ scores
+
+    Input:
+        game_info: dict(
+            str: str, 
+            str: str, 
+            str: str, 
+            str: str,
+            str: str, 
+            str: str
+        )
+        dfs: dict(str: DataFrame)
+
+    Output:
+        None
+    """
+    # Connect
+    url = f"https://www.pro-football-reference.com{game_info['href']}"
+    html = urlopen(url)
+    soup = BeautifulSoup(html, features="lxml")
+
+    # Set tables
+    date = soup.find('div', attrs={'class': 'scorebox_meta'}).find('div').text
+
+    game_info['date'] = date
+
+    # Print matchup tp track progress
+    print(f"\t\t{game_info['away']} @ {game_info['home']}, {game_info['date'].strip()}")
+
+    dfs['schedule'] = dfs['schedule'].append(game_info, ignore_index=True)
+
+
 def scrape_week(href, season, dfs):
     """
     Function: 
@@ -31,11 +68,6 @@ def scrape_week(href, season, dfs):
     games = soup.find('div', attrs={'class': 'game_summaries'}).find_all('div')
     for game in games:
         game_info = {
-            'date': game.find(
-                'table',
-                attrs={'class': 'teams'}
-            ).find_all('tr')[0].find('td').text.strip('\n'),
-
             'week': week,
 
             'season': season,
@@ -49,9 +81,17 @@ def scrape_week(href, season, dfs):
                 'table', 
                 attrs={'class': 'teams'}
             ).find_all('tr')[2].find('td').text,
+
+            'href': game.find(
+                'table', 
+                attrs={'class': 'teams'}
+            ).find_all('tr')[1].find(
+                'td', 
+                attrs={'class': 'right gamelink'}
+            ).find('a')['href']
         }
 
-        dfs['schedule'] = dfs['schedule'].append(game_info, ignore_index=True)
+        scrape_game(game_info, dfs)
 
 
 def scrape_season(season, dfs):
