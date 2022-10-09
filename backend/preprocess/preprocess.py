@@ -48,7 +48,31 @@ def load_team_stats():
     df['poss'] = df['poss'].apply(lambda x: round(int(x.split(':')[0]) + int(x.split(':')[1]) / 60, 2))
     df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
     df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
-    df.set_index(keys=['date', 'home', 'away', 'week', 'season'], inplace=True, drop=True)
+    df.set_index(keys=['date', 'home', 'away', 'week', 'season', 'team'], inplace=True, drop=True)
+
+    # Merge points scored
+    points_scored = pd.read_csv('backend/data/games/scores.csv')
+    points_scored.columns = [col.lower() for col in points_scored.columns]
+    points_scored['date'] = pd.to_datetime(points_scored['date'])
+    points_scored['home'] = np.where(points_scored['home_field'], points_scored['team'], points_scored['opponent'])
+    points_scored['away'] = np.where(points_scored['home_field'], points_scored['opponent'], points_scored['team'])
+    points_scored.set_index(keys=['date', 'home', 'away', 'week', 'season', 'team'], inplace=True, drop=True)
+
+    # Merge points allowed
+    points_allowed = pd.read_csv('backend/data/games/scores.csv')
+    points_allowed.columns = [col.lower() for col in points_allowed.columns]
+    points_allowed['date'] = pd.to_datetime(points_allowed['date'])
+    points_allowed['home'] = np.where(points_allowed['home_field'], points_allowed['team'], points_allowed['opponent'])
+    points_allowed['away'] = np.where(points_allowed['home_field'], points_allowed['opponent'], points_allowed['team'])
+    points_allowed['team'] = points_allowed['opponent']
+    points_allowed.set_index(keys=['date', 'home', 'away', 'week', 'season', 'team'], inplace=True, drop=True)
+
+
+    df = pd.merge(df, points_scored[['final']], left_index=True, right_index=True)
+    df.rename({'final': 'pts_scored'}, axis=1, inplace=True)
+    df = pd.merge(df, points_allowed[['final']], left_index=True, right_index=True)
+    df.rename({'final': 'pts_allowed'}, axis=1, inplace=True)
+    df.reset_index(['team'], drop=False, inplace=True)
 
     return df
 
@@ -275,7 +299,7 @@ def merge_offensive(team_stats, offense, defense):
         team_stats[
             [
                 'team', '1st', 'sacks', 'sack_yds', 'net_pass_yds', 'total_yds', 'to', 
-                'pen', 'pen_yds', '3rd_att', '3rd_cmp', '4th_att', '4th_cmp', 'poss'
+                'pen', 'pen_yds', '3rd_att', '3rd_cmp', '4th_att', '4th_cmp', 'poss', 'pts_scored'
             ]
         ],
         offense, 
@@ -315,7 +339,7 @@ def merge_defensive(team_stats, defense, offense):
         team_stats[
             [
                 'team', '1st', 'net_pass_yds', 'total_yds', 'to', 
-                '3rd_att', '3rd_cmp', '4th_att', '4th_cmp', 
+                '3rd_att', '3rd_cmp', '4th_att', '4th_cmp', 'pts_allowed'
             ]
         ],
         right_index=True,
@@ -871,10 +895,6 @@ def team_percentage(df):
         level=['team', 'date']
     ).groupby(
         ['team', 'season']
-    ).shift(
-        periods=1
-    ).groupby(
-        ['team', 'season']
     ).rolling(
         window=10,
         min_periods=1,
@@ -924,7 +944,31 @@ def load_target_data():
     df['date'] = pd.to_datetime(df['date'])
     df['home'] = np.where(df['home_field'], df['team'], df['opponent'])
     df['away'] = np.where(df['home_field'], df['opponent'], df['team'])
-    df.set_index(['date', 'home', 'away', 'week', 'season'], inplace=True, drop=True)
+    df.set_index(['date', 'home', 'away', 'week', 'season', 'team'], inplace=True, drop=True)
+
+    # Load schedules
+    schedule = pd.read_csv('backend/data/games/schedule.csv')
+    schedule['date'] = pd.to_datetime(schedule['date'])
+
+    home_schedule = schedule.copy()
+    home_schedule['team'] = home_schedule['home']
+    home_schedule['opponent'] = home_schedule['away']
+    home_schedule['home_field'] = True
+    home_schedule.set_index(['date', 'home', 'away', 'week', 'season', 'team'], inplace=True, drop=True)
+
+    away_schedule = schedule.copy()
+    away_schedule['team'] = away_schedule['away']
+    away_schedule['opponent'] = away_schedule['home']
+    away_schedule['home_field'] = False
+    away_schedule.set_index(['date', 'home', 'away', 'week', 'season', 'team'], inplace=True, drop=True)
+
+    schedule = pd.concat([home_schedule, away_schedule], axis=0)
+
+    # Merge dfs
+    df = pd.merge(schedule, df, left_index=True, right_index=True, how='left')
+    df.drop(['href', 'opponent_y', 'home_field_y'], axis=1, inplace=True)
+    df.rename({'opponent_x': 'opponent', 'home_field_x': 'home_field'}, axis=1, inplace=True)
+    df.reset_index(level=['team'], drop=False, inplace=True)
     
     # Merge home and away scores
     df = pd.merge(

@@ -43,7 +43,7 @@ def load_odds():
     return odds[['ml_h', 'ml_a']]
 
 
-def risk_management(diff, odds):
+def risk_management(diff):
     """
     Function:
         Manage risk
@@ -58,13 +58,13 @@ def risk_management(diff, odds):
         if 0 <= diff < .05:
             return 1
         elif .05 <= diff < .10:
-            return 1.25
-        elif .10 <= diff < .15:
-            return 1.5
-        elif .15 <= diff < .20:
-            return 1.75
-        elif .20 <= diff <= .25:
             return 2
+        elif .10 <= diff < .15:
+            return 3
+        elif .15 <= diff < .20:
+            return 4
+        elif .20 <= diff <= .25:
+            return 5
     else:
         return None
 
@@ -111,7 +111,7 @@ def calculate_profit(y_test, y_pred, y_prob, scores):
     df['pick_fav'] = np.where(df['y_pred'], df['h_fav'], df['a_fav'])
     df['pick_odds'] = np.where(df['y_pred'], df['ml_h'], df['ml_a'])
     df['risk_correct'] = np.where(df['y_pred'] == df['y'], 1, 0)
-    df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff, x.pick_odds), axis=1)
+    df['risk_unit'] = df.apply(lambda x: risk_management(x.pick_diff), axis=1)
     df['risk_profit'] = np.where(df['risk_correct'], df['potential'] * df['risk_unit'], -1 * df['risk_unit'])
     df.dropna(subset=['risk_unit'], axis=0, inplace=True)
     scores['profit_risk'] = df['risk_profit'].sum()
@@ -136,6 +136,7 @@ def nn():
     # Load data
     df = pd.read_csv('c:\\Users\\tyler\\OneDrive\\Documents\\Python\\NFL\\backend\\preprocess\\preprocess.csv')
     df['date'] = pd.to_datetime(df['date'])
+    df = df[~((df['season'] == 2022) & (df['week'] >= 4))]
     df.set_index(['date', 'home', 'away', 'week', 'season'], inplace=True)
     
     X = df.drop(['y'], axis=1)
@@ -143,10 +144,11 @@ def nn():
 
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=1)
-    # X_train = X[X.index.get_level_values(4) < 2021]
-    # X_test = X[X.index.get_level_values(4) >= 2021]
-    # y_train = y[y.index.get_level_values(4) < 2021]
-    # y_test = y[y.index.get_level_values(4) >= 2021]
+    # X_train, X_test, y_train, y_test = train_test_split(
+    #     X[X.index.get_level_values(4) < 2021], 
+    #     y[y.index.get_level_values(4) < 2021], 
+    #     test_size=.2, random_state=1
+    # )
 
     # Pipeline
     pipe = Pipeline(
@@ -195,6 +197,29 @@ def nn():
         \tAccuracy: {round(scores['hit_risk'] / scores['placed_risk'] * 100)}%
         \tPlaced: {round(scores['placed_risk'])} ({round(scores['placed_risk'] / scores['placed'] * 100)}%)"""
     )
+
+    # X_dev = X[X.index.get_level_values(4) >= 2021]
+    # y_dev = y[y.index.get_level_values(4) >= 2021]
+    # y_pred = pipe.predict(X_dev)
+    # y_prob = pipe.predict_proba(X_dev)
+    # scores = {
+    #     'profit': None, 'hit': None, 'placed': None, 
+    #     'profit_risk': None, 'hit_risk': None, 'placed_risk': None
+    # }
+    # calculate_profit(y_dev, y_pred, y_prob, scores)
+    # print(
+    #     f"""\tEvery Bet:
+    #     \tProfit: {round(scores['profit'], 2)}u 
+    #     \tAccuracy: {round(scores['hit'] / scores['placed'] * 100)}%
+    #     \tPlaced: {round(scores['placed'])}"""
+    # )
+    # print(
+    #     f"""\tRisk Management:
+    #     \tProfit: {round(scores['profit_risk'], 2)}u 
+    #     \tAccuracy: {round(scores['hit_risk'] / scores['placed_risk'] * 100)}%
+    #     \tPlaced: {round(scores['placed_risk'])} ({round(scores['placed_risk'] / scores['placed'] * 100)}%)"""
+    # )
+
 
     # Save model
     with open('modeling/models/nn.pkl','wb') as f:

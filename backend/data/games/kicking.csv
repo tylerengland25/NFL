@@ -12891,66 +12891,129 @@ date,week,season,team,opponent,home_field,player,xpm,xpa,fgm,fga,punt,punt_yds,p
 "Sep 19, 2022",2,2022,Minnesota Vikings,Philadelphia Eagles,False,Ryan Wright,,,,,5,246,49.2,58.0
 "Sep 19, 2022",2,2022,Philadelphia Eagles,Minnesota Vikings,True,Jake Elliott ,3.0,3.0,1.0,2.0,0,0,,0.0
 "Sep 19, 2022",2,2022,Philadelphia Eagles,Minnesota Vikings,True,Arryn Siposs,,,,,4,179,44.8,49.0
-"Sep 22, 2022",3,2022,Pittsburgh Steelers,Cleveland Browns,False,Chris Boswell,2,2,1,2,0,0,,0
-"Sep 22, 2022",3,2022,Pittsburgh Steelers,Cleveland Browns,False,Pressley Harvin III,,,,,5,212,42.4,48
-"Sep 22, 2022",3,2022,Cleveland Browns,Pittsburgh Steelers,True,Cade York,2,3,1,1,0,0,,0
-"Sep 22, 2022",3,2022,Cleveland Browns,Pittsburgh Steelers,True,Corey Bojorquez,,,,,5,203,40.6,61
-"Sep 25, 2022",3,2022,New Orleans Saints,Carolina Panthers,False,Wil Lutz,2,2,,2,0,0,,0
-"Sep 25, 2022",3,2022,New Orleans Saints,Carolina Panthers,False,Blake Gillikin,,,,,6,285,47.5,55
-"Sep 25, 2022",3,2022,Carolina Panthers,New Orleans Saints,True,Eddy Pineiro,1,1,3,3,0,0,,0
-"Sep 25, 2022",3,2022,Carolina Panthers,New Orleans Saints,True,Johnny Hekker,,,,,6,281,46.8,59
-"Sep 25, 2022",3,2022,Houston Texans,Chicago Bears,False,Ka'imi Fairbairn,2,2,2,2,0,0,,0
-"Sep 25, 2022",3,2022,Houston Texans,Chicago Bears,False,Cameron Johnston,,,,,5,242,48.4,56
-"Sep 25, 2022",3,2022,Chicago Bears,Houston Texans,True,Cairo Santos,2,2,3,3,0,0,,0
-"Sep 25, 2022",3,2022,Chicago Bears,Houston Texans,True,Trenton Gill,,,,,4,182,45.5,56
-"Sep 25, 2022",3,2022,Kansas City Chiefs,Indianapolis Colts,False,Matt Ammendola,,1,1,2,0,0,,0
-"Sep 25, 2022",3,2022,Kansas City Chiefs,Indianapolis Colts,False,Tommy Townsend,,,,,3,170,56.7,65
-"Sep 25, 2022",3,2022,Indianapolis Colts,Kansas City Chiefs,True,Chase McLaughlin,2,2,2,2,0,0,,0
-"Sep 25, 2022",3,2022,Indianapolis Colts,Kansas City Chiefs,True,Matt Haack,,,,,3,154,51.3,57
-"Sep 25, 2022",3,2022,Buffalo Bills,Miami Dolphins,False,Tyler Bass,2,2,1,2,0,0,,0
-"Sep 25, 2022",3,2022,Buffalo Bills,Miami Dolphins,False,Sam Martin,,,,,1,31,31.0,31
-"Sep 25, 2022",3,2022,Miami Dolphins,Buffalo Bills,True,Jason Sanders,3,3,,,0,0,,0
-"Sep 25, 2022",3,2022,Miami Dolphins,Buffalo Bills,True,Thomas Morstead,,,,,5,218,43.6,60
-"Sep 25, 2022",3,2022,Detroit Lions,Minnesota Vikings,False,Austin Seibert,3,3,1,3,0,0,,0
-"Sep 25, 2022",3,2022,Detroit Lions,Minnesota Vikings,False,Jack Fox,,,,,3,134,44.7,50
-"Sep 25, 2022",3,2022,Minnesota Vikings,Detroit Lions,True,Greg Joseph,4,4,,2,0,0,,0
-"Sep 25, 2022",3,2022,Minnesota Vikings,Detroit Lions,True,Ryan Wright,,,,,3,156,52.0,58
-"Sep 25, 2022",3,2022,Baltimore Ravens,New England Patriots,False,Justin Tucker,4,5,1,1,0,0,,0
-"Sep 25, 2022",3,2022,Baltimore Ravens,New England Patriots,False,Jordan Stout,,,,,3,133,44.3,58
-"Sep 25, 2022",3,2022,New England Patriots,Baltimore Ravens,True,Nick Folk,2,2,2,2,0,0,,0
-"Sep 25, 2022",3,2022,New England Patriots,Baltimore Ravens,True,Jake Bailey,,,,,2,100,50.0,56
-"Sep 25, 2022",3,2022,Cincinnati Bengals,New York Jets,False,Evan McPherson,3,3,2,3,0,0,,0
-"Sep 25, 2022",3,2022,Cincinnati Bengals,New York Jets,False,Kevin Huber,,,,,3,142,47.3,52
-"Sep 25, 2022",3,2022,New York Jets,Cincinnati Bengals,True,Braden Mann,,,,,3,146,48.7,52
-"Sep 25, 2022",3,2022,New York Jets,Cincinnati Bengals,True,Greg Zuerlein,,,4,4,0,0,,0
-"Sep 25, 2022",3,2022,Las Vegas Raiders,Tennessee Titans,False,Daniel Carlson,1,1,3,3,0,0,,0
-"Sep 25, 2022",3,2022,Las Vegas Raiders,Tennessee Titans,False,AJ Cole III,,,,,3,144,48.0,58
-"Sep 25, 2022",3,2022,Tennessee Titans,Las Vegas Raiders,True,Randy Bullock,3,3,1,1,0,0,,0
-"Sep 25, 2022",3,2022,Tennessee Titans,Las Vegas Raiders,True,Ryan Stonehouse,,,,,3,181,60.3,70
-"Sep 25, 2022",3,2022,Philadelphia Eagles,Washington Commanders,False,Jake Elliott ,3,3,1,1,0,0,,0
-"Sep 25, 2022",3,2022,Philadelphia Eagles,Washington Commanders,False,Arryn Siposs,,,,,6,277,46.2,53
-"Sep 25, 2022",3,2022,Washington Commanders,Philadelphia Eagles,True,Tress Way,,,,,8,420,52.5,58
-"Sep 25, 2022",3,2022,Jacksonville Jaguars,Los Angeles Chargers,False,Riley Patterson,3,3,3,3,0,0,,0
-"Sep 25, 2022",3,2022,Jacksonville Jaguars,Los Angeles Chargers,False,Logan Cooke,,,,,1,56,56.0,56
-"Sep 25, 2022",3,2022,Los Angeles Chargers,Jacksonville Jaguars,True,Dustin Hopkins,1,1,1,1,0,0,,0
-"Sep 25, 2022",3,2022,Los Angeles Chargers,Jacksonville Jaguars,True,JK Scott,,,,,4,175,43.8,50
-"Sep 25, 2022",3,2022,Los Angeles Rams,Arizona Cardinals,False,Matt Gay,2,2,2,2,0,0,,0
-"Sep 25, 2022",3,2022,Los Angeles Rams,Arizona Cardinals,False,Riley Dixon,,,,,3,135,45.0,51
-"Sep 25, 2022",3,2022,Arizona Cardinals,Los Angeles Rams,True,Andy Lee,,,,,4,160,40.0,54
-"Sep 25, 2022",3,2022,Arizona Cardinals,Los Angeles Rams,True,Matt Prater,,,4,4,0,0,,0
-"Sep 25, 2022",3,2022,Atlanta Falcons,Seattle Seahawks,False,Younghoe Koo,3,3,2,2,0,0,,0
-"Sep 25, 2022",3,2022,Atlanta Falcons,Seattle Seahawks,False,Bradley Pinion,,,,,1,73,73.0,73
-"Sep 25, 2022",3,2022,Seattle Seahawks,Atlanta Falcons,True,Jason Myers,2,2,3,3,0,0,,0
-"Sep 25, 2022",3,2022,Seattle Seahawks,Atlanta Falcons,True,Michael Dickson,,,,,2,102,51.0,51
-"Sep 25, 2022",3,2022,Green Bay Packers,Tampa Bay Buccaneers,False,Mason Crosby,2,2,,,0,0,,0
-"Sep 25, 2022",3,2022,Green Bay Packers,Tampa Bay Buccaneers,False,Pat O'Donnell,,,,,7,339,48.4,63
-"Sep 25, 2022",3,2022,Tampa Bay Buccaneers,Green Bay Packers,True,Jake Camarda,,,,,6,297,49.5,62
-"Sep 25, 2022",3,2022,Tampa Bay Buccaneers,Green Bay Packers,True,Ryan Succop,,,2,2,0,0,,0
-"Sep 25, 2022",3,2022,San Francisco 49ers,Denver Broncos,False,Robbie Gould,1,1,1,1,0,0,,0
-"Sep 25, 2022",3,2022,San Francisco 49ers,Denver Broncos,False,Mitch Wishnowsky,,,,,7,362,51.7,74
-"Sep 25, 2022",3,2022,Denver Broncos,San Francisco 49ers,True,Corliss Waitman,,,,,10,476,47.6,57
-"Sep 25, 2022",3,2022,Denver Broncos,San Francisco 49ers,True,Brandon McManus,,,1,2,0,0,,0
-"Sep 26, 2022",3,2022,Dallas Cowboys,New York Giants,False,Brett Maher,2,2,3,4,0,0,,0
-"Sep 26, 2022",3,2022,Dallas Cowboys,New York Giants,False,Bryan Anger,,,,,4,178,44.5,54
-"Sep 26, 2022",3,2022,New York Giants,Dallas Cowboys,True,Graham Gano,1,1,3,4,0,0,,0
-"Sep 26, 2022",3,2022,New York Giants,Dallas Cowboys,True,Jamie Gillan,,,,,3,135,45.0,55
+"Sep 22, 2022",3,2022,Pittsburgh Steelers,Cleveland Browns,False,Chris Boswell,2.0,2.0,1.0,2.0,0,0,,0.0
+"Sep 22, 2022",3,2022,Pittsburgh Steelers,Cleveland Browns,False,Pressley Harvin III,,,,,5,212,42.4,48.0
+"Sep 22, 2022",3,2022,Cleveland Browns,Pittsburgh Steelers,True,Cade York,2.0,3.0,1.0,1.0,0,0,,0.0
+"Sep 22, 2022",3,2022,Cleveland Browns,Pittsburgh Steelers,True,Corey Bojorquez,,,,,5,203,40.6,61.0
+"Sep 25, 2022",3,2022,New Orleans Saints,Carolina Panthers,False,Wil Lutz,2.0,2.0,,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,New Orleans Saints,Carolina Panthers,False,Blake Gillikin,,,,,6,285,47.5,55.0
+"Sep 25, 2022",3,2022,Carolina Panthers,New Orleans Saints,True,Eddy Pineiro,1.0,1.0,3.0,3.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Carolina Panthers,New Orleans Saints,True,Johnny Hekker,,,,,6,281,46.8,59.0
+"Sep 25, 2022",3,2022,Houston Texans,Chicago Bears,False,Ka'imi Fairbairn,2.0,2.0,2.0,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Houston Texans,Chicago Bears,False,Cameron Johnston,,,,,5,242,48.4,56.0
+"Sep 25, 2022",3,2022,Chicago Bears,Houston Texans,True,Cairo Santos,2.0,2.0,3.0,3.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Chicago Bears,Houston Texans,True,Trenton Gill,,,,,4,182,45.5,56.0
+"Sep 25, 2022",3,2022,Kansas City Chiefs,Indianapolis Colts,False,Matt Ammendola,,1.0,1.0,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Kansas City Chiefs,Indianapolis Colts,False,Tommy Townsend,,,,,3,170,56.7,65.0
+"Sep 25, 2022",3,2022,Indianapolis Colts,Kansas City Chiefs,True,Chase McLaughlin,2.0,2.0,2.0,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Indianapolis Colts,Kansas City Chiefs,True,Matt Haack,,,,,3,154,51.3,57.0
+"Sep 25, 2022",3,2022,Buffalo Bills,Miami Dolphins,False,Tyler Bass,2.0,2.0,1.0,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Buffalo Bills,Miami Dolphins,False,Sam Martin,,,,,1,31,31.0,31.0
+"Sep 25, 2022",3,2022,Miami Dolphins,Buffalo Bills,True,Jason Sanders,3.0,3.0,,,0,0,,0.0
+"Sep 25, 2022",3,2022,Miami Dolphins,Buffalo Bills,True,Thomas Morstead,,,,,5,218,43.6,60.0
+"Sep 25, 2022",3,2022,Detroit Lions,Minnesota Vikings,False,Austin Seibert,3.0,3.0,1.0,3.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Detroit Lions,Minnesota Vikings,False,Jack Fox,,,,,3,134,44.7,50.0
+"Sep 25, 2022",3,2022,Minnesota Vikings,Detroit Lions,True,Greg Joseph,4.0,4.0,,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Minnesota Vikings,Detroit Lions,True,Ryan Wright,,,,,3,156,52.0,58.0
+"Sep 25, 2022",3,2022,Baltimore Ravens,New England Patriots,False,Justin Tucker,4.0,5.0,1.0,1.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Baltimore Ravens,New England Patriots,False,Jordan Stout,,,,,3,133,44.3,58.0
+"Sep 25, 2022",3,2022,New England Patriots,Baltimore Ravens,True,Nick Folk,2.0,2.0,2.0,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,New England Patriots,Baltimore Ravens,True,Jake Bailey,,,,,2,100,50.0,56.0
+"Sep 25, 2022",3,2022,Cincinnati Bengals,New York Jets,False,Evan McPherson,3.0,3.0,2.0,3.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Cincinnati Bengals,New York Jets,False,Kevin Huber,,,,,3,142,47.3,52.0
+"Sep 25, 2022",3,2022,New York Jets,Cincinnati Bengals,True,Braden Mann,,,,,3,146,48.7,52.0
+"Sep 25, 2022",3,2022,New York Jets,Cincinnati Bengals,True,Greg Zuerlein,,,4.0,4.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Las Vegas Raiders,Tennessee Titans,False,Daniel Carlson,1.0,1.0,3.0,3.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Las Vegas Raiders,Tennessee Titans,False,AJ Cole III,,,,,3,144,48.0,58.0
+"Sep 25, 2022",3,2022,Tennessee Titans,Las Vegas Raiders,True,Randy Bullock,3.0,3.0,1.0,1.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Tennessee Titans,Las Vegas Raiders,True,Ryan Stonehouse,,,,,3,181,60.3,70.0
+"Sep 25, 2022",3,2022,Philadelphia Eagles,Washington Commanders,False,Jake Elliott ,3.0,3.0,1.0,1.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Philadelphia Eagles,Washington Commanders,False,Arryn Siposs,,,,,6,277,46.2,53.0
+"Sep 25, 2022",3,2022,Washington Commanders,Philadelphia Eagles,True,Tress Way,,,,,8,420,52.5,58.0
+"Sep 25, 2022",3,2022,Jacksonville Jaguars,Los Angeles Chargers,False,Riley Patterson,3.0,3.0,3.0,3.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Jacksonville Jaguars,Los Angeles Chargers,False,Logan Cooke,,,,,1,56,56.0,56.0
+"Sep 25, 2022",3,2022,Los Angeles Chargers,Jacksonville Jaguars,True,Dustin Hopkins,1.0,1.0,1.0,1.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Los Angeles Chargers,Jacksonville Jaguars,True,JK Scott,,,,,4,175,43.8,50.0
+"Sep 25, 2022",3,2022,Los Angeles Rams,Arizona Cardinals,False,Matt Gay,2.0,2.0,2.0,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Los Angeles Rams,Arizona Cardinals,False,Riley Dixon,,,,,3,135,45.0,51.0
+"Sep 25, 2022",3,2022,Arizona Cardinals,Los Angeles Rams,True,Andy Lee,,,,,4,160,40.0,54.0
+"Sep 25, 2022",3,2022,Arizona Cardinals,Los Angeles Rams,True,Matt Prater,,,4.0,4.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Atlanta Falcons,Seattle Seahawks,False,Younghoe Koo,3.0,3.0,2.0,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Atlanta Falcons,Seattle Seahawks,False,Bradley Pinion,,,,,1,73,73.0,73.0
+"Sep 25, 2022",3,2022,Seattle Seahawks,Atlanta Falcons,True,Jason Myers,2.0,2.0,3.0,3.0,0,0,,0.0
+"Sep 25, 2022",3,2022,Seattle Seahawks,Atlanta Falcons,True,Michael Dickson,,,,,2,102,51.0,51.0
+"Sep 25, 2022",3,2022,Green Bay Packers,Tampa Bay Buccaneers,False,Mason Crosby,2.0,2.0,,,0,0,,0.0
+"Sep 25, 2022",3,2022,Green Bay Packers,Tampa Bay Buccaneers,False,Pat O'Donnell,,,,,7,339,48.4,63.0
+"Sep 25, 2022",3,2022,Tampa Bay Buccaneers,Green Bay Packers,True,Jake Camarda,,,,,6,297,49.5,62.0
+"Sep 25, 2022",3,2022,Tampa Bay Buccaneers,Green Bay Packers,True,Ryan Succop,,,2.0,2.0,0,0,,0.0
+"Sep 25, 2022",3,2022,San Francisco 49ers,Denver Broncos,False,Robbie Gould,1.0,1.0,1.0,1.0,0,0,,0.0
+"Sep 25, 2022",3,2022,San Francisco 49ers,Denver Broncos,False,Mitch Wishnowsky,,,,,7,362,51.7,74.0
+"Sep 25, 2022",3,2022,Denver Broncos,San Francisco 49ers,True,Corliss Waitman,,,,,10,476,47.6,57.0
+"Sep 25, 2022",3,2022,Denver Broncos,San Francisco 49ers,True,Brandon McManus,,,1.0,2.0,0,0,,0.0
+"Sep 26, 2022",3,2022,Dallas Cowboys,New York Giants,False,Brett Maher,2.0,2.0,3.0,4.0,0,0,,0.0
+"Sep 26, 2022",3,2022,Dallas Cowboys,New York Giants,False,Bryan Anger,,,,,4,178,44.5,54.0
+"Sep 26, 2022",3,2022,New York Giants,Dallas Cowboys,True,Graham Gano,1.0,1.0,3.0,4.0,0,0,,0.0
+"Sep 26, 2022",3,2022,New York Giants,Dallas Cowboys,True,Jamie Gillan,,,,,3,135,45.0,55.0
+"Sep 29, 2022",4,2022,Miami Dolphins,Cincinnati Bengals,False,Jason Sanders,,1,3,4,0,0,,0
+"Sep 29, 2022",4,2022,Miami Dolphins,Cincinnati Bengals,False,Thomas Morstead,,,,,3,150,50.0,66
+"Sep 29, 2022",4,2022,Cincinnati Bengals,Miami Dolphins,True,Evan McPherson,3,3,2,2,0,0,,0
+"Sep 29, 2022",4,2022,Cincinnati Bengals,Miami Dolphins,True,Kevin Huber,,,,,4,159,39.8,48
+"Oct 2, 2022",4,2022,Minnesota Vikings,New Orleans Saints,False,Greg Joseph,1,2,5,5,0,0,,0
+"Oct 2, 2022",4,2022,Minnesota Vikings,New Orleans Saints,False,Ryan Wright,,,,,3,126,42.0,51
+"Oct 2, 2022",4,2022,New Orleans Saints,Minnesota Vikings,True,Wil Lutz,2,2,1,2,0,0,,0
+"Oct 2, 2022",4,2022,New Orleans Saints,Minnesota Vikings,True,Blake Gillikin,,,,,4,194,48.5,63
+"Oct 2, 2022",4,2022,Cleveland Browns,Atlanta Falcons,False,Cade York,2,2,2,2,0,0,,0
+"Oct 2, 2022",4,2022,Cleveland Browns,Atlanta Falcons,False,Corey Bojorquez,,,,,3,144,48.0,62
+"Oct 2, 2022",4,2022,Atlanta Falcons,Cleveland Browns,True,Younghoe Koo,2,2,3,3,0,0,,0
+"Oct 2, 2022",4,2022,Atlanta Falcons,Cleveland Browns,True,Bradley Pinion,,,,,3,153,51.0,54
+"Oct 2, 2022",4,2022,Tennessee Titans,Indianapolis Colts,False,Randy Bullock,3,3,1,1,0,0,,0
+"Oct 2, 2022",4,2022,Tennessee Titans,Indianapolis Colts,False,Ryan Stonehouse,,,,,4,211,52.8,57
+"Oct 2, 2022",4,2022,Indianapolis Colts,Tennessee Titans,True,Chase McLaughlin,2,2,1,2,0,0,,0
+"Oct 2, 2022",4,2022,Indianapolis Colts,Tennessee Titans,True,Matt Haack,,,,,2,67,33.5,48
+"Oct 2, 2022",4,2022,Washington Commanders,Dallas Cowboys,False,Joey Slye,1,1,1,1,0,0,,0
+"Oct 2, 2022",4,2022,Washington Commanders,Dallas Cowboys,False,Tress Way,,,,,6,270,45.0,52
+"Oct 2, 2022",4,2022,Dallas Cowboys,Washington Commanders,True,Brett Maher,1,2,4,4,0,0,,0
+"Oct 2, 2022",4,2022,Dallas Cowboys,Washington Commanders,True,Bryan Anger,,,,,6,255,42.5,58
+"Oct 2, 2022",4,2022,Seattle Seahawks,Detroit Lions,False,Jason Myers,6,6,2,3,0,0,,0
+"Oct 2, 2022",4,2022,Detroit Lions,Seattle Seahawks,True,Dominik Eberle,2,4,1,1,0,0,,0
+"Oct 2, 2022",4,2022,Detroit Lions,Seattle Seahawks,True,Jack Fox,,,,,2,97,48.5,49
+"Oct 2, 2022",4,2022,Los Angeles Chargers,Houston Texans,False,Dustin Hopkins,4,4,2,2,0,0,,0
+"Oct 2, 2022",4,2022,Los Angeles Chargers,Houston Texans,False,JK Scott,,,,,4,185,46.3,53
+"Oct 2, 2022",4,2022,Houston Texans,Los Angeles Chargers,True,Ka'imi Fairbairn,3,3,1,2,0,0,,0
+"Oct 2, 2022",4,2022,Houston Texans,Los Angeles Chargers,True,Cameron Johnston,,,,,3,156,52.0,55
+"Oct 2, 2022",4,2022,Chicago Bears,New York Giants,False,Trenton Gill,,,,,5,264,52.8,58
+"Oct 2, 2022",4,2022,Chicago Bears,New York Giants,False,Michael Badgley,,,4,4,0,0,,0
+"Oct 2, 2022",4,2022,New York Giants,Chicago Bears,True,Graham Gano,2,2,2,3,0,0,,0
+"Oct 2, 2022",4,2022,New York Giants,Chicago Bears,True,Jamie Gillan,,,,,5,273,54.6,59
+"Oct 2, 2022",4,2022,Jacksonville Jaguars,Philadelphia Eagles,False,Riley Patterson,3,3,,,0,0,,0
+"Oct 2, 2022",4,2022,Jacksonville Jaguars,Philadelphia Eagles,False,Logan Cooke,,,,,3,160,53.3,61
+"Oct 2, 2022",4,2022,Philadelphia Eagles,Jacksonville Jaguars,True,Jake Elliott ,2,3,1,1,0,0,,0
+"Oct 2, 2022",4,2022,Philadelphia Eagles,Jacksonville Jaguars,True,Arryn Siposs,,,,,3,134,44.7,53
+"Oct 2, 2022",4,2022,New York Jets,Pittsburgh Steelers,False,Greg Zuerlein,3,3,1,1,0,0,,0
+"Oct 2, 2022",4,2022,New York Jets,Pittsburgh Steelers,False,Braden Mann,,,,,5,235,47.0,59
+"Oct 2, 2022",4,2022,Pittsburgh Steelers,New York Jets,True,Chris Boswell,2,2,2,2,0,0,,0
+"Oct 2, 2022",4,2022,Pittsburgh Steelers,New York Jets,True,Pressley Harvin III,,,,,4,158,39.5,51
+"Oct 2, 2022",4,2022,Buffalo Bills,Baltimore Ravens,False,Tyler Bass,2,2,3,3,0,0,,0
+"Oct 2, 2022",4,2022,Buffalo Bills,Baltimore Ravens,False,Sam Martin,,,,,3,136,45.3,56
+"Oct 2, 2022",4,2022,Baltimore Ravens,Buffalo Bills,True,Justin Tucker,2,2,2,2,0,0,,0
+"Oct 2, 2022",4,2022,Baltimore Ravens,Buffalo Bills,True,Jordan Stout,,,,,3,152,50.7,57
+"Oct 2, 2022",4,2022,Arizona Cardinals,Carolina Panthers,False,Matt Prater,2,2,2,2,0,0,,0
+"Oct 2, 2022",4,2022,Arizona Cardinals,Carolina Panthers,False,Andy Lee,,,,,3,170,56.7,62
+"Oct 2, 2022",4,2022,Carolina Panthers,Arizona Cardinals,True,Eddy Pineiro,1,1,1,1,0,0,,0
+"Oct 2, 2022",4,2022,Carolina Panthers,Arizona Cardinals,True,Johnny Hekker,,,,,4,209,52.3,57
+"Oct 2, 2022",4,2022,New England Patriots,Green Bay Packers,False,Nick Folk,3,3,1,1,0,0,,0
+"Oct 2, 2022",4,2022,New England Patriots,Green Bay Packers,False,Jake Bailey,,,,,7,314,44.9,62
+"Oct 2, 2022",4,2022,Green Bay Packers,New England Patriots,True,Mason Crosby,3,3,2,2,0,0,,0
+"Oct 2, 2022",4,2022,Green Bay Packers,New England Patriots,True,Pat O'Donnell,,,,,5,210,42.0,48
+"Oct 2, 2022",4,2022,Denver Broncos,Las Vegas Raiders,False,Brandon McManus,2,3,1,1,0,0,,0
+"Oct 2, 2022",4,2022,Denver Broncos,Las Vegas Raiders,False,Corliss Waitman,,,,,5,241,48.2,55
+"Oct 2, 2022",4,2022,Las Vegas Raiders,Denver Broncos,True,Daniel Carlson,2,3,4,4,0,0,,0
+"Oct 2, 2022",4,2022,Las Vegas Raiders,Denver Broncos,True,AJ Cole III,,,,,4,215,53.8,62
+"Oct 2, 2022",4,2022,Kansas City Chiefs,Tampa Bay Buccaneers,False,Matthew Wright,5,5,2,2,0,0,,0
+"Oct 2, 2022",4,2022,Kansas City Chiefs,Tampa Bay Buccaneers,False,Tommy Townsend,,,,,1,43,43.0,43
+"Oct 2, 2022",4,2022,Tampa Bay Buccaneers,Kansas City Chiefs,True,Ryan Succop,4,4,1,1,0,0,,0
+"Oct 2, 2022",4,2022,Tampa Bay Buccaneers,Kansas City Chiefs,True,Jake Camarda,,,,,3,125,41.7,49
+"Oct 3, 2022",4,2022,Los Angeles Rams,San Francisco 49ers,False,Riley Dixon,,,,,4,229,57.3,60
+"Oct 3, 2022",4,2022,Los Angeles Rams,San Francisco 49ers,False,Matt Gay,,,3,3,0,0,,0
+"Oct 3, 2022",4,2022,San Francisco 49ers,Los Angeles Rams,True,Robbie Gould,3,3,1,2,0,0,,0
+"Oct 3, 2022",4,2022,San Francisco 49ers,Los Angeles Rams,True,Mitch Wishnowsky,,,,,4,158,39.5,43
