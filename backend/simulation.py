@@ -24,7 +24,7 @@ class Game:
         return random.choice(["heads", "tails"])
 
     def kickoff(self):
-        self.secs_left -= random.randint(0, 10)
+        self.adjust_clock()
         return random.randint(40, 64)
 
     def play_offense(self):
@@ -34,7 +34,7 @@ class Game:
             self.secs_left -= random.randint(0, 20)
             return random.randint(0, 30)
         else:
-            self.secs_left -= random.randint(0, 10)
+            self.adjust_clock()
             return random.randint(0, 15)
 
     def play_defense(self):
@@ -45,7 +45,7 @@ class Game:
             return random.randint(-3, 3)
 
     def punt(self):
-        self.secs_left -= random.randint(0, 10)
+        self.adjust_clock()
         punt_yards = random.randint(30, 60)
         touchback = True if self.yds_to_goal - punt_yards < 0 else False
         self.yds_to_goal = 75 if touchback else self.yds_to_goal - punt_yards
@@ -53,7 +53,7 @@ class Game:
         self.change_possession()
 
     def field_goal(self):
-        self.secs_left -= random.randint(0, 10)
+        self.adjust_clock()
         field_goal_yards = random.randint(30, 60)
         if field_goal_yards > self.yds_to_goal + 17:
             print(f"FIELD GOAL MISSED")
@@ -101,6 +101,9 @@ class Game:
         else:
             self.away_score += score
 
+    def adjust_clock(self):
+        self.secs_left -= random.randint(30, 45)
+
     def is_touchdown(self):
         if self.yds_to_goal < 0:
             self.box_score[f"{self.offense_team}_{self.play_type}_tds"] += 1
@@ -113,7 +116,7 @@ class Game:
     def is_turnover(self):
         if random.choice([True] + [False] * 19):
             print(f"TURN OVER")
-            self.secs_left -= random.randint(0, 10)
+            self.adjust_clock()
             self.yds_to_goal = 100 - self.yds_to_goal
             if self.play_type == 'pass':
                 self.box_score[f"{self.offense_team}_ints"] += 1
