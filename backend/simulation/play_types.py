@@ -23,10 +23,10 @@ class Play(ABC):
         self.change_of_possession = random.choice(
             [True] * 5 + [False] * 95
         )
-        if self.yds_gained > self.yds_to_goal:
+        if self.yds_gained > self.yds_to_goal and not self.change_of_possession:
             self.yds_gained = self.yds_to_goal
             self.touchdown = True
-        elif self.yds_gained >= self.distance:
+        elif self.yds_gained >= self.distance and not self.change_of_possession:
             self.first_down = True
 
 
