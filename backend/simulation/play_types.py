@@ -46,40 +46,36 @@ class Rush(Play):
         )
 
 
-class Kick(Play):
-    def __init__(self) -> None:
-        super().__init__()
-        self.play_type = "kickoff"
-        self.yds_kicked = random.randint(40, 80)
-        self.touchback = True if self.yds_kicked > 65 else False
-
-    def sim(self):
-        return_yds = random.randint(0, 30)
-        self.yds_gained = 40 if self.touchback else self.yds_kicked - return_yds
-        self.change_of_possession = True
-
-
-class Punt(Play):
+class SpecialTeams(Play):
     def __init__(self, yds_to_goal) -> None:
         super().__init__()
-        self.play_type = "punt"
-        self.yds_punted = random.randint(30, 60)
+        self.yds_kicked = random.randint(30, 60)
         self.yds_to_goal = yds_to_goal
-        self.touchback = True if self.yds_punted > self.yds_to_goal else False
+        self.touchback = True if self.yds_kicked > self.yds_to_goal else False
 
     def sim(self):
-        return_yds = random.randint(0, 30)
-        self.yds_gained = self.yds_to_goal - 25 if self.touchback else self.yds_punted - return_yds
+        self.yds_returned = random.randint(0, 30)
+        self.yds_gained = self.yds_to_goal - 25 if self.touchback else self.yds_kicked - self.yds_returned
         self.change_of_possession = True
 
+class Kickoff(SpecialTeams):
+    def __init__(self, yds_to_goal) -> None:
+        super().__init__(yds_to_goal)
+        self.play_type = "kickoff"
+        self.yds_kicked = random.randint(40, 80)
 
-class FieldGoal(Play):
+
+class Punt(SpecialTeams):
+    def __init__(self, yds_to_goal) -> None:
+        super().__init__(yds_to_goal)
+        self.play_type = "punt"
+
+
+class FieldGoal(SpecialTeams):
     def __init__(self, yds_to_goal) -> None:
         super().__init__()
         self.play_type = "field goal"
-        self.yds_kicked = random.randint(30, 60)
         self.made = True if self.yds_kicked > yds_to_goal + 17 else False
 
     def sim(self):
         self.yds_gained = 0
-        self.change_of_possession = True
