@@ -10,7 +10,7 @@ class Play(ABC):
         self.change_of_possession = False
 
     @abstractmethod
-    def play(self):
+    def sim(self):
         pass
 
 
@@ -19,7 +19,7 @@ class Pass(Play):
         super().__init__()
         self.play_type = "pass"
 
-    def play(self):
+    def sim(self):
         defensive_play = random.choice(["run", "pass"])
         if defensive_play == "pass":
             self.yds_gained = random.randint(-5, 5)
@@ -35,7 +35,7 @@ class Rush(Play):
         super().__init__()
         self.play_type = "rush" 
 
-    def play(self):
+    def sim(self):
         defensive_play = random.choice(["run", "pass"])
         if defensive_play == "run":
             self.yds_gained = random.randint(-5, 5)
@@ -53,7 +53,7 @@ class Kick(Play):
         self.yds_kicked = random.randint(40, 80)
         self.touchback = True if self.yds_kicked > 65 else False
 
-    def play(self):
+    def sim(self):
         return_yds = random.randint(0, 30)
         self.yds_gained = 25 if self.touchback else return_yds
         self.change_of_possession = True
@@ -66,7 +66,7 @@ class Punt(Play):
         self.yds_punted = random.randint(30, 60)
         self.touchback = True if self.yds_punted > yds_to_goal else False
 
-    def play(self):
+    def sim(self):
         return_yds = random.randint(0, 30)
         self.yds_gained = 25 if self.touchback else return_yds
         self.change_of_possession = True
@@ -79,6 +79,6 @@ class FieldGoal(Play):
         self.yds_kicked = random.randint(30, 60)
         self.made = True if self.yds_kicked > yds_to_goal + 17 else False
 
-    def play(self):
+    def sim(self):
         self.yds_gained = 0
         self.change_of_possession = True
