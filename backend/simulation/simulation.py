@@ -1,7 +1,7 @@
 import random
 from play_types import (
     Pass, Rush,
-    Kick, Punt,
+    Kickoff, Punt,
     FieldGoal
 )
 
@@ -47,8 +47,6 @@ class Game:
     def flip_field(self):
         self.yds_to_goal = 100 - self.yds_to_goal
 
-        return 3
-
     def adjust_score(self, score):
         if self.offense_team == self.home_team:
             self.home_score += score
@@ -60,7 +58,6 @@ class Game:
 
     def is_first_down(self, play):
         if play.yds_gained >= self.distance:
-            print("FIRST DOWN")
             self.distance = 10 if self.yds_to_goal >= 10 else self.yds_to_goal
             self.down = 1
             return True
@@ -71,7 +68,6 @@ class Game:
         if play.yds_gained > self.yds_to_goal:
             self.box_score[f"{self.offense_team}_{play.play_type}_tds"] += 1
             self.adjust_score(7)
-            print(f"TOUCHDOWN")
             return True
         else:
             return False
@@ -82,7 +78,6 @@ class Game:
             self.box_score[f"{self.offense_team}_{play.play_type}_{turnover_type}"] += 1
             self.change_possession()
             self.flip_field()
-            print("TURNOVER")
             return True
         else:
             return False
@@ -100,11 +95,11 @@ class Game:
         print(f"{self.home_team} {self.home_score} - {self.away_score} {self.away_team}\n")
 
     def print_state(self, play):
-        # Set the possession string
-        possession = (
-            f"{self.away_team} @ {self.home_team}*" 
+        # Set the scoreboard string
+        scoreboard = (
+            f"{self.away_team} {self.away_score} @ {self.home_score} *{self.home_team}" 
             if self.offense_team == self.home_team 
-            else f"*{self.away_team} @ {self.home_team}"
+            else f"*{self.away_team} {self.away_score} @ {self.home_score} {self.home_team}"
         )
 
         # Set the clock string
@@ -120,7 +115,7 @@ class Game:
         down_distance = f"{self.down} & {self.distance}" if play.play_type != 'kickoff' else 'Kickoff'
         
         # Set the yards to goal string
-        yards_to_goal = f"{self.yds_to_goal} yards to goal"
+        yards_to_goal = f"{self.yds_to_goal} yds to goal"
 
         # Set the play duration string
         play_duration = f"{play.duration} secs"
@@ -131,58 +126,48 @@ class Game:
             if play.touchback:
                 play_description += " TOUCHBACK."
             else:
-                play_description += f" Returned for {play.yds_gained} yards."
+                play_description += f" Returned for {play.yds_returned} yards."
         elif play.play_type == 'pass':              # Play description for pass
             play_description = f"{self.offense_team} passed the ball for {play.yds_gained} yards."
             if play.change_of_possession:
                 play_description += " INTERCEPTION."
+            if play.touchdown:
+                play_description += " TOUCHDOWN."
+            elif play.first_down:
+                play_description += " FIRST DOWN."
         elif play.play_type == 'rush':              # Play description for rush
             play_description = f"{self.offense_team} rushed the ball for {play.yds_gained} yards."
             if play.change_of_possession:
                 play_description += " FUMBLE."
+            if play.touchdown:
+                play_description += " TOUCHDOWN."
+            elif play.first_down:
+                play_description += " FIRST DOWN."
         elif play.play_type == 'punt':              # Play description for punt
-            play_description = f"{self.offense_team} punted the ball {play.yds_punted} yards."
+            play_description = f"{self.offense_team} punted the ball {play.yds_kicked} yards."
             if play.touchback:
                 play_description += " TOUCHBACK."
             else:
-                play_description += f" Returned for {play.yds_gained} yards."
+                play_description += f" Returned for {play.yds_returned} yards."
         elif play.play_type == 'field goal':        # Play description for field goal
             made = 'MADE' if play.made else 'MISSED'
             play_description = f"{self.offense_team} {made} a {self.yds_to_goal} yard field goal."
         
-        # Set the play result string
-        if play.play_type == 'kickoff':             # Play result for kickoff
-            play_result = "TOUCHBACK" if play.touchback else "KICKOFF RETURN"
-        elif play.play_type == 'field goal':        # Play result for field goal
-            play_result = "FIELD GOAL MADE" if play.made else "FIELD GOAL MISSED"
-        elif play.play_type == 'punt':              # Play result for punt
-            play_result = "PUNT"
-        elif play.yds_gained > self.yds_to_goal:    # Play result for touchdown
-            play_result = "TOUCHDOWN"
-        elif play.yds_gained >= self.distance:      # Play result for first down
-            play_result = "FIRST DOWN"
-        elif play.change_of_possession:             # Play result for turnover
-            play_result = "TURNOVER"
-        else:                                       # Play result for normal play
-            play_result = f""
-
-
         # Set the fixed width for each part of the printed output
-        possession = possession.ljust(10)
-        clock = clock.ljust(10)
-        down_distance = down_distance.ljust(10)
-        yards_to_goal = yards_to_goal.ljust(15)
-        play_duration = play_duration.ljust(10)
+        scoreboard = scoreboard.ljust(16)
+        clock = clock.ljust(8)
+        down_distance = down_distance.ljust(7)
+        yards_to_goal = yards_to_goal.ljust(14)
+        play_duration = play_duration.ljust(7)
         play_description = play_description.ljust(40)
-        play_result = play_result.ljust(20)
         
-        print(f"| {possession} | {clock} | {down_distance} | {yards_to_goal} | {play_duration} | {play_description} | {play_result} |")
+        print(f"| {scoreboard} | {clock} | {down_distance} | {yards_to_goal} | {play_duration} | {play_description} |")
 
     def update_state(self, play):
         self.adjust_clock(play.duration)
         if play.play_type in ['kickoff', 'punt']:
             self.yds_to_goal -= play.yds_gained
-            self.box_score[f"{self.offense_team}_{play.play_type}_yards"] += play.yds_gained
+            self.box_score[f"{self.offense_team}_{play.play_type}_yards"] += play.yds_kicked
             self.box_score[f"{self.offense_team}_{play.play_type}_atts"] += 1
             self.change_possession()
             self.flip_field() 
@@ -191,11 +176,13 @@ class Game:
             self.box_score[f"{self.offense_team}_fg_atts"] += 1
             if play.made:
                 self.box_score[f"{self.offense_team}_fg_made"] += 1
-                self.box_score[f"{self.offense_team}_fg_yards"] += play.yds_gained
+                self.box_score[f"{self.offense_team}_fg_yards"] += play.yds_kicked
                 self.adjust_score(3)
+                return play.play_type
+            else:
                 self.change_possession()
                 self.flip_field()
-            return play.play_type
+                return 'turnover'
         else:
             self.yds_to_goal -= play.yds_gained
             self.box_score[f"{self.offense_team}_{play.play_type}_yards"] += play.yds_gained
@@ -225,7 +212,7 @@ class Game:
         print(play_description)
     
     def simulate_kickoff(self):
-        kickoff = Kick()
+        kickoff = Kickoff(self.yds_to_goal)
         kickoff.sim()
         self.print_state(play=kickoff)
         self.update_state(kickoff)
@@ -233,7 +220,10 @@ class Game:
     def simulate_play(self):
         # Sim play
         if self.down < 4 or self.yds_to_goal < 3:
-            play = random.choice([Pass(), Rush()])
+            play = random.choice([
+                Pass(self.yds_to_goal, self.distance), 
+                Rush(self.yds_to_goal, self.distance)
+            ])
         elif self.yds_to_goal > 50:
             play = Punt(self.yds_to_goal)
         elif self.yds_to_goal > 3:
@@ -241,7 +231,6 @@ class Game:
         play.sim()
         self.print_state(play=play)
         return self.update_state(play)
-
 
     def simulate_possession(self):
         # Initialize down and distance 
