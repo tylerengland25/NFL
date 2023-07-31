@@ -17,14 +17,13 @@ class Play(ABC):
     def sim(self):
         defensive_play = random.choice(["run", "pass"])
         if defensive_play == self.play_type:
-            self.yds_gained = random.randint(-5, 5)
+            self.yds_gained = random.randint(-5, min(5, self.yds_to_goal))
         else:
-            self.yds_gained = random.randint(0, 15)
+            self.yds_gained = random.randint(0, min(15, self.yds_to_goal))
         self.change_of_possession = random.choice(
             [True] * 5 + [False] * 95
         )
-        if self.yds_gained > self.yds_to_goal and not self.change_of_possession:
-            self.yds_gained = self.yds_to_goal
+        if self.yds_gained >= self.yds_to_goal and not self.change_of_possession:
             self.touchdown = True
         elif self.yds_gained >= self.distance and not self.change_of_possession:
             self.first_down = True

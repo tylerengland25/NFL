@@ -7,6 +7,7 @@ from play_types import (
 
 class Game:
     def __init__(self, home_team, away_team):
+        # Game states
         self.home_team = home_team
         self.away_team = away_team
         self.home_score = 0
@@ -39,6 +40,9 @@ class Game:
             f"{self.home_team}_fg_yards":       0, f"{self.away_team}_fg_yards":       0,
         }
 
+        # Counter for state printing
+        self.print_counter = 0
+
     def change_possession(self):
         offense = self.offense_team
         self.offense_team = self.defense_team
@@ -58,6 +62,7 @@ class Game:
 
     def is_first_down(self, play):
         if play.yds_gained >= self.distance:
+            self.yds_to_goal -= play.yds_gained
             self.distance = 10 if self.yds_to_goal >= 10 else self.yds_to_goal
             self.down = 1
             return True
@@ -65,9 +70,10 @@ class Game:
             return False
 
     def is_touchdown(self, play):
-        if play.yds_gained > self.yds_to_goal:
+        if play.yds_gained >= self.yds_to_goal:
             self.box_score[f"{self.offense_team}_{play.play_type}_tds"] += 1
             self.adjust_score(7)
+            self.yds_to_goal = 65
             return True
         else:
             return False
@@ -76,6 +82,15 @@ class Game:
         if play.change_of_possession:
             turnover_type = 'ints' if play.play_type == 'pass' else 'fums'
             self.box_score[f"{self.offense_team}_{play.play_type}_{turnover_type}"] += 1
+            self.box_score[f"{self.defense_team}_def_{turnover_type}"] += 1
+            self.change_possession()
+            self.flip_field()
+            return True
+        else:
+            return False
+        
+    def is_turnover_on_downs(self, play):
+        if self.down == 4 and play.yds_gained < self.distance:
             self.change_possession()
             self.flip_field()
             return True
@@ -92,7 +107,7 @@ class Game:
             return False
 
     def print_score(self):
-        print(f"{self.home_team} {self.home_score} - {self.away_score} {self.away_team}\n")
+        print(f"{self.away_team} {self.away_score} - {self.home_score} {self.home_team}")
 
     def print_state(self, play):
         # Set the scoreboard string
@@ -131,7 +146,7 @@ class Game:
             play_description = f"{self.offense_team} passed the ball for {play.yds_gained} yards."
             if play.change_of_possession:
                 play_description += " INTERCEPTION."
-            if play.touchdown:
+            elif play.touchdown:
                 play_description += " TOUCHDOWN."
             elif play.first_down:
                 play_description += " FIRST DOWN."
@@ -139,7 +154,7 @@ class Game:
             play_description = f"{self.offense_team} rushed the ball for {play.yds_gained} yards."
             if play.change_of_possession:
                 play_description += " FUMBLE."
-            if play.touchdown:
+            elif play.touchdown:
                 play_description += " TOUCHDOWN."
             elif play.first_down:
                 play_description += " FIRST DOWN."
@@ -153,15 +168,68 @@ class Game:
             made = 'MADE' if play.made else 'MISSED'
             play_description = f"{self.offense_team} {made} a {self.yds_to_goal} yard field goal."
         
-        # Set the fixed width for each part of the printed output
-        scoreboard = scoreboard.ljust(16)
-        clock = clock.ljust(8)
-        down_distance = down_distance.ljust(7)
-        yards_to_goal = yards_to_goal.ljust(14)
-        play_duration = play_duration.ljust(7)
-        play_description = play_description.ljust(40)
-        
-        print(f"| {scoreboard} | {clock} | {down_distance} | {yards_to_goal} | {play_duration} | {play_description} |")
+        # Headers and states
+        headers = ["Scoreboard", "Clock", "Down & Distance", "Yards to Goal", "Play Duration", "Play Description"]
+        states = [scoreboard, clock, down_distance, yards_to_goal, play_duration, play_description]
+
+        # Set column widths
+        preset_widths = [16, 8, 7, 14, 7, 55]
+        column_widths = [max(len(header), width) for header, width in zip(headers, preset_widths)]
+
+        # Header row
+        header_row = " | ".join(header.ljust(width) for header, width in zip(headers, column_widths))
+        state_row = " | ".join(state.ljust(width) for state, width in zip(states, column_widths))
+
+        # Print the header ever 15 plays
+        if self.print_counter % 15 == 0:
+            print("-" * len(header_row))
+            print(header_row)
+            print("-" * len(header_row))
+        print(state_row)
+        self.print_counter += 1
+
+    def print_boxscore(self):
+        team_names = [self.home_team, self.away_team]
+        tables = {
+            "Offensive Stats": [
+                "Team", 
+                "Pass Yards", "Pass Atts", "Pass TDs", "Pass INTs", 
+                "Rush Yards", "Rush Atts", "Rush TDs", "Rush Fums"
+            ],
+            "Defensive Stats": [
+                "Team", "Def INTs", "Def Fums"
+            ],
+            "Special Teams Stats": [
+                "Team",
+                "Punt Yards", "Punt Atts", 
+                "FG Atts", "FG Made", "FG Yards"
+            ]
+        }
+
+        for table in tables:
+            print(f"\n{table}")
+            
+            # Calculate maximum width for each column
+            headers = tables[table]
+            column_widths = [len(header) for header in headers]
+
+            # Print the header row
+            header_row = " | ".join(header.rjust(width) for header, width in zip(headers, column_widths))
+            print("-" * len(header_row))
+            print(header_row)
+            print("-" * len(header_row))
+
+            for team_name in team_names:
+                team_stats = [f"{team_name}".rjust(column_widths[0])]
+
+                for stat, width in zip(headers[1:], column_widths[1:]):
+                    team_stats.append(
+                        str(self.box_score[f"{team_name}_{stat.lower().replace(' ', '_')}"]).rjust(width)
+                    )
+
+                row = " | ".join(team_stats)
+                print(row)
+                print("-" * len(header_row))
 
     def update_state(self, play):
         self.adjust_clock(play.duration)
@@ -177,6 +245,7 @@ class Game:
             if play.made:
                 self.box_score[f"{self.offense_team}_fg_made"] += 1
                 self.box_score[f"{self.offense_team}_fg_yards"] += play.yds_kicked
+                self.yds_to_goal = 65
                 self.adjust_score(3)
                 return play.play_type
             else:
@@ -184,7 +253,6 @@ class Game:
                 self.flip_field()
                 return 'turnover'
         else:
-            self.yds_to_goal -= play.yds_gained
             self.box_score[f"{self.offense_team}_{play.play_type}_yards"] += play.yds_gained
             self.box_score[f"{self.offense_team}_{play.play_type}_atts"] += 1
             if self.is_turnover(play):
@@ -193,7 +261,10 @@ class Game:
                 return 'touchdown'
             elif self.is_first_down(play):
                 return 'first down'
+            elif self.is_turnover_on_downs(play):
+                return 'turnover'
             else:
+                self.yds_to_goal -= play.yds_gained
                 self.distance -= play.yds_gained
                 self.down += 1
 
@@ -219,7 +290,7 @@ class Game:
 
     def simulate_play(self):
         # Sim play
-        if self.down < 4 or self.yds_to_goal < 3:
+        if self.down < 4 or (self.yds_to_goal <= 3 and self.down == 4):
             play = random.choice([
                 Pass(self.yds_to_goal, self.distance), 
                 Rush(self.yds_to_goal, self.distance)
@@ -276,6 +347,7 @@ class Game:
 
         print("\nEnd of the game!")
         self.print_score()
+        self.print_boxscore()
 
 
 if __name__ == "__main__":
