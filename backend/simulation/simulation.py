@@ -5,6 +5,7 @@ from play_types import (
     FieldGoal
 )
 
+
 class Game:
     def __init__(self, home_team, away_team):
         # Game states
