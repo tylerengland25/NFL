@@ -1,2 +1,1 @@
-# SeniorProject
- NFL Betting Model
+# NFL Betting Model
