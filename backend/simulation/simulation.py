@@ -17,6 +17,9 @@ class Game:
         self.secs_left = 900
         self.is_game_over = False
         self.box_score = {
+            # Score 
+            f"{self.home_team}_score":          0, f"{self.away_team}_score":          0,
+
             # Offensive stats
             f"{self.home_team}_pass_yards":     0, f"{self.away_team}_pass_yards":     0,
             f"{self.home_team}_pass_atts":      0, f"{self.away_team}_pass_atts":      0,
@@ -41,8 +44,9 @@ class Game:
             f"{self.home_team}_fg_yards":       0, f"{self.away_team}_fg_yards":       0,
         }
 
-        # Counter for state printing
+        # Verbose settings
         self.print_counter = 0
+        self.verbose = True
 
     def change_possession(self):
         offense = self.offense_team
@@ -55,8 +59,10 @@ class Game:
     def adjust_score(self, score):
         if self.offense_team == self.home_team:
             self.home_score += score
+            self.box_score[f"{self.home_team}_score"] += score
         else:
             self.away_score += score
+            self.box_score[f"{self.away_team}_score"] += score
 
     def adjust_clock(self, duration):
         self.secs_left -= duration
@@ -207,6 +213,8 @@ class Game:
             ]
         }
 
+        self.print_score()
+
         for table in tables:
             print(f"\n{table}")
             
@@ -281,12 +289,12 @@ class Game:
             self.home_started = False
         self.yds_to_goal = 65
         play_description = f"{self.defense_team} will receive the ball"
-        print(play_description)
+        if self.verbose: print(play_description)
     
     def simulate_kickoff(self):
         kickoff = Kickoff(self.yds_to_goal)
         kickoff.sim()
-        self.print_state(play=kickoff)
+        if self.verbose: self.print_state(play=kickoff)
         self.update_state(kickoff)
 
     def simulate_play(self):
@@ -301,7 +309,7 @@ class Game:
         elif self.yds_to_goal > 3:
             play = FieldGoal(self.yds_to_goal)
         play.sim()
-        self.print_state(play=play)
+        if self.verbose: self.print_state(play=play)
         return self.update_state(play)
 
     def simulate_possession(self):
@@ -326,8 +334,8 @@ class Game:
             if result in ["touchdown", "turnover", "punt", "field goal"]:
                 return result
 
-    def simulate_game(self):
-        print(f"Welcome to the NFL Football Game Simulation between {self.home_team} and {self.away_team}!")
+    def simulate_game(self) -> dict:
+        if self.verbose: print(f"{self.away_team} @ {self.home_team}!")
         
         # Perform the coin toss
         self.coin_toss()
@@ -346,9 +354,11 @@ class Game:
                 self.defense_team = self.home_team if self.home_started else self.away_team
                 self.simulate_kickoff()
 
-        print("\nEnd of the game!")
-        self.print_score()
-        self.print_boxscore()
+        if self.verbose:
+            print("\nEnd of the game!")
+            self.print_boxscore()
+
+        return self.box_score
 
 
 if __name__ == "__main__":
