@@ -12,6 +12,7 @@ class Play(ABC):
         self.change_of_possession = False
         self.touchdown = False
         self.first_down = False
+        self.safety = False
 
     @abstractmethod
     def sim(self):
@@ -27,6 +28,9 @@ class Play(ABC):
             self.touchdown = True
         elif self.yds_gained >= self.distance and not self.change_of_possession:
             self.first_down = True
+        elif self.yds_to_goal - self.yds_gained > 100 and not self.change_of_possession:
+            self.safety = True
+
 
 
 class Pass(Play):
