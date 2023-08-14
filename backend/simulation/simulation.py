@@ -7,7 +7,7 @@ from play_types import (
 
 
 class Game:
-    def __init__(self, home_team, away_team):
+    def __init__(self, home_team, away_team, verbose=True):
         # Game states
         self.home_team = home_team
         self.away_team = away_team
@@ -46,7 +46,7 @@ class Game:
 
         # Verbose settings
         self.print_counter = 0
-        self.verbose = True
+        self.verbose = verbose
 
     def change_possession(self):
         offense = self.offense_team
@@ -106,7 +106,6 @@ class Game:
 
     def is_end_of_quarter(self):
         if self.secs_left <= 0:
-            self.print_score()
             self.secs_left = 900
             self.quarter += 1
             return True
