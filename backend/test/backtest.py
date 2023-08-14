@@ -77,7 +77,9 @@ class BackTest():
             # Save results
             results[stat] = {
                 "rmse": rmse,
-                "mae": mae
+                "mae": mae,
+                "pred": mean(preds),
+                "actual": mean(actuals)
             }
         json.dump(results, open(self.save_path, 'w'), indent=4)
 
