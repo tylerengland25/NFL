@@ -22,7 +22,7 @@ class Play(ABC):
         else:
             self.yds_gained = random.randint(0, min(15, self.yds_to_goal))
         self.change_of_possession = random.choice(
-            [True] * 5 + [False] * 95
+            [True] * 2 + [False] * 98
         )
         if self.yds_gained >= self.yds_to_goal and not self.change_of_possession:
             self.touchdown = True
@@ -30,7 +30,6 @@ class Play(ABC):
             self.first_down = True
         elif self.yds_to_goal - self.yds_gained > 100 and not self.change_of_possession:
             self.safety = True
-
 
 
 class Pass(Play):
