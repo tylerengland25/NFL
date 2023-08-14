@@ -36,9 +36,7 @@ class Game:
             "home_def_safeties":   0, "away_def_safeties":   0,
 
             # Special teams stats
-            "home_kickoff_yards":  0, "away_kickoff_yards":  0,
             "home_kickoff_atts":   0, "away_kickoff_atts":   0,
-            "home_punt_yards":     0, "away_punt_yards":     0,
             "home_punt_atts":      0, "away_punt_atts":      0,
             "home_fg_atts":        0, "away_fg_atts":        0,
             "home_fg_made":        0, "away_fg_made":        0,
@@ -257,7 +255,6 @@ class Game:
         self.adjust_clock(play.duration)
         if play.play_type in ['kickoff', 'punt']:
             self.yds_to_goal -= play.yds_gained
-            self.box_score[f"{self.offense_team}_{play.play_type}_yards"] += play.yds_kicked
             self.box_score[f"{self.offense_team}_{play.play_type}_atts"] += 1
             self.change_possession()
             self.flip_field() 
