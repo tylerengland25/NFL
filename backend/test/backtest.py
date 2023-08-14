@@ -2,6 +2,7 @@ import sys
 sys.path.append('/home/tylerengland/NFL/')
 sys.path.append('/home/tylerengland/NFL/backend/simulation/')
 
+import json
 import pandas as pd
 from backend.simulation.simulation import Game
 from statistics import mean
@@ -9,10 +10,11 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 
 class BackTest():
-    def __init__(self, num_sims):
+    def __init__(self, num_sims, save_path):
         self.num_sims = num_sims
         self.boxscores = {}
         self.predictions = {}
+        self.save_path = save_path
 
         # Print settings
         self.print_counter = 0
@@ -37,6 +39,7 @@ class BackTest():
         self.boxscores = {}
 
     def evaluate(self):
+        resutls = {}
         for stat in self.predictions:
             actuals = self.data[stat]
             preds = self.predictions[stat]
@@ -63,6 +66,13 @@ class BackTest():
             print(data_row)
             self.print_counter += 1
 
+            # Save results
+            resutls[stat] = {
+                "rmse": rmse,
+                "mae": mae
+            }
+        json.dump(resutls, open(self.save_path, 'w'), indent=4)
+
     def run(self):
         self.load_data()
 
@@ -86,5 +96,6 @@ class BackTest():
         self.evaluate()
 
 if __name__ == '__main__':
-    backtest = BackTest(num_sims=1)
+    filename = 'test___00001'
+    backtest = BackTest(num_sims=1, save_path = f'/home/tylerengland/NFL/backend/test/backtests/{filename}.json')
     backtest.run()
