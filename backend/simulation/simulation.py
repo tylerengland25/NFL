@@ -7,7 +7,7 @@ from play_types import (
 
 
 class Game:
-    def __init__(self, home_team, away_team):
+    def __init__(self, home_team, away_team, verbose=True):
         # Game states
         self.home_team = home_team
         self.away_team = away_team
@@ -18,35 +18,34 @@ class Game:
         self.is_game_over = False
         self.box_score = {
             # Score 
-            f"{self.home_team}_score":          0, f"{self.away_team}_score":          0,
+            "home_score":          0, "away_score":          0,
 
             # Offensive stats
-            f"{self.home_team}_pass_yards":     0, f"{self.away_team}_pass_yards":     0,
-            f"{self.home_team}_pass_atts":      0, f"{self.away_team}_pass_atts":      0,
-            f"{self.home_team}_pass_tds":       0, f"{self.away_team}_pass_tds":       0,
-            f"{self.home_team}_pass_ints":      0, f"{self.away_team}_pass_ints":      0,
-            f"{self.home_team}_rush_yards":     0, f"{self.away_team}_rush_yards":     0,
-            f"{self.home_team}_rush_atts":      0, f"{self.away_team}_rush_atts":      0,
-            f"{self.home_team}_rush_tds":       0, f"{self.away_team}_rush_tds":       0,
-            f"{self.home_team}_rush_fums":      0, f"{self.away_team}_rush_fums":      0,
+            "home_pass_yards":     0, "away_pass_yards":     0,
+            "home_pass_atts":      0, "away_pass_atts":      0,
+            "home_pass_tds":       0, "away_pass_tds":       0,
+            "home_pass_ints":      0, "away_pass_ints":      0,
+            "home_rush_yards":     0, "away_rush_yards":     0,
+            "home_rush_atts":      0, "away_rush_atts":      0,
+            "home_rush_tds":       0, "away_rush_tds":       0,
+            "home_rush_fums":      0, "away_rush_fums":      0,
 
             # Defensive stats
-            f"{self.home_team}_def_ints":       0, f"{self.away_team}_def_ints":       0,
-            f"{self.home_team}_def_fums":       0, f"{self.away_team}_def_fums":       0,
+            "home_def_ints":       0, "away_def_ints":       0,
+            "home_def_fums":       0, "away_def_fums":       0,
+            "home_def_safeties":   0, "away_def_safeties":   0,
 
             # Special teams stats
-            f"{self.home_team}_kickoff_yards":  0, f"{self.away_team}_kickoff_yards":  0,
-            f"{self.home_team}_kickoff_atts":   0, f"{self.away_team}_kickoff_atts":   0,
-            f"{self.home_team}_punt_yards":     0, f"{self.away_team}_punt_yards":     0,
-            f"{self.home_team}_punt_atts":      0, f"{self.away_team}_punt_atts":      0,
-            f"{self.home_team}_fg_atts":        0, f"{self.away_team}_fg_atts":        0,
-            f"{self.home_team}_fg_made":        0, f"{self.away_team}_fg_made":        0,
-            f"{self.home_team}_fg_yards":       0, f"{self.away_team}_fg_yards":       0,
+            "home_kickoff_atts":   0, "away_kickoff_atts":   0,
+            "home_punt_atts":      0, "away_punt_atts":      0,
+            "home_fg_atts":        0, "away_fg_atts":        0,
+            "home_fg_made":        0, "away_fg_made":        0,
+            "home_fg_yards":       0, "away_fg_yards":       0,
         }
 
         # Verbose settings
         self.print_counter = 0
-        self.verbose = True
+        self.verbose = verbose
 
     def change_possession(self):
         offense = self.offense_team
@@ -57,12 +56,12 @@ class Game:
         self.yds_to_goal = 100 - self.yds_to_goal
 
     def adjust_score(self, score):
-        if self.offense_team == self.home_team:
+        if self.offense_team == "home":
             self.home_score += score
-            self.box_score[f"{self.home_team}_score"] += score
+            self.box_score["home_score"] += score
         else:
             self.away_score += score
-            self.box_score[f"{self.away_team}_score"] += score
+            self.box_score["away_score"] += score
 
     def adjust_clock(self, duration):
         self.secs_left -= duration
@@ -95,7 +94,16 @@ class Game:
             return True
         else:
             return False
-        
+
+    def is_safety(self, play):
+        if self.yds_to_goal - play.yds_gained > 100:
+            self.box_score[f"{self.defense_team}_def_safeties"] += 1
+            self.adjust_score(2)
+            self.yds_to_goal = 65
+            return True
+        else:
+            return False
+
     def is_turnover_on_downs(self, play):
         if self.down == 4 and play.yds_gained < self.distance:
             self.change_possession()
@@ -106,7 +114,6 @@ class Game:
 
     def is_end_of_quarter(self):
         if self.secs_left <= 0:
-            self.print_score()
             self.secs_left = 900
             self.quarter += 1
             return True
@@ -157,6 +164,8 @@ class Game:
                 play_description += " TOUCHDOWN."
             elif play.first_down:
                 play_description += " FIRST DOWN."
+            elif play.safety:
+                play_description += " SAFETY."
         elif play.play_type == 'rush':              # Play description for rush
             play_description = f"{self.offense_team} rushed the ball for {play.yds_gained} yards."
             if play.change_of_possession:
@@ -165,6 +174,8 @@ class Game:
                 play_description += " TOUCHDOWN."
             elif play.first_down:
                 play_description += " FIRST DOWN."
+            elif play.safety:
+                play_description += " SAFETY."
         elif play.play_type == 'punt':              # Play description for punt
             play_description = f"{self.offense_team} punted the ball {play.yds_kicked} yards."
             if play.touchback:
@@ -196,7 +207,7 @@ class Game:
         self.print_counter += 1
 
     def print_boxscore(self):
-        team_names = [self.home_team, self.away_team]
+        team_names = ["home", "away"]
         tables = {
             "Offensive Stats": [
                 "Team", 
@@ -204,7 +215,7 @@ class Game:
                 "Rush Yards", "Rush Atts", "Rush TDs", "Rush Fums"
             ],
             "Defensive Stats": [
-                "Team", "Def INTs", "Def Fums"
+                "Team", "Def INTs", "Def Fums", "Def Safeties"
             ],
             "Special Teams Stats": [
                 "Team",
@@ -244,7 +255,6 @@ class Game:
         self.adjust_clock(play.duration)
         if play.play_type in ['kickoff', 'punt']:
             self.yds_to_goal -= play.yds_gained
-            self.box_score[f"{self.offense_team}_{play.play_type}_yards"] += play.yds_kicked
             self.box_score[f"{self.offense_team}_{play.play_type}_atts"] += 1
             self.change_possession()
             self.flip_field() 
@@ -266,6 +276,8 @@ class Game:
             self.box_score[f"{self.offense_team}_{play.play_type}_atts"] += 1
             if self.is_turnover(play):
                 return 'turnover'
+            elif self.is_safety(play):
+                return 'safety'
             elif self.is_touchdown(play):
                 return 'touchdown'
             elif self.is_first_down(play):
@@ -280,12 +292,12 @@ class Game:
     def coin_toss(self):
         coin_toss_result = random.choice(["heads", "tails"])
         if coin_toss_result == "heads":
-            self.offense_team = self.home_team
-            self.defense_team = self.away_team
+            self.offense_team = "home"
+            self.defense_team = "away"
             self.home_started = True
         else:
-            self.offense_team = self.away_team
-            self.defense_team = self.home_team
+            self.offense_team = "away"
+            self.defense_team = "home"
             self.home_started = False
         self.yds_to_goal = 65
         play_description = f"{self.defense_team} will receive the ball"
@@ -331,7 +343,7 @@ class Game:
             result = self.simulate_play()
 
             # Check for touchdown, turnover, punt, field goal
-            if result in ["touchdown", "turnover", "punt", "field goal"]:
+            if result in ["touchdown", "turnover", "punt", "field goal", "safety"]:
                 return result
 
     def simulate_game(self) -> dict:
@@ -346,12 +358,12 @@ class Game:
         # Simulate possessions until end of quarter
         while not self.is_game_over:
             ended_in = self.simulate_possession()
-            if ended_in == "touchdown" or ended_in == "field goal":
+            if ended_in in ["touchdown", "field goal", "safety"]:
                 self.simulate_kickoff()
             elif ended_in == "halftime":
                 # Kickoff to start the second half
-                self.offense_team = self.away_team if self.home_started else self.home_team
-                self.defense_team = self.home_team if self.home_started else self.away_team
+                self.offense_team = "away" if self.home_started else "home"
+                self.defense_team = "home" if self.home_started else "away"
                 self.simulate_kickoff()
 
         if self.verbose:
