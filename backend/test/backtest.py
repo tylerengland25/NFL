@@ -32,16 +32,24 @@ class BackTest():
 
     def aggregate_boxscores(self):
         for stat in self.boxscores:
-            if stat not in self.predictions:
-                self.predictions[stat] = [mean(self.boxscores[stat])]
+            stat_ = "_".join(stat.split("_")[1:]) if stat not in ['spread', 'total'] else stat
+            if stat_ not in self.predictions:
+                self.predictions[stat_] = [mean(self.boxscores[stat])]
             else:
-                self.predictions[stat].append(mean(self.boxscores[stat]))
+                self.predictions[stat_].append(mean(self.boxscores[stat]))
         self.boxscores = {}
 
     def evaluate(self):
-        resutls = {}
+        results = {}
         for stat in self.predictions:
-            actuals = self.data[stat]
+            if stat in ['spread', 'total']:
+                actuals = self.data[stat].tolist()
+            else:
+                actuals = [
+                    value 
+                    for pair in zip(self.data[f"home_{stat}"], self.data[f"away_{stat}"]) 
+                    for value in pair
+                ]
             preds = self.predictions[stat]
             rmse = mean_squared_error(actuals, preds, squared=False)
             mae = mean_absolute_error(actuals, preds)
@@ -67,11 +75,13 @@ class BackTest():
             self.print_counter += 1
 
             # Save results
-            resutls[stat] = {
+            results[stat] = {
                 "rmse": rmse,
-                "mae": mae
+                "mae": mae,
+                "pred": mean(preds),
+                "actual": mean(actuals)
             }
-        json.dump(resutls, open(self.save_path, 'w'), indent=4)
+        json.dump(results, open(self.save_path, 'w'), indent=4)
 
     def run(self):
         self.load_data()
@@ -97,5 +107,5 @@ class BackTest():
 
 if __name__ == '__main__':
     filename = 'test___00001'
-    backtest = BackTest(num_sims=1, save_path = f'/home/tylerengland/NFL/backend/test/backtests/{filename}.json')
+    backtest = BackTest(num_sims=5000, save_path = f'/home/tylerengland/NFL/backend/test/backtests/{filename}.json')
     backtest.run()
