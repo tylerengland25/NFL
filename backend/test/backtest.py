@@ -43,7 +43,7 @@ class BackTest():
         results = {}
         for stat in self.predictions:
             if stat in ['spread', 'total']:
-                actuals = self.data[stat].values
+                actuals = self.data[stat].tolist()
             else:
                 actuals = [
                     value 
