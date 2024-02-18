@@ -17,22 +17,30 @@ help:
 
 # Set up virtual environment and install dependencies
 setup: $(VENV_DIR)/bin/activate requirements.txt
-	. $(VENV_DIR)/bin/activate; \
-	$(PIP) install -r requirements.txt
+	@echo "Setting up virtual environment..."
+	@. $(VENV_DIR)/bin/activate && \
+	$(PIP) install -r requirements.txt && \
+	echo "Virtual environment is activated and dependencies are installed."
 
 # Create virtual environment if it doesn't exist
 $(VENV_DIR)/bin/activate:
-	test -d $(VENV_DIR) || $(PYTHON) -m venv $(VENV_DIR)
+	@test -d $(VENV_DIR) || $(PYTHON) -m venv $(VENV_DIR)
 
 # Run all tests using pytest
 test: setup
-	. $(VENV_DIR)/bin/activate; \
+	@echo "Running tests..."
+	@. $(VENV_DIR)/bin/activate && \
 	$(PYTEST) $(TESTS_DIR)
 
 # Run the project
 run:
-	$(PYTHON) $(SRC_DIR)/main.py
+	@echo "Running the project..."
+	@$(PYTHON) $(SRC_DIR)/main.py
 
 # Clean up
 clean:
-	rm -rf $(VENV_DIR)
+	@echo "Cleaning up..."
+	@rm -rf $(VENV_DIR)
+	@echo "Done cleaning."
+
+.PHONY: help setup test run clean
