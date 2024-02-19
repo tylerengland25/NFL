@@ -5,7 +5,7 @@ PYTHON := python3
 PIP := $(VENV_DIR)/bin/pip
 PYTEST := $(VENV_DIR)/bin/pytest
 SRC_DIR := src
-TESTS_DIR := tests
+TESTS_DIR := src/tests
 
 # Help target
 help:
