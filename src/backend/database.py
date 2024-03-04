@@ -23,7 +23,7 @@ class Database:
         self.cursor = self.connection.cursor()
         return self
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         self.connection.close()
 
     def execute(self, query, values=None):
@@ -34,19 +34,11 @@ class Database:
         except MySQLdb.Error as e:
             print("MySQL Error:", e)
             return None
-        
-    def create_schema(self, schema_name):
-        query = f"CREATE SCHEMA {schema_name}"
+
+    def create_table(self, table_name, columns):
+        query = f"CREATE TABLE {table_name} ({', '.join(columns)});"
         self.execute(query)
 
-    def delete_schema(self, schema_name):
-        query = f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"
-        self.execute(query)
-
-    def create_table(self, schema_name, table_name, columns):
-        query = f"CREATE TABLE {schema_name}.{table_name} ({', '.join(columns)})"
-        self.execute(query)
-
-    def delete_table(self, schema_name, table_name):
-        query = f"DROP TABLE IF EXISTS {schema_name}.{table_name}"
+    def delete_table(self, table_name):
+        query = f"DROP TABLE IF EXISTS {table_name};"
         self.execute(query)
